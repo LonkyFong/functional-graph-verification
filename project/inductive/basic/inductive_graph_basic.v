@@ -13,14 +13,10 @@ Import ListNotations.
 *)
 
 
-(* https://rocq-prover.org/doc/v8.9/stdlib/Coq.FSets.FMapList.html *)
-Require Import FSets.
 Require Import FMaps.
 Require Import OrderedTypeEx.
 
 Open Scope nat_scope.
-
-Definition Node := Nat_as_OT.t.
 
 
 Module NatMap := FMapList.Make(Nat_as_OT).
@@ -31,9 +27,10 @@ Print Module WF.
 Print Module WP.
 Check Nat_as_OT.lt. (*   : positive -> positive -> Prop *)
 
-Module NatSet := FSetList.Make(Nat_as_OT).
+
+Require Import MyProject.project.util.NatSet.
+
 Print FSetEqProperties.
-Module NatSetProperties := EqProperties(NatSet).
 
 
 

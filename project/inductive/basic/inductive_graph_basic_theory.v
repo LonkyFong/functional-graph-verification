@@ -13,7 +13,31 @@ Require Import FSets.
 Require Import FMaps.
 Require Import OrderedTypeEx.
 
+Require Import MyProject.project.util.NatSet.
+
 Require Import MyProject.project.inductive.basic.inductive_graph_basic.
+Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
+
+Require Import MyProject.project.relational_graph.
+Require Import MyProject.project.relational_graph_theory.
+
+
+
+(* Section to make rewrite work with IG_equiv *)
+
+(* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
+Require Import Setoid Morphisms.
+(* TODO: this could be made generic *)
+(* This proof is based on === being an equivalence relation *)
+Instance IG_Equivalence_eq : Equivalence IG_equiv.
+Proof.
+    pose proof (@RG_Equivalence_eq nat). destruct H. split.
+    - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
+    - unfold Symmetric. intros. unfold Symmetric in Equivalence_Symmetric. apply Equivalence_Symmetric. apply H.
+    - unfold Transitive. intros. unfold Transitive in Equivalence_Transitive. apply (Equivalence_Transitive _ (IG_basic_to_RG y) _).
+        + apply H.
+        + apply H0.
+Qed. 
 
 (* (attempt at) direct equational specifications of an IG_basic: *)
 

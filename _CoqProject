@@ -1,8 +1,11 @@
 -Q . MyProject
+./project/util/NatSet.v
 ./project/util/util.v
 
 ./project/relational_graph.v
 ./project/relational_graph_theory.v
+./project/relational_graph_IG_basic_operations.v
+./project/relational_graph_IG_basic_operations_theory.v
 
 ./project/algebraic/algebraic_graph.v
 ./project/algebraic/algebraic_graph_to_RG.v

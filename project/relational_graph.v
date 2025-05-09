@@ -2,6 +2,11 @@ Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
+Require Import MyProject.project.util.NatSet.
+Require Import MyProject.project.util.util.
+
+
+
 (* Defining a Relational Graph and its (possible) operations *)
 
 
@@ -110,6 +115,26 @@ Definition RG_getIncidentEdges {A : Type} (node : A) (rg : RG A) : relation A :=
 (* There can also be variations of this, where you the the neighbor nodes and not just edges ... *)
 
 
+
+(* A little exotic, but useful for IGs *)
+(* Adds a node and its in- and out- going edges (= its IG context) to an RG.
+    Assumes that the neighboring nodes exist *)
+Definition _extendByContext (node : nat) (froms tos : NatSet.t) (rg : RG nat) : RG nat.
+Proof.
+    refine {|
+        RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (_customEnsembleAdd node rg.(RG_nodes))  n;
+        RG_edges := fun (n0 n1 : nat) =>
+                                (NatSet.In n0 froms /\ n1 = node)
+                                \/ (n0 = node /\ NatSet.In n1 tos)
+                                \/ rg.(RG_edges) n0 n1
+                                ;
+                     
+        RG_valid := _
+    |}.
+    RG_valid_prover_with rg.
+Defined.
+
+(* Connectedness *)
 Definition RG_existsPath {A : Type} (node1 node2 : A) (rg : RG A) : Prop :=
     clos_trans A rg.(RG_edges) node1 node2.
 

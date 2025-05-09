@@ -2,7 +2,6 @@ Require Import Bool.
 Require Import Coq.Arith.Arith.
 Require Import List.
 
-
 Require Import Coq.Sets.Ensembles.
 
 
@@ -16,6 +15,8 @@ Definition _customEnsembleAdd {A : Type} (a : A) (en : Ensemble A) : Ensemble A 
 Definition _listToEnsemble {A : Type} (az : list A) : Ensemble A :=
   fold_right _customEnsembleAdd (Empty_set A) az
 .
+
+
 
 
 (* This is from software foundations. Eventually, I will move this somewhere else *)

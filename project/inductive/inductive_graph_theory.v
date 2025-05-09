@@ -14,7 +14,6 @@ Require Import MyProject.project.inductive.inductive_graph_to_RG.
 Open Scope nat_scope.
 
 
-
 (* Section to make rewrite work with IG_equiv *)
 
 (* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
