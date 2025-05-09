@@ -7,6 +7,11 @@ Require Import List.
 Require Import Bool.
 Import ListNotations.
 
+(* Extreme minimal inductive graph implementation (minimum functions, only integers) with
+  {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-}
+  At the moment, also theorems about them at the bottom of the file.
+*)
+
 
 (* https://rocq-prover.org/doc/v8.9/stdlib/Coq.FSets.FMapList.html *)
 Require Import FSets.
@@ -16,7 +21,6 @@ Require Import OrderedTypeEx.
 Open Scope nat_scope.
 
 Definition Node := Nat_as_OT.t.
-
 
 
 Module NatMap := FMapList.Make(Nat_as_OT).
@@ -354,41 +358,6 @@ Proof.
   - firstorder. congruence.
 Qed.
 
-Theorem  non_empty_isEmpty_false' : forall (nodes : list Node) (edges : list (Node * Node)),
-  length nodes <> 0 <-> isEmpty ((mkGraph nodes edges)) = false.
-Proof.
-  intros. destruct nodes.
-  - simpl. unfold isEmpty. rewrite <- not_NatMap_Empty_is_empty_false. unfold not.
-    firstorder.
-    apply H.
-    apply WP.elements_Empty.
-
-    unfold mkGraph.
-    rewrite insEdges_on_empty_is_empty. compute. reflexivity.
-  - simpl. unfold isEmpty. rewrite <- not_NatMap_Empty_is_empty_false. unfold not.
-    firstorder.
-    + unfold mkGraph in H0. apply WP.elements_Empty in H0.
-      assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
-        unfold not. intros. destruct H1. inversion H1.
-      }
-      rewrite <- In_conditions_same in HH.
-      unfold not in HH.
-
-      unfold not in HH. apply HH.
-      
-      pose proof WF.elements_in_iff.
-      edestruct H1.
-      rewrite H0 in H2.
-      apply H2.
-      
-      apply In_labNodes_is_InMap.
-      apply mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
-    + congruence.
-    
-Qed.
-
-
-
 
 Theorem  non_empty_isEmpty_false : forall (nodes : list Node) (edges : list (Node * Node)),
   length nodes <> 0 <-> isEmpty ((mkGraph nodes edges)) = false.
@@ -418,7 +387,6 @@ Proof.
       apply mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
     + congruence.
 Qed.
-
 
 
 
