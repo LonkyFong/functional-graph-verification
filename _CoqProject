@@ -2,4 +2,9 @@
 ./project/algebraic/algebraic_graph.v
 ./project/inductive/inductive_graph.v
 ./project/relational_graph.v
+./project/inductive/basic/inductive_graph_basic.v
 # ./project/inductive/IG_operations_as_RG.v
+
+
+# coq_makefile -f _CoqProject -o Makefile
+# make

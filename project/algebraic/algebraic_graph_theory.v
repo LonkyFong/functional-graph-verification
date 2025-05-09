@@ -5,13 +5,9 @@ Require Import MyProject.project.relational_graph.
 (* Defining Conversion from Algebraic Graph to Record Graph *)
 Definition empty_RG {X : Type} : RG X.
 Proof.
-    refine {|
-        gr_nodes := fun A => False;
-        gr_edges := fun A B => False;
-        gr_valid := _
-    |}.
-    unfold valid_cond. intros. destruct H.
-Defined.
+    exact RG_empty.
+Qed.
+
 
 Definition singleton_RG {X : Type} (x : X) : RG X.
 Proof.

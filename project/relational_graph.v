@@ -99,6 +99,19 @@ Qed.
 
 (* Defining Operations on RGs: *)
 
+Definition RG_empty {A : Type} : RG A.
+Proof.
+    refine {|
+        gr_nodes := fun A => False;
+        gr_edges := fun A B => False;
+        gr_valid := _
+    |}.
+    unfold valid_cond. intros. destruct H.
+Defined.
+
+Definition RG_isEmpty {A : Type} (rg : RG A) : Prop :=
+    forall (a : A), rg.(gr_nodes) a = False
+.
 
 Definition RG_addNode {A : Type} (node : A) (rg : RG A) : RG A.
 Proof.

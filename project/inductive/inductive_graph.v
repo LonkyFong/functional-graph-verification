@@ -482,7 +482,9 @@ Theorem spec4 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : li
   In n nl -> exists map1 map2, matsh (fst n) (mkGraph nl el) =
   (Some ((map1), snd n, (map2)), mkGraph (filter (fun '(idx, lab) => negb (fst n =? idx)) nl) (filter (fun '(to, from, lab) => negb ((to =? fst n) || (from =? fst n))) el)).
 (* This is not even a complete specification and it looks like a nightmare to prove... *)
+Admitted.
 
 Theorem spec5 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
   not (In n nl) -> matsh (fst n) (mkGraph nl el) = (None, mkGraph nl el).
+Admitted.
 
