@@ -112,7 +112,7 @@ Module NatSetProperties := FSetEqProperties.EqProperties(NatSet).
 
 
 
-
+(* Returns None, if there are duplicates *)
 Definition set_from_list (l : list node) : option NatSet.t :=
   fold_right (fun (k : node) (acc : option NatSet.t) =>
                 bind acc (fun (acc : NatSet.t) => if NatSet.mem k acc then None else Some (NatSet.add k acc))
@@ -120,7 +120,6 @@ Definition set_from_list (l : list node) : option NatSet.t :=
 
   
 
-(* Return a list of keys for now. Could be more fancy with a multi-set or smth. *)
 Definition IG_map_out_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
   set_from_list (
     concat (
@@ -217,6 +216,8 @@ Defined.
 
 Definition isEmpty {A B : Type} (x : IG A B) : bool :=
   NatMap.is_empty x.(IG_data).
+
+Compute isEmpty empty.
 
 
 (* Here start the helper functions for "matsh". match is a reserved keyword by coq.... *)
@@ -422,3 +423,66 @@ Compute labNodes my_basic_graph.
 Definition lookup {X Y : Type} (n : node) (ig : IG X Y) : option X :=
   option_map (fun c => match c with (_, label, _) => label end) (NatMap.find n ig.(IG_data)).
   
+
+
+
+
+(* Here, I try out various equational specifications of an IG: *)
+
+Check empty.
+(* IG ?A ?B *)
+
+Check isEmpty.
+(* IG ?A ?B -> bool. *)
+
+Check matsh.
+(* node -> IG ?A ?B -> Decomp' ?A ?B. *)
+
+Print Decomp'.
+(* (MContext' A B * IG A B) *)
+
+Print MContext'.
+(* option (Context' A B) *)
+
+Print Context'.
+(* (Adj' B * A * Adj' B) *)
+
+Print Adj'.
+(* NatMap.t B *)
+
+Print LNode.
+(* (node * ?A) *)
+
+Print LEdge.
+(* (node * node * ?B) *)
+
+Check mkGraph.
+(* list (LNode ?A) -> list (LEdge ?B) -> IG ?A ?B. *)
+
+Check labNodes.
+(* IG ?A ?B -> list (LNode ?A). *)
+
+
+Theorem spec1 : forall A B, isEmpty (@empty A B) = true.
+Proof.
+  intros. compute. reflexivity.
+Qed.
+
+Theorem spec2 : forall (A B : Type) (nl : list (LNode A)) (el : list (LEdge B)), labNodes (mkGraph nl el) = nl.
+Proof.
+  intros. compute.
+Admitted.
+
+Theorem spec3 : forall (A B : Type) (n : node), matsh n (@empty A B) = (None, empty).
+Proof.
+  intros. compute.
+Admitted.
+
+Theorem spec4 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
+  In n nl -> exists map1 map2, matsh (fst n) (mkGraph nl el) =
+  (Some ((map1), snd n, (map2)), mkGraph (filter (fun '(idx, lab) => negb (fst n =? idx)) nl) (filter (fun '(to, from, lab) => negb ((to =? fst n) || (from =? fst n))) el)).
+(* This is not even a complete specification and it looks like a nightmare to prove... *)
+
+Theorem spec5 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
+  not (In n nl) -> matsh (fst n) (mkGraph nl el) = (None, mkGraph nl el).
+

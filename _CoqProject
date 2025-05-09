@@ -2,3 +2,4 @@
 ./project/algebraic/algebraic_graph.v
 ./project/inductive/inductive_graph.v
 ./project/relational_graph.v
+# ./project/inductive/IG_operations_as_RG.v
