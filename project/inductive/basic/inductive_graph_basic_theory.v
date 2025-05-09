@@ -177,7 +177,7 @@ Definition RG_labNodes (rg : RG nat) : Ensemble Node :=
   rg.(gr_nodes).
 
 
-(* Here come some proofs: *)
+(* Here come some proofs about equations: *)
 
 (* Here start "meaningful statements" *)
 
@@ -186,10 +186,11 @@ Definition RG_labNodes (rg : RG nat) : Ensemble Node :=
 Lemma RG_insEdge_does_not_add_node : forall (edge : (Node * Node)) (rg : RG nat),
   RG_labNodes (_insEdge edge rg) = RG_labNodes rg.
 Proof.
-Admitted.
+  intros. simpl. unfold RG_labNodes. unfold _insEdge. destruct edge. simpl. reflexivity.
+Qed.
 
 
-Lemma RG_insEdges_does_not_add_nodes : forall (edges : list (Node * Node)) (rg : RG nat) (x : Node),
+Lemma RG_insEdges_does_not_add_nodes : forall (edges : list (Node * Node)) (rg : RG nat),
   RG_labNodes (_insEdges edges rg) = RG_labNodes rg.
 Proof.
 Admitted.
@@ -267,5 +268,49 @@ Admitted.
 
 Theorem RG_spec5 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
   not (List.In node nodes) -> RG_matsh node (RG_mkGraph nodes edges) = ((False, (Empty_set nat, Empty_set nat)), RG_mkGraph nodes edges).
+Proof.
+Admitted.
+
+
+(* Now go to proving that the implementations from IG basic relate to the RG ones *)
+(* Filling in all the admitteds, should suffice to show that IG_basic operations are equivalent to RG operations *)
+(* Hence, all theorems from one apply to the other *)
+(*   {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
+Definition IG_basic_Propify_isEmpty (result : bool) : Prop.
+Proof.
+Admitted.
+
+Definition IG_basic_Propify_matsh (result : option (NatSet.t * NatSet.t) * IG) : (Prop * (Ensemble nat * Ensemble nat)) * RG nat.
+Proof.
+Admitted.
+
+Definition IG_basic_Propify_labNodes (result : list Node) : Ensemble Node.
+Proof.
+Admitted.
+
+
+Theorem IG_basic_empty_relate :
+  IG_basic_to_RG empty = RG_empty.
+Proof.
+Admitted.
+
+Theorem IG_basic_isEmpty_relate : forall (ig : IG),
+  IG_basic_Propify_isEmpty (isEmpty ig) = RG_isEmpty (IG_basic_to_RG ig).
+Proof.
+Admitted.
+
+
+Theorem IG_basic_matsh_relate : forall (node : Node) (ig : IG),
+  IG_basic_Propify_matsh (matsh node ig) = RG_matsh node (IG_basic_to_RG ig).
+Proof.
+Admitted.
+
+Theorem IG_basic_mkGraph_relate : forall (nodes : list Node) (edges : list (Node * Node)),
+  IG_basic_to_RG (mkGraph nodes edges) = RG_mkGraph nodes edges.
+Proof.
+Admitted.
+
+Theorem IG_basic_labNodes_relate : forall (ig : IG),
+  IG_basic_Propify_labNodes (labNodes ig) = RG_labNodes (IG_basic_to_RG ig).
 Proof.
 Admitted.
