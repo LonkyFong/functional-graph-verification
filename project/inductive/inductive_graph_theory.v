@@ -54,7 +54,7 @@ Admitted.
 
 Coercion IG_to_RG : IG >-> RG.
 
-Definition equiv_IG {X : Type} (ig1 ig2 : IG X unit) : Prop :=
+Definition equiv_IG {A : Type} (ig1 ig2 : IG X unit) : Prop :=
 RG_equiv ig1 ig2.
 
 Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
@@ -66,7 +66,7 @@ Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
 Require Import Setoid Morphisms.
 
 (* This proof is based on === being an equivalence relation *)
-Instance IG_Equivalence_eq {X : Type} : Equivalence (@equiv_IG X).
+Instance IG_Equivalence_eq {A : Type} : Equivalence (@equiv_IG X).
 Proof.
     pose proof (@RG_Equivalence_eq X). destruct H. split.
     - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.

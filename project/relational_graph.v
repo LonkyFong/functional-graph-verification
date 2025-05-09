@@ -4,7 +4,6 @@ Require Import Coq.Sets.Ensembles.
 (* Defining a Relational Graph *)
 
 
-    
 Definition valid_cond {t : Type} (nodes : Ensemble t) (rel : relation t) : Type :=
     forall (x y : t), rel x y -> nodes x /\ nodes y.
 
@@ -20,10 +19,10 @@ Arguments RG_valid {t}.
 
 
 (* Two record graphs are "the same", when their Ensemble and relation are the same *)
-Definition RG_equiv {X : Type} (rg1 rg2 : RG X) : Prop :=
-(* The first condition is definitely needed, as we can have "singleton" graphs *)
-(forall (x : X), rg1.(RG_nodes) x <-> rg2.(RG_nodes) x)
-/\ (forall (x y : X), rg1.(RG_edges) x y <-> rg2.(RG_edges) x y)
+Definition RG_equiv {A : Type} (rg1 rg2 : RG A) : Prop :=
+    (* The first condition is definitely needed, as we can have "singleton" graphs *)
+    (forall (x : A), rg1.(RG_nodes) x <-> rg2.(RG_nodes) x)
+    /\ (forall (x y : A), rg1.(RG_edges) x y <-> rg2.(RG_edges) x y)
 .
 Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
@@ -31,20 +30,20 @@ Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
 (* "RG_equiv" is an equivalence relation: *)
 (* Reflexive *)
-Theorem RG_RG_equiv_Reflexive {X : Type}: forall (x : RG X), RG_equiv x x .
+Theorem RG_RG_equiv_Reflexive {A : Type}: forall (x : RG A), RG_equiv x x .
 Proof.
     unfold RG_equiv. intros. split; split; auto.
 Qed.
     
 
 (* Symmetric *)
-Theorem RG_RG_equiv_Symmetric {X : Type}: forall (x y : RG X), RG_equiv x y <-> RG_equiv y x.
+Theorem RG_RG_equiv_Symmetric {A : Type}: forall (x y : RG A), RG_equiv x y <-> RG_equiv y x.
 Proof.
     split; split; split; unfold RG_equiv in H; apply H.
 Qed. 
 
 (* Transitive *)
-Theorem RG_RG_equiv_Transitive {X : Type}: forall (x y z : RG X), RG_equiv x y -> RG_equiv y z -> RG_equiv x z.
+Theorem RG_RG_equiv_Transitive {A : Type}: forall (x y z : RG A), RG_equiv x y -> RG_equiv y z -> RG_equiv x z.
 Proof.
     split; split; intros; unfold RG_equiv in H; unfold RG_equiv in H0.
     - apply H0. apply H. apply H1.
@@ -57,12 +56,12 @@ Qed.
 
 (* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
 Require Import Setoid Morphisms.
-Instance RG_Equivalence_eq {X : Type} : Equivalence (@RG_equiv X).
+Instance RG_Equivalence_eq {A : Type} : Equivalence (@RG_equiv A).
 Proof.
     unfold RG_equiv. split.
-    - unfold Reflexive. intros. pose proof (@RG_RG_equiv_Reflexive X). apply H.
-    - unfold Symmetric. intros. pose proof (@RG_RG_equiv_Symmetric X). apply H0. apply H.
-    - unfold Transitive. intros. pose proof (@RG_RG_equiv_Transitive X). apply (H1 x y).
+    - unfold Reflexive. intros. pose proof (@RG_RG_equiv_Reflexive A). apply H.
+    - unfold Symmetric. intros. pose proof (@RG_RG_equiv_Symmetric A). apply H0. apply H.
+    - unfold Transitive. intros. pose proof (@RG_RG_equiv_Transitive A). apply (H1 x y).
         + apply H.
         + apply H0.
 Qed.
