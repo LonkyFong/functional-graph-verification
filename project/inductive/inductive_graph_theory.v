@@ -18,23 +18,26 @@ Require Import MyProject.project.relational_graph.
 
  
 
+Definition labEdges {A B : Type} (ig : IG A B) : list (LEdge B).
+Proof.
+Admitted. 
 
 (* TODO: finish this *)
-Definition IG_to_RG {X Y : Type} (ig : IG X Y) : RG X.
+Definition IG_to_RG {A B : Type} (ig : IG A B) : RG A.
 Proof.
     Print labNodes.
     (* list of node labels *)
     pose (nodes := map snd (labNodes ig)).
     (* list of connections made by edges (drop labels)*)
-    pose (edges := map (fun (edge : LEdge Y) => match edge with | (from, to, lab) => (lookup from ig, lookup to ig) end) (labEdges ig)).
+    pose (edges := map (fun (edge : LEdge B) => match edge with | (from, to, lab) => (lookup from ig, lookup to ig) end) (labEdges ig)).
     
     refine {|
-        RG_nodes := fun (A : X) =>
-                            fold_right (fun (v : X) (acc: Prop) => (A = v) \/ acc) False nodes;
+        RG_nodes := fun (a : A) =>
+                            fold_right (fun (v : A) (acc: Prop) => (a = v) \/ acc) False nodes;
 
-        RG_edges := fun (A B : X) =>
-                            fold_right (fun (e : (option X) * (option X)) (acc: Prop) => match e with
-                                | (Some from, Some to) => ((A = from) /\ (B = to)) \/ acc
+        RG_edges := fun (a1 a2 : A) =>
+                            fold_right (fun (e : (option A) * (option A)) (acc: Prop) => match e with
+                                | (Some from, Some to) => ((a1 = from) /\ (a2 = to)) \/ acc
                                 (* This case should never happen *)
                                 | _ => acc
                                 end) False edges;
@@ -54,21 +57,21 @@ Admitted.
 
 Coercion IG_to_RG : IG >-> RG.
 
-Definition equiv_IG {A : Type} (ig1 ig2 : IG X unit) : Prop :=
+Definition IG_equiv {A : Type} (ig1 ig2 : IG A unit) : Prop :=
 RG_equiv ig1 ig2.
 
-Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
+Notation "g1 I== g2" := (IG_equiv g1 g2) (at level 80).
 
 
-(* Section to make rewrite work with equiv_IG *)
+(* Section to make rewrite work with IG_equiv *)
 
 (* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
 Require Import Setoid Morphisms.
 
 (* This proof is based on === being an equivalence relation *)
-Instance IG_Equivalence_eq {A : Type} : Equivalence (@equiv_IG X).
+Instance IG_Equivalence_eq {A : Type} : Equivalence (@IG_equiv A).
 Proof.
-    pose proof (@RG_Equivalence_eq X). destruct H. split.
+    pose proof (@RG_Equivalence_eq A). destruct H. split.
     - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
     - unfold Symmetric. intros. unfold Symmetric in Equivalence_Symmetric. apply Equivalence_Symmetric. apply H.
     - unfold Transitive. intros. unfold Transitive in Equivalence_Transitive. apply (Equivalence_Transitive x y z).
@@ -82,10 +85,10 @@ Qed.
 (* TODO: this is hard. Check if there are any theorems on the map interface, that I can use *)
 Example basic_equivalence_test : (mkGraph [(1, "1"); (2, "2")] []) I== (mkGraph [(2, "2"); (1, "1")] []).
 Proof.
-    unfold equiv_IG. unfold RG_equiv. simpl. split; split; intros.
+    unfold IG_equiv. unfold RG_equiv. simpl. split; split; intros.
     - admit.
     - admit.
     - admit.
     - admit.
-Qed.
+Admitted.
 

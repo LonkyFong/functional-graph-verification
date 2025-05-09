@@ -52,7 +52,11 @@ Fail Definition matsh_RG {A : Type} (g : RG A) (n : A) : (option (Ensemble A * E
     end.
 
 Definition mkGraph_RG {A B : Type} (nodes : list A) (edges : list (A * A)) : RG A.
+Proof.
+Admitted.
 
 Definition labNodes_RG {A B : Type} (g : RG A) : list (A).
+Proof.
+Admitted.
 
 

@@ -1,5 +1,7 @@
 Require Import Coq.Relations.Relation_Definitions.
+Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
+
 
 (* Defining a Relational Graph *)
 
@@ -154,7 +156,6 @@ Definition RG_getIncidentEdges {A : Type} (node : A) (rg : RG A) : relation A :=
 
 (* There can also be variations of this, where you the the neighbor nodes and not just edges ... *)
 
-Require Import Coq.Relations.Relation_Operators.
 Definition RG_existsPath {A : Type} (node1 node2 : A) (rg : RG A) : Prop :=
     clos_trans A rg.(RG_edges) node1 node2.
 

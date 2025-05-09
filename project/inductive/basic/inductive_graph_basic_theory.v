@@ -62,20 +62,20 @@ Definition IG_basic_to_RG (ig : IG) : RG nat :=
 
 (* Coercion IG_basic_to_RG : IG >-> RG. *)
 
-Definition equiv_IG (ig1 ig2 : IG) : Prop :=
+Definition IG_equiv (ig1 ig2 : IG) : Prop :=
     RG_equiv (IG_basic_to_RG ig1) (IG_basic_to_RG ig2)
 .
 
-Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
+Notation "g1 I== g2" := (IG_equiv g1 g2) (at level 80).
 
 
-(* Section to make rewrite work with equiv_IG *)
+(* Section to make rewrite work with IG_equiv *)
 
 (* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
 Require Import Setoid Morphisms.
 
 (* This proof is based on === being an equivalence relation *)
-Instance IG_Equivalence_eq : Equivalence equiv_IG.
+Instance IG_Equivalence_eq : Equivalence IG_equiv.
 Proof.
     pose proof (@RG_Equivalence_eq nat). destruct H. split.
     - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
@@ -88,12 +88,12 @@ Qed.
 
 Example basic_equivalence_test : (mkGraph [1; 2] []) I== (mkGraph [2; 1] []).
 Proof.
-    unfold equiv_IG. unfold RG_equiv. firstorder.
+    unfold IG_equiv. unfold RG_equiv. firstorder.
 Qed.
 
 Example basic_equivalence_test' : (mkGraph [1; 2; 3] [(1, 2); (2, 3)]) I== (mkGraph [2; 1; 3] [(2, 3); (1, 2)]).
 Proof.
-    unfold equiv_IG. unfold RG_equiv. firstorder.
+    unfold IG_equiv. unfold RG_equiv. firstorder.
 Qed.
 
 

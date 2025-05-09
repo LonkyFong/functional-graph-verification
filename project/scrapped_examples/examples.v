@@ -1,4 +1,7 @@
+Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Sets.Ensembles.
+Require Import Coq.Relations.Relation_Operators.
+
 
 Require Import MyProject.project.relational_graph.
 
