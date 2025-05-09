@@ -1,130 +1,66 @@
 Require Import MyProject.project.algebraic.algebraic_graph.
+Require Import MyProject.project.algebraic.algebraic_graph_to_RG.
+
 Require Import MyProject.project.relational_graph.
-
-
-(* Defining Conversion from Algebraic Graph to Record Graph *)
-Definition empty_RG {A : Type} : RG A.
-Proof.
-    exact RG_empty.
-Defined.
-
-
-Definition singleton_RG {A : Type} (a : A) : RG A.
-Proof.
-    refine {|
-        RG_nodes := fun (x : A) => a = x;
-        RG_edges := fun x y => False;
-        RG_valid := _
-    |}.
-    RG_valid_prover.
-Defined.
-
-
-Definition overlay_RG {A : Type} (rg1 rg2 : RG A) : RG A.
-Proof.
-    refine {|
-        RG_nodes := fun A => (rg1.(RG_nodes) A) \/ (rg2.(RG_nodes) A);
-        RG_edges := fun A B => (rg1.(RG_edges) A B) \/ (rg2.(RG_edges) A B);
-        RG_valid := _
-    |}.
-    RG_valid_prover_withs rg1 rg2.
-Defined.
+(* Notice how this file "does"  need relational_graph_theory  *)
+Require Import MyProject.project.relational_graph_theory.
 
 
 
 
-Definition connect_RG {A : Type} (rg1 rg2 : RG A) : RG A.
-Proof.
-    let overlay := constr:(overlay_RG rg1 rg2) in
-    refine {|
-        RG_nodes := overlay.(RG_nodes);
-        RG_edges := fun A B => overlay.(RG_edges) A B \/ (rg1.(RG_nodes) A /\ rg2.(RG_nodes) B);
-        RG_valid := _
-    |}.
-    RG_valid_prover_withs rg1 rg2.
-Defined.
-
-
-
-
-Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG A :=
-    match ag with
-    | Empty => empty_RG
-    | Vertex x => singleton_RG x
-    | Overlay ag1 ag2 => overlay_RG (AG_to_RG ag1) (AG_to_RG ag2)
-    | Connect ag1 ag2 => connect_RG (AG_to_RG ag1) (AG_to_RG ag2)
-    end
+Ltac AG_axiom_proof_automation_via_RG H H0 :=
+    unfold AG_equiv; intros; split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto
 .
-
-(* TODO: this coercion may or may not be good to have *)
-Coercion AG_to_RG : AG >-> RG.
-
-Definition AG_equiv {A : Type} (ag1 ag2 : AG A) : Prop :=
-    RG_equiv ag1 ag2.
-
-Notation "g1 A== g2" := (AG_equiv g1 g2) (at level 80).
-
-
-
-
 
 (* These are the "8 axioms" originally proposed by  functional graphs with class *)
 
 (* +++ is commutative and associative *)
-Theorem AG_Overlay_Commutative {A : Type}: forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
+Theorem AG_Overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
 Proof.
-    intros. unfold AG_equiv. split; split; intros; simpl; simpl in H; destruct H;
-    (right; apply H) || (left; apply H).
+        AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
-(* TODO: consider making the mega proof a custom tactic (using LTac or probably something more modern) *)
-Theorem AG_Overlay_Associative {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
+Theorem AG_Overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
 Proof.
-    unfold AG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
-
 
 (* (G, ***, e) is a monoid *)
-Theorem AG_Empty_Connect_L_Identity {A : Type}: forall (ag : AG A), Empty *** ag A== ag.
+Theorem AG_Empty_Connect_L_Identity {A : Type} : forall (ag : AG A), Empty *** ag A== ag.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
-
-Theorem AG_Empty_Connect_R_Identity {A : Type}: forall (ag : AG A), ag *** Empty A== ag.
+Theorem AG_Empty_Connect_R_Identity {A : Type} : forall (ag : AG A), ag *** Empty A== ag.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
-Theorem AG_Connect_Associative {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
+Theorem AG_Connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
-
 
 (* *** distributes over +++ *)
-Theorem AG_Connect_Overlay_L_Distributes {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
+Theorem AG_Connect_Overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
-Qed.
-    
-
-
-Theorem AG_Connect_Overlay_R_Distributes {A : Type}: forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
-Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
+Theorem AG_Connect_Overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
+Proof.
+    AG_axiom_proof_automation_via_RG H H0.
+Qed.
 
 (* Decomposition *)
-Theorem AG_Connect_Decomposition {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
+Theorem AG_Connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
 
 
-(* Show that AG a are "complete" and "sound"  *)
+(* Show that AG_to_RG is are "complete" and "sound"  *)
 (* TODO: this is not very urgent right now *)
 
 (* Complete: *)
@@ -150,61 +86,26 @@ Proof.
 Qed. 
          
 
+Ltac Proper_proof_automation H1 := split; split; intros; simpl in *; destruct H1; firstorder.
 
 
 Instance Proper_add {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Overlay.
 Proof.
-    split; split; intros; simpl in *; destruct H1.
-    - left. apply H. auto.
-    - right. apply H0. auto.
-    - left. apply H. auto.
-    - right. apply H0. auto.
-    - left. apply H. auto.
-    - right. apply H0. auto.
-    - left. apply H. auto.
-    - right. apply H0. auto.
+    Proper_proof_automation H1.
 Qed.
-    
+
 
 Instance Proper_mul {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Connect.
 Proof.
-    split; split; intros; simpl in *; destruct H1.
-    - left. apply H. auto.
-    - right. apply H0. auto.
-    - left. apply H. auto.
-    - right. apply H0. auto.
-    - left. destruct H1.
-        + left. apply H. auto.
-        + right. apply H0. auto.
-    - right. destruct H1. split.
-        + apply H. auto.
-        + apply H0. auto.
-    - left. destruct H1.
-        + left. apply H. auto.
-        + right. apply H0. auto.
-    - right. destruct H1. split.
-        + apply H. auto.
-        + apply H0. auto.
-Qed.    
-
-Theorem AG_equiv_rewrite_test_basic : forall (ag1 ag2 ag3 : AG nat), AG_equiv ag1 ag2 -> AG_equiv ag2 ag3 -> AG_equiv ag1 ag3.
-Proof.
-    intros. rewrite H. rewrite H0. reflexivity.
-Qed.
-
-
-Theorem AG_equiv_rewrite_test_advanced : forall (ag1 ag2 ag3 : AG nat), AG_equiv ag1 ag2 -> AG_equiv (ag2 +++ Empty) ag3 -> AG_equiv (ag1 +++ Empty) ag3.
-Proof.
-    intros. rewrite H. rewrite H0. reflexivity.
+    Proper_proof_automation H1.
 Qed.
 
 
 
 
 (* Theorems that can be made based on the "8 axioms": 
-They can all be proven using the mega proof from above, but I should find a way to do it using the axioms *)
+They can all be proven using "AG_axiom_proof_automation_via_RG", but I should find a way to do it using the axioms *)
 (* These proofs are heavily inspired by: http://async.org.uk/tech-reports/NCL-EEE-MICRO-TR-2014-191.pdf *)
-
 
 
 (* This is a helper for Identity of + *)
@@ -212,7 +113,6 @@ Lemma rdeco {A : Type}: forall (ag : AG A), ag +++ ag +++ Empty A== ag.
 Proof.
     intros.
     pose proof (AG_Connect_Decomposition ag Empty Empty).
-
 
     rewrite AG_Empty_Connect_R_Identity in H.
     rewrite AG_Empty_Connect_R_Identity in H.
@@ -264,7 +164,6 @@ Proof.
 Qed.
 
 
-
 (* Saturation (proof is mine) *)
 Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag A== ag *** ag.
 Proof.
@@ -275,5 +174,4 @@ Proof.
     rewrite AG_Overlay_Idempotence.
     reflexivity.
 Qed.
-
 

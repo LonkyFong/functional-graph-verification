@@ -1,9 +1,9 @@
-Require Import String.
 Require Import Coq.Arith.Arith.
+Require Import String.
 Open Scope string_scope.
 
-Require Import List.
 Require Import Bool.
+Require Import List.
 Import ListNotations.
 
 (* This file defines an inductive graph using maps like Erwig *)
@@ -11,7 +11,7 @@ Import ListNotations.
 (* At the moment, there are only the "MINIMAL" implementations  *)
 
 (*
-(* TODO: for verification, I either write algebraic specifications using these (no need for "well-formedness"),
+(* info: for verification, I either write algebraic specifications using these (no need for "well-formedness"),
 or I "implement" all of them an show that they are correct for relational graphs and then show _isomorphism_ (here, yes need for "well-formedness")
   for the translation to relational graphs, I would formally need to show "complete" and "correctness" (like they do for elements in BST)
   I would also need to implement "at least some of these operations" for relational graphs *)
@@ -62,7 +62,6 @@ Require Import Coq.Structures.OrderedTypeEx.
 
 Definition node := Nat_as_OT.t.
 
-
 Module NatMap := FMapList.Make(Nat_as_OT).
 (* Module NatMap := FMapAVL.Make(Nat_as_OT). *)
 
@@ -83,7 +82,6 @@ Definition Decomp (Graph : Type -> Type -> Type) (A B : Type) : Type :=
 
 
 
-
 Definition Adj' (B : Type) := NatMap.t B.
 
 (* No node needed, since the node is the key *)
@@ -95,8 +93,8 @@ Definition MContext' (A B : Type) : Type :=
 
 
 
-Definition bind {A B : Type} (x : option A) (f : A -> option B) : option B :=
-  match x with
+Definition bind {A B : Type} (ig : option A) (f : A -> option B) : option B :=
+  match ig with
   | None => None
   | Some a => f a
   end.
@@ -123,11 +121,8 @@ Definition set_from_list (l : list node) : option NatSet.t :=
 Definition IG_map_out_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
   set_from_list (
     concat (
-      map (fun (X : (node * Context' A B)) =>
-            match (snd X) with
-              | (_, _, out_map) => map fst (NatMap.elements out_map)
-            end
-          )
+      map (fun '((_, (_, _, out_map)) : (node * Context' A B)) => map fst (NatMap.elements out_map))
+        
       (NatMap.elements IG_data)
     )
   )
@@ -137,11 +132,7 @@ Definition IG_map_out_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : op
 Definition IG_map_in_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
   set_from_list (
     concat (
-      map (fun (X : (node * Context' A B)) =>
-            match (snd X) with
-              | (in_map, _, _) => map fst (NatMap.elements in_map)
-            end
-          )
+      map ( fun '((_, (in_map, _, t_step)) : (node * Context' A B)) => map fst (NatMap.elements in_map))
       (NatMap.elements IG_data)
     )
   )
@@ -176,10 +167,6 @@ Definition IG_valid_cond_fun {A B : Type} (IG_data : NatMap.t (Context' A B)) : 
 Definition _valid_cond {A B : Type} (IG_data : NatMap.t (Context' A B)) : Prop :=
   IG_valid_cond_fun IG_data = true.
 
-(* These are shared with RG_valid_prover *)
-Ltac IG_valid_prover := unfold _valid_cond; firstorder.
-(* Ltac IG_valid_prover_with rg := pose proof rg.(RG_valid); unfold valid_cond; firstorder.
-Ltac IG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); pose proof rg2.(RG_valid); unfold valid_cond; firstorder. *)
 
 
 Definition IG_data_unsafe (A B : Type) : Type :=
@@ -194,10 +181,25 @@ Record IG (A B : Type) := {
 Arguments IG_data {A B}.
 Arguments IG_valid {A B}.
 
+(* These are shared with RG_valid_prover *)
+Ltac IG_valid_prover := unfold _valid_cond; firstorder.
+(* Ltac IG_valid_prover_with rg := pose proof rg.(RG_valid); unfold valid_cond; firstorder.
+Ltac IG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); pose proof rg2.(RG_valid); unfold valid_cond; firstorder. *)
 
 
 Definition Decomp' (A B : Type) : Type :=
   (MContext' A B * IG A B).
+
+Definition LNode (A : Type) : Type := (node * A).
+Definition LEdge (B : Type) : Type := (node * node * B).
+
+
+
+
+
+
+
+
 
 
 
@@ -215,8 +217,8 @@ Defined.
 
 
 
-Definition isEmpty {A B : Type} (x : IG A B) : bool :=
-  NatMap.is_empty x.(IG_data).
+Definition isEmpty {A B : Type} (ig : IG A B) : bool :=
+  NatMap.is_empty ig.(IG_data).
 
 Compute isEmpty empty.
 
@@ -224,48 +226,44 @@ Compute isEmpty empty.
 (* Here start the helper functions for "matsh". match is a reserved keyword by coq.... *)
 
 (* Applies a function to a map entry if it exists quickly *)
-Definition update_entry {A B : Type} (n : node) (f : Context' A B -> Context' A B) (x : IG_data_unsafe A B) : IG_data_unsafe A B :=
-  match NatMap.find n x with
-    | Some v => NatMap.add n (f v) x
-    | None => x
+Definition update_entry {A B : Type} (n : node) (f : Context' A B -> Context' A B) (ig : IG_data_unsafe A B) : IG_data_unsafe A B :=
+  match NatMap.find n ig with
+    | Some v => NatMap.add n (f v) ig
+    | None => ig
   end.
 
 
 
-Definition clean_up_helper {A B : Type} (n : node) (outs_with_n ins_with_n : list node) (x : IG_data_unsafe A B) : IG_data_unsafe A B :=
+Definition clean_up_helper {A B : Type} (n : node) (outs_with_n ins_with_n : list node) (ig : IG_data_unsafe A B) : IG_data_unsafe A B :=
   (* Loop over ingoing edges of removed node to update the outgoing of all of those to not have n anymore *)
   let x' := fold_right (fun (elem : node) (acc : IG_data_unsafe A B) =>
-    update_entry elem (fun con => match con with
-                                  | (in_map', key', out_map') => (in_map', key', NatMap.remove n out_map')
-                                  end)
-    acc) x outs_with_n in
+    update_entry elem (fun '(in_map', key', out_map') => (in_map', key', NatMap.remove n out_map'))
+    acc) ig outs_with_n in
   (* Loop over outgoing edges of removed node to update the ingoing of all of those to not have n anymore *)
   fold_right (fun (elem : node) (acc : IG_data_unsafe A B) =>
-    update_entry elem (fun con => match con with
-                                  | (in_map', key', out_map') =>  (NatMap.remove n in_map', key', out_map')
-                                  end)
+    update_entry elem (fun '(in_map', key', out_map') =>  (NatMap.remove n in_map', key', out_map'))
     acc) x' ins_with_n
 .
 
 
-Definition clean_up {A B : Type} (n : node) (context : Context' A B) (x : IG_data_unsafe A B) : IG_data_unsafe A B :=
+Definition clean_up {A B : Type} (n : node) (context : Context' A B) (ig : IG_data_unsafe A B) : IG_data_unsafe A B :=
   match context with
     | (in_map, _, out_map) =>
   
       let outs_with_n := map fst (NatMap.elements in_map) in
       let ins_with_n := map fst (NatMap.elements out_map) in
-      clean_up_helper n outs_with_n ins_with_n (NatMap.remove n x)
+      clean_up_helper n outs_with_n ins_with_n (NatMap.remove n ig)
   
   end.
 
 
 
-Definition matsh {A B : Type} (n : node) (x : IG A B) : Decomp' A B.
+Definition matsh {A B : Type} (n : node) (ig : IG A B) : Decomp' A B.
 Proof.
   pose
-  match NatMap.find n x.(IG_data) with
+  match NatMap.find n ig.(IG_data) with
   | None => (None, empty.(IG_data))
-  | Some context as mContext => (mContext, clean_up n context x.(IG_data)) 
+  | Some context as mContext => (mContext, clean_up n context ig.(IG_data)) 
   end as intermediate_computation.
   split.
   - destruct intermediate_computation as [mContext x']. apply mContext.
@@ -283,17 +281,16 @@ Admitted.
 
 
 
-Definition LNode (A : Type) : Type := (node * A).
-Definition LEdge (B : Type) : Type := (node * node * B).
+
 
 (* Here start the helper functions for "mkGraph" *)
 
 
 (* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
-Definition add {A B : Type} (n : node) (node : Context' A B) (x : IG A B) : IG A B.
+Definition add {A B : Type} (n : node) (node : Context' A B) (ig : IG A B) : IG A B.
 Proof.
   refine ({|
-    IG_data := NatMap.add n node x.(IG_data);
+    IG_data := NatMap.add n node ig.(IG_data);
     IG_valid := _
   |}).
   IG_valid_prover.
@@ -302,11 +299,11 @@ Admitted.
 
 
 
-Definition insNode {A B : Type} (node : LNode A) (x : IG A B) : IG A B.
+Definition insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B.
 Proof.
   refine ({|
     IG_data :=   match node with
-    | (v, l) => (add v (NatMap.empty B, l, NatMap.empty B) x).(IG_data)
+    | (v, l) => (add v (NatMap.empty B, l, NatMap.empty B) ig).(IG_data)
     end;
     IG_valid := _
   |}).
@@ -314,26 +311,22 @@ Admitted.
 
 
 
-Definition insNodes {A B : Type} (nodes : list (LNode A)) (x : IG A B) : IG A B :=
-  fold_right insNode x nodes.
+Definition insNodes {A B : Type} (nodes : list (LNode A)) (ig : IG A B) : IG A B :=
+  fold_right insNode ig nodes.
 
 
 
 
 
-Definition insEdge {A B : Type} (edge : LEdge B) (x : IG A B) : IG A B.
+Definition insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B.
 Proof.
   refine ({|
     IG_data := match edge with
-    | (v,w,l) =>  update_entry v (fun con => match con with
-                  | (in_map, key', out_map) => (in_map, key', NatMap.add w l out_map)
-                  end)
+    | (v,w,l) =>  update_entry v (fun '(in_map, key', out_map) => (in_map, key', NatMap.add w l out_map))
                   (
                   (* Now update the other side of the edge *)
-                  update_entry w (fun con => match con with
-                  | (in_map, key', out_map) => (NatMap.add v l in_map, key', out_map)
-                  end)
-                  x.(IG_data)
+                  update_entry w (fun '(in_map, key', out_map) => (NatMap.add v l in_map, key', out_map))
+                  ig.(IG_data)
                   )
     end;
     IG_valid := _
@@ -342,8 +335,8 @@ Admitted.
 
 
 
-Definition insEdges {A B : Type} (edges : list (LEdge B)) (x : IG A B) : IG A B :=
-  fold_right insEdge x edges.
+Definition insEdges {A B : Type} (edges : list (LEdge B)) (ig : IG A B) : IG A B :=
+  fold_right insEdge ig edges.
 
 
 
@@ -352,8 +345,8 @@ Definition mkGraph {A B : Type} (nodes : list (LNode A)) (edges : list (LEdge B)
 
 
  
-Definition labNodes {A B : Type} (x : IG A B) : list (LNode A) :=
-  map (fun X => match X with | (v, (_, l, _)) => (v,l) end) (NatMap.elements x.(IG_data)).
+Definition labNodes {A B : Type} (ig : IG A B) : list (LNode A) :=
+  map (fun '(v, (_, l, _)) => (v,l)) (NatMap.elements ig.(IG_data)).
 
 
 
@@ -362,26 +355,17 @@ Definition labNodes {A B : Type} (x : IG A B) : list (LNode A) :=
 
 
 
+(* Make IGs visible  *)
 
 
 
-
-
-
-Definition show_IG {A B : Type} (x : IG A B) :=
-  map (fun X => match X with | (k, (in_m, lab, out_m)) => (k, (NatMap.elements in_m, lab, NatMap.elements out_m)) end) (NatMap.elements x.(IG_data)).
+Definition show_IG {A B : Type} (ig : IG A B) :=
+  map (fun '(k, (in_m, lab, out_m)) => (k, (NatMap.elements in_m, lab, NatMap.elements out_m))) (NatMap.elements ig.(IG_data)).
 
 Definition show_Context {A B : Type} (con : Context' A B) :=
   match con with
   | (in_map, key, out_map) => (NatMap.elements in_map, key, NatMap.elements out_map)
   end.
-
-
-(* Definition option_map (A B:Type) (f:A->B) (o : option A) : option B :=
-  match o with
-    | Some a => @Some B (f a)
-    | None => @None B
-  end. *)
 
 
 Definition show_MContext {A B : Type} (mContext : MContext' A B) :=
@@ -398,26 +382,9 @@ Definition show_MContext_lame {A B : Type} (mContext : MContext' A B) :=
 Definition show_Decomp {A B : Type} (d : Decomp' A B) :=
   match d with
   | (mContext, x) => (show_MContext mContext, show_IG x)
-  end.
+  end
+.
 
-
-
-Compute show_IG (mkGraph [(1, 1); (2, 2); (3, 3)] [(1, 2, 1); (2, 3, 2); (3, 1, 3)]).
-
-Definition my_basic_graph := mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")].
-
-(* Here come the tests for each defined function (that is in the graph class): *)
-
-Compute show_IG empty.
-
-Compute isEmpty empty.
-Compute isEmpty my_basic_graph.
-
-Compute show_Decomp (matsh 2 my_basic_graph).
-
-Compute show_IG (mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")]).
-
-Compute labNodes my_basic_graph.
 
 
 (* Helpers for proving correctness: *)
@@ -425,67 +392,4 @@ Definition lookup {X Y : Type} (n : node) (ig : IG X Y) : option X :=
   option_map (fun c => match c with (_, label, _) => label end) (NatMap.find n ig.(IG_data)).
   
 
-
-
-
-(* Here, I try out various equational specifications of an IG: *)
-
-Check empty.
-(* IG ?A ?B *)
-
-Check isEmpty.
-(* IG ?A ?B -> bool. *)
-
-Check matsh.
-(* node -> IG ?A ?B -> Decomp' ?A ?B. *)
-
-Print Decomp'.
-(* (MContext' A B * IG A B) *)
-
-Print MContext'.
-(* option (Context' A B) *)
-
-Print Context'.
-(* (Adj' B * A * Adj' B) *)
-
-Print Adj'.
-(* NatMap.t B *)
-
-Print LNode.
-(* (node * ?A) *)
-
-Print LEdge.
-(* (node * node * ?B) *)
-
-Check mkGraph.
-(* list (LNode ?A) -> list (LEdge ?B) -> IG ?A ?B. *)
-
-Check labNodes.
-(* IG ?A ?B -> list (LNode ?A). *)
-
-
-Theorem spec1 : forall A B, isEmpty (@empty A B) = true.
-Proof.
-  intros. compute. reflexivity.
-Qed.
-
-Theorem spec2 : forall (A B : Type) (nl : list (LNode A)) (el : list (LEdge B)), labNodes (mkGraph nl el) = nl.
-Proof.
-  intros. compute.
-Admitted.
-
-Theorem spec3 : forall (A B : Type) (n : node), matsh n (@empty A B) = (None, empty).
-Proof.
-  intros. compute.
-Admitted.
-
-Theorem spec4 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
-  In n nl -> exists map1 map2, matsh (fst n) (mkGraph nl el) =
-  (Some ((map1), snd n, (map2)), mkGraph (filter (fun '(idx, lab) => negb (fst n =? idx)) nl) (filter (fun '(to, from, lab) => negb ((to =? fst n) || (from =? fst n))) el)).
-(* This is not even a complete specification and it looks like a nightmare to prove... *)
-Admitted.
-
-Theorem spec5 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
-  not (In n nl) -> matsh (fst n) (mkGraph nl el) = (None, mkGraph nl el).
-Admitted.
 

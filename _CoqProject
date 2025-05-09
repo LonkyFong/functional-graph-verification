@@ -1,14 +1,23 @@
 -Q . MyProject
+./project/util/util.v
+
 ./project/relational_graph.v
+./project/relational_graph_theory.v
 
 ./project/algebraic/algebraic_graph.v
+./project/algebraic/algebraic_graph_to_RG.v
+
 ./project/algebraic/algebraic_graph_theory.v
 
 ./project/inductive/inductive_graph.v
+./project/inductive/inductive_graph_to_RG.v
 ./project/inductive/inductive_graph_theory.v
 
 ./project/inductive/basic/inductive_graph_basic.v
 ./project/inductive/basic/inductive_graph_basic_theory.v
+./project/inductive/basic/inductive_graph_basic_to_RG.v
+
+
 ./project/inductive/IG_operations_as_RG.v
 
 ./project/scrapped_examples/examples.v

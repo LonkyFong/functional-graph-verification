@@ -1,4 +1,5 @@
 (* Defining an algebraic graph *)
+
 Inductive AG (A : Type) : Type :=
   | Empty
   | Vertex (x : A)
@@ -20,4 +21,5 @@ Coercion from_nat : nat >-> AG.
 Notation "g1 +++ g2" := (Overlay g1 g2) (at level 60, right associativity).
 Notation "g1 *** g2" := (Connect g1 g2) (at level 59, right associativity).
 
+(* TODO: write some more... interesting functions here *)
 
