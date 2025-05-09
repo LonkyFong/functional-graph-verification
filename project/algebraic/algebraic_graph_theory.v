@@ -12,9 +12,9 @@ Qed.
 Definition singleton_RG {X : Type} (x : X) : RG X.
 Proof.
     refine {|
-        gr_nodes := fun A => x = A;
-        gr_edges := fun A B => False;
-        gr_valid := _
+        RG_nodes := fun A => x = A;
+        RG_edges := fun A B => False;
+        RG_valid := _
     |}.
     unfold valid_cond. intros. destruct H.
 Defined.
@@ -23,17 +23,17 @@ Defined.
 Definition overlay_RG {X : Type} (rg1 rg2 : RG X) : RG X.
 Proof.
     refine {|
-        gr_nodes := fun A => (rg1.(gr_nodes) A) \/ (rg2.(gr_nodes) A);
-        gr_edges := fun A B => (rg1.(gr_edges) A B) \/ (rg2.(gr_edges) A B);
-        gr_valid := _
+        RG_nodes := fun A => (rg1.(RG_nodes) A) \/ (rg2.(RG_nodes) A);
+        RG_edges := fun A B => (rg1.(RG_edges) A B) \/ (rg2.(RG_edges) A B);
+        RG_valid := _
     |}.
     unfold valid_cond. intros. split.
     - destruct H.
-        + pose proof rg1.(gr_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
-        + pose proof rg2.(gr_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
+        + pose proof rg1.(RG_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
+        + pose proof rg2.(RG_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
     - destruct H.
-        + pose proof rg1.(gr_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
-        + pose proof rg2.(gr_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
+        + pose proof rg1.(RG_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
+        + pose proof rg2.(RG_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
 Defined.
 
 
@@ -42,16 +42,16 @@ Definition connect_RG {X : Type} (rg1 rg2 : RG X) : RG X.
 Proof.
     let overlay := constr:(overlay_RG rg1 rg2) in
     refine {|
-        gr_nodes := overlay.(gr_nodes);
-        gr_edges := fun A B => overlay.(gr_edges) A B \/ (rg1.(gr_nodes) A /\ rg2.(gr_nodes) B);
-        gr_valid := _
+        RG_nodes := overlay.(RG_nodes);
+        RG_edges := fun A B => overlay.(RG_edges) A B \/ (rg1.(RG_nodes) A /\ rg2.(RG_nodes) B);
+        RG_valid := _
     |}.
     unfold valid_cond. intros. split.
     - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(gr_valid). unfold valid_cond in X0. apply X0 in H. apply H.
+        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X0. apply X0 in H. apply H.
         + simpl. left. apply H.
     - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(gr_valid). unfold valid_cond in X0. apply X0 in H. apply H.
+        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X0. apply X0 in H. apply H.
         + simpl. right. apply H.
 Defined.
 
@@ -68,7 +68,7 @@ end.
 Coercion AG_to_RG : AG >-> RG.
 
 Definition equiv_AG {X : Type} (ag1 ag2 : AG X) : Prop :=
-equiv_G ag1 ag2.
+RG_equiv ag1 ag2.
 
 Notation "g1 A== g2" := (equiv_AG g1 g2) (at level 80).
 
@@ -81,52 +81,52 @@ Notation "g1 A== g2" := (equiv_AG g1 g2) (at level 80).
 (* +++ is commutative and associative *)
 Theorem AG_Overlay_Commutative {X : Type}: forall (x y : AG X), x +++ y A== y +++ x.
 Proof.
-    intros. unfold equiv_G. split; split; intros; simpl; simpl in H; destruct H;
+    intros. unfold RG_equiv. split; split; intros; simpl; simpl in H; destruct H;
     (right; apply H) || (left; apply H).
 Qed.
 
 (* TODO: consider making the mega proof a custom tactic (using LTac or probably something more modern) *)
 Theorem AG_Overlay_Associative {X : Type}: forall (x y z : AG X), x +++ (y +++ z) A== (x +++ y) +++ z.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* (G, ***, e) is a monoid *)
 Theorem AG_Empty_Connect_L_Identity {X : Type}: forall (g : AG X), Empty *** g A== g.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 Theorem AG_Empty_Connect_R_Identity {X : Type}: forall (g : AG X), g *** Empty A== g.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 Theorem AG_Connect_Associative {X : Type}: forall (x y z : AG X), x *** (y *** z) A== (x *** y) *** z.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* *** distributes over +++ *)
 Theorem AG_Connect_Overlay_L_Distributes {X : Type}: forall (x y z : AG X), x *** (y +++ z) A== x *** y +++ x *** z.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
     
 
 
 Theorem AG_Connect_Overlay_R_Distributes {X : Type}: forall (x y z : AG X), (x +++ y) *** z A== x *** z +++ y *** z.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* Decomposition *)
 Theorem AG_Connect_Decomposition {X : Type}: forall (x y z : AG X), x *** y *** z A== x *** y +++ x *** z +++ y *** z.
 Proof.
-    unfold equiv_G. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 

@@ -29,17 +29,17 @@ Proof.
     pose (edges := map (fun (edge : LEdge Y) => match edge with | (from, to, lab) => (lookup from ig, lookup to ig) end) (labEdges ig)).
     
     refine {|
-        gr_nodes := fun (A : X) =>
+        RG_nodes := fun (A : X) =>
                             fold_right (fun (v : X) (acc: Prop) => (A = v) \/ acc) False nodes;
 
-        gr_edges := fun (A B : X) =>
+        RG_edges := fun (A B : X) =>
                             fold_right (fun (e : (option X) * (option X)) (acc: Prop) => match e with
                                 | (Some from, Some to) => ((A = from) /\ (B = to)) \/ acc
                                 (* This case should never happen *)
                                 | _ => acc
                                 end) False edges;
                      
-        gr_valid := _
+        RG_valid := _
     |}.
     unfold valid_cond. intros. split.
     - induction edges.
@@ -55,7 +55,7 @@ Admitted.
 Coercion IG_to_RG : IG >-> RG.
 
 Definition equiv_IG {X : Type} (ig1 ig2 : IG X unit) : Prop :=
-equiv_G ig1 ig2.
+RG_equiv ig1 ig2.
 
 Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
 
@@ -82,7 +82,7 @@ Qed.
 (* TODO: this is hard. Check if there are any theorems on the map interface, that I can use *)
 Example basic_equivalence_test : (mkGraph [(1, "1"); (2, "2")] []) I== (mkGraph [(2, "2"); (1, "1")] []).
 Proof.
-    unfold equiv_IG. unfold equiv_G. simpl. split; split; intros.
+    unfold equiv_IG. unfold RG_equiv. simpl. split; split; intros.
     - admit.
     - admit.
     - admit.

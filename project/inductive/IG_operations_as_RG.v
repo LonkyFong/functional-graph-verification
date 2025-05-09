@@ -12,9 +12,9 @@ Require Import Coq.Sets.Ensembles.
 Require Import MyProject.project.relational_graph.
 
 (* Record RG (t : Type) := {
-    gr_nodes : Ensemble t;
-    gr_edges : relation t;
-    gr_valid : valid_cond gr_nodes gr_edges
+    RG_nodes : Ensemble t;
+    RG_edges : relation t;
+    RG_valid : valid_cond RG_nodes RG_edges
 }. *)
 
 (* Record Context' (A B : Type) := {
@@ -34,20 +34,20 @@ Record Decomp'_RG (A B : Type) := {
 Definition empty_RG {A : Type} : RG A.
 Proof.
     refine ({|
-        gr_nodes := fun (a : A) => False;
-        gr_edges := fun (a b : A) => False;
-        gr_valid := _
+        RG_nodes := fun (a : A) => False;
+        RG_edges := fun (a b : A) => False;
+        RG_valid := _
     |}).
     compute. auto.
 Qed.
 
 Definition isEmpty_RG {A : Type} (g : RG A) : Prop :=
-    forall (a : A), g.(gr_nodes) a = False.
+    forall (a : A), g.(RG_nodes) a = False.
 
 (* This seems impossible, since one needs to "computationally read the RG", which Prop does not allow *)
 Fail Definition matsh_RG {A : Type} (g : RG A) (n : A) : (option (Ensemble A * Ensemble A) * RG A) :=
-    match g.(gr_nodes) n with
-        | True => (Some (g.(gr_nodes), g.(gr_nodes)), g)
+    match g.(RG_nodes) n with
+        | True => (Some (g.(RG_nodes), g.(RG_nodes)), g)
         | False => (None, g)
     end.
 

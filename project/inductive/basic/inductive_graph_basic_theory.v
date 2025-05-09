@@ -29,16 +29,16 @@ Definition _listToEnsemble {A : Type} (az : list A) : Ensemble A :=
 Definition _extendByContext (node : Node) (froms tos : NatSet.t) (rg : RG nat) : RG nat.
 Proof.
     refine {|
-        gr_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (_customEnsembleAdd node rg.(gr_nodes))  n;
-        gr_edges := fun (n0 n1 : nat) =>
+        RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (_customEnsembleAdd node rg.(RG_nodes))  n;
+        RG_edges := fun (n0 n1 : nat) =>
                                 (NatSet.In n0 froms /\ n1 = node)
                                 \/ (n0 = node /\ NatSet.In n1 tos)
-                                \/ rg.(gr_edges) n0 n1
+                                \/ rg.(RG_edges) n0 n1
                                 ;
                      
-        gr_valid := _
+        RG_valid := _
     |}.
-    unfold valid_cond. pose proof rg.(gr_valid). firstorder.
+    unfold valid_cond. pose proof rg.(RG_valid). firstorder.
 Defined.
 
 
@@ -63,7 +63,7 @@ Definition IG_basic_to_RG (ig : IG) : RG nat :=
 (* Coercion IG_basic_to_RG : IG >-> RG. *)
 
 Definition equiv_IG (ig1 ig2 : IG) : Prop :=
-    equiv_G (IG_basic_to_RG ig1) (IG_basic_to_RG ig2)
+    RG_equiv (IG_basic_to_RG ig1) (IG_basic_to_RG ig2)
 .
 
 Notation "g1 I== g2" := (equiv_IG g1 g2) (at level 80).
@@ -88,12 +88,12 @@ Qed.
 
 Example basic_equivalence_test : (mkGraph [1; 2] []) I== (mkGraph [2; 1] []).
 Proof.
-    unfold equiv_IG. unfold equiv_G. firstorder.
+    unfold equiv_IG. unfold RG_equiv. firstorder.
 Qed.
 
 Example basic_equivalence_test' : (mkGraph [1; 2; 3] [(1, 2); (2, 3)]) I== (mkGraph [2; 1; 3] [(2, 3); (1, 2)]).
 Proof.
-    unfold equiv_IG. unfold equiv_G. firstorder.
+    unfold equiv_IG. unfold RG_equiv. firstorder.
 Qed.
 
 
@@ -116,17 +116,17 @@ Definition RG_isEmpty (rg : RG nat) : Prop :=
 Definition _eliminate (node : Node) (rg : RG nat) : RG nat.
 Proof.
   refine {|
-      gr_nodes := Subtract nat (rg.(gr_nodes)) node;
-      gr_edges := fun (n0 n1 : nat) => n0 <> node /\ n1 <> node /\  rg.(gr_edges) n0 n1;
-      gr_valid := _
+      RG_nodes := Subtract nat (rg.(RG_nodes)) node;
+      RG_edges := fun (n0 n1 : nat) => n0 <> node /\ n1 <> node /\  rg.(RG_edges) n0 n1;
+      RG_valid := _
   |}.
-  unfold valid_cond. pose proof rg.(gr_valid). firstorder.
+  unfold valid_cond. pose proof rg.(RG_valid). firstorder.
   - unfold not. intros. inversion H2. congruence.
   - unfold not. intros. inversion H2. congruence.
 Defined.
 
 Definition _getFromsAndTos (node : Node) (rg : RG nat) : Prop * (Ensemble nat * Ensemble nat) :=
-  (rg.(gr_nodes) node, ((fun (from : nat) => rg.(gr_edges) from node), (fun (to : nat) => rg.(gr_edges) node to)))
+  (rg.(RG_nodes) node, ((fun (from : nat) => rg.(RG_edges) from node), (fun (to : nat) => rg.(RG_edges) node to)))
 .
 
 
@@ -157,11 +157,11 @@ Definition _insEdge (edge : (Node * Node)) (rg : RG nat) : RG nat.
 Proof.
   destruct edge as [node0 node1].
     refine {|
-      gr_nodes := rg.(gr_nodes);
-      gr_edges := fun (n0 n1 : nat) => (n0 = node0 /\ n1 = node1 /\ rg.(gr_nodes) node0 /\ rg.(gr_nodes) node1) \/  rg.(gr_edges) n0 n1;
-      gr_valid := _
+      RG_nodes := rg.(RG_nodes);
+      RG_edges := fun (n0 n1 : nat) => (n0 = node0 /\ n1 = node1 /\ rg.(RG_nodes) node0 /\ rg.(RG_nodes) node1) \/  rg.(RG_edges) n0 n1;
+      RG_valid := _
   |}.
-  unfold valid_cond. pose proof rg.(gr_valid). firstorder.
+  unfold valid_cond. pose proof rg.(RG_valid). firstorder.
   - congruence.
   - congruence.
 Defined.
@@ -174,7 +174,7 @@ Definition RG_mkGraph (nodes : list Node) (edges : list (Node * Node)) : RG nat 
   _insEdges edges (_insNodes nodes RG_empty).
  
 Definition RG_labNodes (rg : RG nat) : Ensemble Node :=
-  rg.(gr_nodes).
+  rg.(RG_nodes).
 
 
 (* Here come some proofs about equations: *)
