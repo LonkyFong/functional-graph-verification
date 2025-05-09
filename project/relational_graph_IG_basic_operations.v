@@ -16,8 +16,7 @@ Require Import Coq.Sets.Ensembles.
 Require Import MyProject.project.util.NatSet.
 
 
-
-(* Now start defining the basic IG functions in terms of an RG *)
+(* Defines the basic IG functions in terms of an RG *)
   (* {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
 
 

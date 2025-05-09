@@ -39,7 +39,6 @@ Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
 
 
-
 (* Defining Basic Operations on RGs: *)
 
 Definition RG_empty {A : Type} : RG A.

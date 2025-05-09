@@ -14,9 +14,7 @@ Require Import MyProject.project.relational_graph_theory.
 (* Defining Conversion from Inductive Graph to Record Graph, this is a work in progress *)
 
 
-(* TODO: add some kind of well-formedness condition 
-( think of the BSt invariant, which insert does not break)
- What is the correctness invariant for an inductive graph? *)
+
 
  
 
@@ -24,7 +22,6 @@ Definition labEdges {A B : Type} (ig : IG A B) : list (LEdge B).
 Proof.
 Admitted. 
 
-(* TODO: finish this *)
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG A.
 Proof.
     Print labNodes.

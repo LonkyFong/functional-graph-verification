@@ -5,31 +5,25 @@ Open Scope string_scope.
 Require Import List.
 Require Import Bool.
 Import ListNotations.
+Require Import Coq.Sets.Ensembles.
+
 
 Require Import MyProject.project.util.util.
 Require Import MyProject.project.util.NatSet.
 
-
 Require Import MyProject.project.inductive.basic.inductive_graph_basic.
-
 Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
-
 Require Import MyProject.project.relational_graph_IG_basic_operations.
 
 
-
-Require Import Coq.Sets.Ensembles.
-
-
-(* Defining Conversion from basic Inductive Graph to Relational Graph *)
+(* Defining Conversion function from IG_basic to RG *)
+(* Also states (and eventually proves) that operations on IG_basic are equivalent to those of RG *)
 
 
 
 (* Adds a node and its in- and out- going edges (= its IG context) to an RG.
     Assumes that the neighboring nodes exist *)
-
-
 Definition _accTo_RG (node : Node) (rgIg : RG nat * IG) : RG nat * IG :=
     match rgIg with | (rg, ig) =>
         match matsh node ig with
@@ -56,7 +50,7 @@ Notation "g1 I== g2" := (IG_equiv g1 g2) (at level 80).
 
 
 
-(* TODO: move to examples once done *)
+(* TODO: this should relocate to "examples" after big rename *)
 Example basic_equivalence_test : (mkGraph [1; 2] []) I== (mkGraph [2; 1] []).
 Proof.
     unfold IG_equiv. unfold RG_equiv. firstorder.

@@ -9,6 +9,7 @@ Import ListNotations.
 (* This file defines an inductive graph using maps like Erwig *)
 (* Note that A is the node label type and B is the edge label type *)
 (* At the moment, there are only the "MINIMAL" implementations  *)
+(* TODO: full IG are currently in an incomplete state... *)
 
 (*
 (* info: for verification, I either write algebraic specifications using these (no need for "well-formedness"),

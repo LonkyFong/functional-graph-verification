@@ -4,6 +4,8 @@ Require Import Coq.Arith.Arith.
 Require Import List.
 Require Import Bool.
 Import ListNotations.
+Require Import Setoid Morphisms.
+
 
 Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
@@ -15,19 +17,10 @@ Open Scope nat_scope.
 
 
 (* Section to make rewrite work with IG_equiv *)
-
-(* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
-Require Import Setoid Morphisms.
-
 (* This proof is based on === being an equivalence relation *)
 Instance IG_Equivalence_eq {A : Type} : Equivalence (@IG_equiv A).
 Proof.
-    pose proof (@RG_Equivalence_eq A). destruct H. split.
-    - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
-    - unfold Symmetric. intros. unfold Symmetric in Equivalence_Symmetric. apply Equivalence_Symmetric. apply H.
-    - unfold Transitive. intros. unfold Transitive in Equivalence_Transitive. apply (Equivalence_Transitive x y z).
-        + apply H.
-        + apply H0.
+    G_derived_equivalence_prover A (@id (IG A unit)).
 Qed. 
 
 

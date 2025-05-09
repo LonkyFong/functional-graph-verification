@@ -20,8 +20,8 @@ Require Import MyProject.project.util.NatSet.
 
 Open Scope nat_scope.
 
+(* Specifies behavior of IH functions on an RG via equational specification *)
 
-(* Here come some proofs about equations: *)
 
 (* Here start "meaningful statements" *)
 

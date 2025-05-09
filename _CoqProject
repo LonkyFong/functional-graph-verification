@@ -21,8 +21,6 @@
 ./project/inductive/basic/inductive_graph_basic_to_RG.v
 
 
-./project/inductive/IG_operations_as_RG.v
-
 ./project/scrapped_examples/examples.v
 # ./project/inductive/IG_operations_as_RG.v
 

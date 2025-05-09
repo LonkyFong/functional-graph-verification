@@ -15,7 +15,6 @@ Require Import MyProject.project.algebraic.algebraic_graph_theory.
 Require Import MyProject.project.inductive.inductive_graph.
 
 
-
 (* Mini examples, I had in other files but I moved here for cleanness *)
 
 

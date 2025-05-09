@@ -1,3 +1,5 @@
+Require Import Setoid Morphisms.
+
 Require Import MyProject.project.algebraic.algebraic_graph.
 Require Import MyProject.project.algebraic.algebraic_graph_to_RG.
 
@@ -61,7 +63,7 @@ Qed.
 
 
 (* Show that AG_to_RG is are "complete" and "sound"  *)
-(* TODO: this is not very urgent right now *)
+(* TODO: this is not very urgent right now, but is possibly necessary for model-based specification *)
 
 (* Complete: *)
 (* Look at paper *)
@@ -71,19 +73,11 @@ Qed.
 
 
 (* Section to make rewrite work with equiv_AG *)
-(* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
-Require Import Setoid Morphisms.
-
 (* This proof is based on === being an equivalence relation *)
 Instance AG_Equivalence_eq {A : Type} : Equivalence (@AG_equiv A).
 Proof.
-    pose proof (@RG_Equivalence_eq A). destruct H. split.
-    - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
-    - unfold Symmetric. intros. unfold Symmetric in Equivalence_Symmetric. apply Equivalence_Symmetric. apply H.
-    - unfold Transitive. intros. unfold Transitive in Equivalence_Transitive. apply (Equivalence_Transitive x y z).
-        + apply H.
-        + apply H0.
-Qed. 
+    G_derived_equivalence_prover A (@AG_to_RG A).
+Qed.
          
 
 Ltac Proper_proof_automation H1 := split; split; intros; simpl in *; destruct H1; firstorder.

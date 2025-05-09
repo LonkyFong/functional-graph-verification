@@ -41,3 +41,15 @@ Proof.
         + apply H.
         + apply H0.
 Qed.
+
+(* Does something very similar as the proof above, but uses "other evidence" for equivalence *)
+Ltac G_derived_equivalence_prover A f :=
+  pose proof (@RG_Equivalence_eq A) as H;
+  destruct H as [Eq_Refl Eq_Symm Eq_Trans]; split;
+  [ unfold Reflexive; intros; unfold Reflexive in Eq_Refl; apply Eq_Refl
+  | unfold Symmetric; intros; unfold Symmetric in Eq_Symm; apply Eq_Symm; apply H
+  | unfold Transitive; intros x y z H H0; intros; unfold Transitive in Eq_Trans; apply (Eq_Trans _ (f y) _);
+    [ apply H
+    | apply H0
+    ]
+  ].
