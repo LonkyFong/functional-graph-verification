@@ -304,8 +304,29 @@ Proof.
     - simpl. rewrite insNode_any_ins_node. simpl. rewrite IHnodes. reflexivity.
 Qed.
 
+Lemma insEdge_on_empty_is_empty : forall (edge : Node * Node),
+  insEdge edge empty = empty.
+(* This proof is very similar to "insEdge_does_not_add_node", but using it here it is more complicated than just doing it again  *)
+Proof.
+  intros. unfold insEdge. destruct edge.
+  destruct (NatMap.mem (elt:=NatSet.t * NatSet.t) n empty && NatMap.mem (elt:=NatSet.t * NatSet.t) n0 empty) eqn:cond.
+  - compute. reflexivity.
+  - reflexivity.
+Qed. 
 
-(* "big" statements *)
+
+Lemma insEdges_on_empty_is_empty : forall (edges : list (Node * Node)),
+  insEdges edges empty = empty.
+(* This proof is very similar to "insEdges_does_not_add_nodes", but using it here it is more complicated than just doing it again  *)
+Proof.
+  intros. induction edges; simpl.
+  - reflexivity.
+  - rewrite IHedges. rewrite insEdge_on_empty_is_empty. reflexivity.
+Qed.
+
+
+
+(* "big" statement: *)
 Theorem mkGraph_any_ins_all_nodes : forall (nl : list Node) (el : list (Node * Node)) (x : Node),
   In x (labNodes (mkGraph nl el)) <-> In x nl.
 Proof.
@@ -333,65 +354,89 @@ Proof.
   - firstorder. congruence.
 Qed.
 
-(* Is probably also a <-> *)
-Theorem  non_empty_isEmpty_false : forall (nl : list Node) (el : list (Node * Node)),
-  length nl <> 0 -> isEmpty ((mkGraph nl el)) = false.
+Theorem  non_empty_isEmpty_false' : forall (nodes : list Node) (edges : list (Node * Node)),
+  length nodes <> 0 <-> isEmpty ((mkGraph nodes edges)) = false.
 Proof.
-  intros. destruct nl.
-  - simpl in H. destruct H. reflexivity.
-  - unfold isEmpty. apply not_NatMap_Empty_is_empty_false. unfold not. intros.
-    apply WP.elements_Empty in H0.
-    assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
-      unfold not. intros. destruct H1. inversion H1.
-    }
+  intros. destruct nodes.
+  - simpl. unfold isEmpty. rewrite <- not_NatMap_Empty_is_empty_false. unfold not.
+    firstorder.
+    apply H.
+    apply WP.elements_Empty.
 
-    symmetry in H0. unfold not in HH. apply HH.
+    unfold mkGraph.
+    rewrite insEdges_on_empty_is_empty. compute. reflexivity.
+  - simpl. unfold isEmpty. rewrite <- not_NatMap_Empty_is_empty_false. unfold not.
+    firstorder.
+    + unfold mkGraph in H0. apply WP.elements_Empty in H0.
+      assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
+        unfold not. intros. destruct H1. inversion H1.
+      }
+      rewrite <- In_conditions_same in HH.
+      unfold not in HH.
 
+      unfold not in HH. apply HH.
+      
+      pose proof WF.elements_in_iff.
+      edestruct H1.
+      rewrite H0 in H2.
+      apply H2.
+      
+      apply In_labNodes_is_InMap.
+      apply mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
+    + congruence.
     
-    rewrite H0 in HH.
-
-    rewrite <- In_conditions_same in HH.
-
-    apply HH.
-    pose proof WF.elements_in_iff.
-    edestruct H1.
-
-    apply H2.
-    apply In_labNodes_is_InMap.
-    apply mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
 Qed.
 
 
-  (* intros. destruct nl; simpl.
-  - firstorder.
-    unfold isEmpty in H. apply not_NatMap_Empty_is_empty_false in H. rewrite WP.elements_Empty in H. unfold not in H.
-    exfalso.
-    apply H.
-    assert (HH : forall n, not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
-      unfold not. intros. destruct H0. inversion H0.
-    }
-    rewrite <- In_conditions_same in HH.
-  
-    pose proof WF.elements_in_iff.
-
-    assert (HH : not (exists e, InA (fun x el : NatMap.key * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
-      unfold not. intros. destruct H1. inversion H1.
-    } *)
 
 
-
-
-
-Theorem spec3 : forall (A B : Type) (n : Node), matsh n (empty) = (None, empty).
+Theorem  non_empty_isEmpty_false : forall (nodes : list Node) (edges : list (Node * Node)),
+  length nodes <> 0 <-> isEmpty ((mkGraph nodes edges)) = false.
 Proof.
-  intros. compute.
+  intros. unfold isEmpty. rewrite <- not_NatMap_Empty_is_empty_false. unfold not.
+  destruct nodes; simpl; unfold mkGraph.
+  - firstorder.
+    apply H.
+    apply WP.elements_Empty.
+
+    rewrite insEdges_on_empty_is_empty. compute. reflexivity.
+  - firstorder.
+    + apply WP.elements_Empty in H0.
+      assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
+        unfold not. intros. destruct H1. inversion H1.
+      }
+      rewrite <- In_conditions_same in HH.
+
+      unfold not in HH. apply HH.
+      
+      pose proof WF.elements_in_iff.
+      edestruct H1.
+      rewrite H0 in H2.
+      apply H2.
+      
+      apply In_labNodes_is_InMap.
+      apply mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
+    + congruence.
+Qed.
+
+
+
+
+Theorem matsh_empty_is_nothing : forall (node : Node), matsh node empty = (None, empty).
+Proof.
+  intros. compute. reflexivity.
+Qed.
+
+
+Theorem spec4 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
+  In node nodes -> exists froms tos, matsh node (mkGraph nodes edges) =
+  (Some (froms, tos), mkGraph (filter (fun n => negb (node =? n)) nodes) (filter (fun '(from, to) => negb ((from =? node) || (to =? node))) edges)).
+(* This is not even a complete specification and it looks like a hard one to prove... *)
+Proof.
 Admitted.
 
-Theorem spec4 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
-  In n nl -> exists map1 map2, matsh (fst n) (mkGraph nl el) =
-  (Some ((map1), snd n, (map2)), mkGraph (filter (fun '(idx, lab) => negb (fst n =? idx)) nl) (filter (fun '(to, from, lab) => negb ((to =? fst n) || (from =? fst n))) el)).
-(* This is not even a complete specification and it looks like a nightmare to prove... *)
 
-Theorem spec5 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : list (LEdge B)), 
-  not (In n nl) -> matsh (fst n) (mkGraph nl el) = (None, mkGraph nl el).
-
+Theorem spec5 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
+  not (In node nodes) -> matsh node (mkGraph nodes edges) = (None, mkGraph nodes edges).
+Proof.
+Admitted.
