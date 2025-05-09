@@ -3,24 +3,24 @@ Require Import MyProject.project.relational_graph.
 
 
 (* Defining Conversion from Algebraic Graph to Record Graph *)
-Definition empty_RG {A : Type} : RG X.
+Definition empty_RG {A : Type} : RG A.
 Proof.
     exact RG_empty.
-Qed.
+Defined.
 
 
-Definition singleton_RG {A : Type} (x : X) : RG X.
+Definition singleton_RG {A : Type} (a : A) : RG A.
 Proof.
     refine {|
-        RG_nodes := fun A => x = A;
-        RG_edges := fun A B => False;
+        RG_nodes := fun (x : A) => a = x;
+        RG_edges := fun x y => False;
         RG_valid := _
     |}.
     unfold valid_cond. intros. destruct H.
 Defined.
 
 
-Definition overlay_RG {A : Type} (rg1 rg2 : RG X) : RG X.
+Definition overlay_RG {A : Type} (rg1 rg2 : RG A) : RG A.
 Proof.
     refine {|
         RG_nodes := fun A => (rg1.(RG_nodes) A) \/ (rg2.(RG_nodes) A);
@@ -29,16 +29,16 @@ Proof.
     |}.
     unfold valid_cond. intros. split.
     - destruct H.
-        + pose proof rg1.(RG_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
-        + pose proof rg2.(RG_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
+        + pose proof rg1.(RG_valid). unfold valid_cond in X. apply X in H. left. apply H.
+        + pose proof rg2.(RG_valid). unfold valid_cond in X. apply X in H. right. apply H.
     - destruct H.
-        + pose proof rg1.(RG_valid). unfold valid_cond in X0. apply X0 in H. left. apply H.
-        + pose proof rg2.(RG_valid). unfold valid_cond in X0. apply X0 in H. right. apply H.
+        + pose proof rg1.(RG_valid). unfold valid_cond in X. apply X in H. left. apply H.
+        + pose proof rg2.(RG_valid). unfold valid_cond in X. apply X in H. right. apply H.
 Defined.
 
 
 
-Definition connect_RG {A : Type} (rg1 rg2 : RG X) : RG X.
+Definition connect_RG {A : Type} (rg1 rg2 : RG A) : RG A.
 Proof.
     let overlay := constr:(overlay_RG rg1 rg2) in
     refine {|
@@ -48,29 +48,30 @@ Proof.
     |}.
     unfold valid_cond. intros. split.
     - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X0. apply X0 in H. apply H.
+        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X. apply X in H. apply H.
         + simpl. left. apply H.
     - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X0. apply X0 in H. apply H.
+        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X. apply X in H. apply H.
         + simpl. right. apply H.
 Defined.
 
 
-Fixpoint AG_to_RG {A : Type} (ag : AG X) : RG X :=
-match ag with
-| Empty => empty_RG
-| Vertex x => singleton_RG x
-| Overlay ag1 ag2 => overlay_RG (AG_to_RG ag1) (AG_to_RG ag2)
-| Connect ag1 ag2 => connect_RG (AG_to_RG ag1) (AG_to_RG ag2)
-end.
+Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG A :=
+    match ag with
+    | Empty => empty_RG
+    | Vertex x => singleton_RG x
+    | Overlay ag1 ag2 => overlay_RG (AG_to_RG ag1) (AG_to_RG ag2)
+    | Connect ag1 ag2 => connect_RG (AG_to_RG ag1) (AG_to_RG ag2)
+    end
+.
 
 (* TODO: this coercion may or may not be good to have *)
 Coercion AG_to_RG : AG >-> RG.
 
-Definition equiv_AG {A : Type} (ag1 ag2 : AG X) : Prop :=
-RG_equiv ag1 ag2.
+Definition AG_equiv {A : Type} (ag1 ag2 : AG A) : Prop :=
+    RG_equiv ag1 ag2.
 
-Notation "g1 A== g2" := (equiv_AG g1 g2) (at level 80).
+Notation "g1 A== g2" := (AG_equiv g1 g2) (at level 80).
 
 
 
@@ -79,52 +80,53 @@ Notation "g1 A== g2" := (equiv_AG g1 g2) (at level 80).
 (* These are the "8 axioms" originally proposed by  functional graphs with class *)
 
 (* +++ is commutative and associative *)
-Theorem AG_Overlay_Commutative {A : Type}: forall (x y : AG X), x +++ y A== y +++ x.
+Theorem AG_Overlay_Commutative {A : Type}: forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
 Proof.
-    intros. unfold RG_equiv. split; split; intros; simpl; simpl in H; destruct H;
+    intros. unfold AG_equiv. split; split; intros; simpl; simpl in H; destruct H;
     (right; apply H) || (left; apply H).
 Qed.
 
 (* TODO: consider making the mega proof a custom tactic (using LTac or probably something more modern) *)
-Theorem AG_Overlay_Associative {A : Type}: forall (x y z : AG X), x +++ (y +++ z) A== (x +++ y) +++ z.
+Theorem AG_Overlay_Associative {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
 Proof.
-    unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
+    unfold AG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* (G, ***, e) is a monoid *)
-Theorem AG_Empty_Connect_L_Identity {A : Type}: forall (g : AG X), Empty *** g A== g.
+Theorem AG_Empty_Connect_L_Identity {A : Type}: forall (ag : AG A), Empty *** ag A== ag.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
-Theorem AG_Empty_Connect_R_Identity {A : Type}: forall (g : AG X), g *** Empty A== g.
+
+Theorem AG_Empty_Connect_R_Identity {A : Type}: forall (ag : AG A), ag *** Empty A== ag.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
-Theorem AG_Connect_Associative {A : Type}: forall (x y z : AG X), x *** (y *** z) A== (x *** y) *** z.
+Theorem AG_Connect_Associative {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* *** distributes over +++ *)
-Theorem AG_Connect_Overlay_L_Distributes {A : Type}: forall (x y z : AG X), x *** (y +++ z) A== x *** y +++ x *** z.
+Theorem AG_Connect_Overlay_L_Distributes {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
     
 
 
-Theorem AG_Connect_Overlay_R_Distributes {A : Type}: forall (x y z : AG X), (x +++ y) *** z A== x *** z +++ y *** z.
+Theorem AG_Connect_Overlay_R_Distributes {A : Type}: forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
 
 
 (* Decomposition *)
-Theorem AG_Connect_Decomposition {A : Type}: forall (x y z : AG X), x *** y *** z A== x *** y +++ x *** z +++ y *** z.
+Theorem AG_Connect_Decomposition {A : Type}: forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     unfold RG_equiv. intros. split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 Qed.
@@ -146,9 +148,9 @@ Qed.
 Require Import Setoid Morphisms.
 
 (* This proof is based on === being an equivalence relation *)
-Instance AG_Equivalence_eq {A : Type} : Equivalence (@equiv_AG X).
+Instance AG_Equivalence_eq {A : Type} : Equivalence (@AG_equiv A).
 Proof.
-    pose proof (@RG_Equivalence_eq X). destruct H. split.
+    pose proof (@RG_Equivalence_eq A). destruct H. split.
     - unfold Reflexive. intros. unfold Reflexive in Equivalence_Reflexive. apply Equivalence_Reflexive.
     - unfold Symmetric. intros. unfold Symmetric in Equivalence_Symmetric. apply Equivalence_Symmetric. apply H.
     - unfold Transitive. intros. unfold Transitive in Equivalence_Transitive. apply (Equivalence_Transitive x y z).
@@ -159,7 +161,7 @@ Qed.
 
 
 
-Instance Proper_add {A : Type} : Proper ((@equiv_AG X) ==> equiv_AG ==> equiv_AG) Overlay.
+Instance Proper_add {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Overlay.
 Proof.
     split; split; intros; simpl in *; destruct H1.
     - left. apply H. auto.
@@ -173,7 +175,7 @@ Proof.
 Qed.
     
 
-Instance Proper_mul {A : Type} : Proper ((@equiv_AG X) ==> equiv_AG ==> equiv_AG) Connect.
+Instance Proper_mul {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Connect.
 Proof.
     split; split; intros; simpl in *; destruct H1.
     - left. apply H. auto.
@@ -194,13 +196,13 @@ Proof.
         + apply H0. auto.
 Qed.    
 
-Theorem AG_equiv_rewrite_test_basic : forall (a b c : AG nat), equiv_AG a b -> equiv_AG b c -> equiv_AG a c.
+Theorem AG_equiv_rewrite_test_basic : forall (ag1 ag2 ag3 : AG nat), AG_equiv ag1 ag2 -> AG_equiv ag2 ag3 -> AG_equiv ag1 ag3.
 Proof.
     intros. rewrite H. rewrite H0. reflexivity.
 Qed.
 
 
-Theorem AG_equiv_rewrite_test_advanced : forall (a b c : AG nat), equiv_AG a b -> equiv_AG (b +++ Empty) c -> equiv_AG (a +++ Empty) c.
+Theorem AG_equiv_rewrite_test_advanced : forall (ag1 ag2 ag3 : AG nat), AG_equiv ag1 ag2 -> AG_equiv (ag2 +++ Empty) ag3 -> AG_equiv (ag1 +++ Empty) ag3.
 Proof.
     intros. rewrite H. rewrite H0. reflexivity.
 Qed.
@@ -215,10 +217,10 @@ They can all be proven using the mega proof from above, but I should find a way 
 
 
 (* This is a helper for Identity of + *)
-Lemma rdeco {A : Type}: forall (x : AG X), x +++ x +++ Empty A== x.
+Lemma rdeco {A : Type}: forall (ag : AG A), ag +++ ag +++ Empty A== ag.
 Proof.
     intros.
-    pose proof (AG_Connect_Decomposition x Empty Empty).
+    pose proof (AG_Connect_Decomposition ag Empty Empty).
 
 
     rewrite AG_Empty_Connect_R_Identity in H.
@@ -230,7 +232,7 @@ Qed.
 
 
 (* Identity of + *)
-Theorem AG_Empty_Overlay_R_Identity {A : Type}: forall (g : AG X), g +++ Empty A== g.
+Theorem AG_Empty_Overlay_R_Identity {A : Type}: forall (g : AG A), g +++ Empty A== g.
 Proof.
     intros.
     rewrite <- rdeco.
@@ -248,10 +250,10 @@ Qed.
 
 
 (* idempotence of + *)
-Theorem AG_Overlay_Idempotence {A : Type}: forall (x : AG X), x +++ x A== x.
+Theorem AG_Overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag A== ag.
 Proof.
     intros.
-    pose proof rdeco x.
+    pose proof rdeco ag.
     rewrite AG_Empty_Overlay_R_Identity in H.
     auto.
 Qed.
@@ -259,9 +261,9 @@ Qed.
 
 
 (* Absorption (proof is mine) *)
-Theorem AG_Absorption {A : Type}: forall (x y : AG X), x *** y +++ x +++ y A== x *** y.
+Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 A== ag1 *** ag2.
 Proof.
-    intros. pose proof AG_Connect_Decomposition x y Empty.
+    intros. pose proof AG_Connect_Decomposition ag1 ag2 Empty.
     rewrite (AG_Connect_Associative) in H.
     rewrite AG_Empty_Connect_R_Identity in H.
     rewrite AG_Empty_Connect_R_Identity in H.
@@ -273,7 +275,7 @@ Qed.
 
 
 (* Saturation (proof is mine) *)
-Theorem AG_Saturation {A : Type}: forall (x : AG X), x *** x *** x A== x *** x.
+Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag A== ag *** ag.
 Proof.
     intros.
     rewrite AG_Connect_Decomposition.

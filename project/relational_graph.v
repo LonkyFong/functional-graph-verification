@@ -4,25 +4,25 @@ Require Import Coq.Sets.Ensembles.
 (* Defining a Relational Graph *)
 
 
-Definition valid_cond {t : Type} (nodes : Ensemble t) (rel : relation t) : Type :=
-    forall (x y : t), rel x y -> nodes x /\ nodes y.
+Definition valid_cond {A : Type} (nodes : Ensemble A) (rel : relation A) : Type :=
+    forall (a1 a2 : A), rel a1 a2 -> nodes a1 /\ nodes a2.
 
-Record RG (t : Type) := {
-    RG_nodes : Ensemble t;
-    RG_edges : relation t;
+Record RG (A : Type) := {
+    RG_nodes : Ensemble A;
+    RG_edges : relation A;
     RG_valid : valid_cond RG_nodes RG_edges
 }.
 
-Arguments RG_nodes {t}.
-Arguments RG_edges {t}.
-Arguments RG_valid {t}.
+Arguments RG_nodes {A}.
+Arguments RG_edges {A}.
+Arguments RG_valid {A}.
 
 
 (* Two record graphs are "the same", when their Ensemble and relation are the same *)
 Definition RG_equiv {A : Type} (rg1 rg2 : RG A) : Prop :=
     (* The first condition is definitely needed, as we can have "singleton" graphs *)
-    (forall (x : A), rg1.(RG_nodes) x <-> rg2.(RG_nodes) x)
-    /\ (forall (x y : A), rg1.(RG_edges) x y <-> rg2.(RG_edges) x y)
+    (forall (a : A), rg1.(RG_nodes) a <-> rg2.(RG_nodes) a)
+    /\ (forall (a1 a2 : A), rg1.(RG_edges) a1 a2 <-> rg2.(RG_edges) a1 a2)
 .
 Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
@@ -30,20 +30,20 @@ Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
 (* "RG_equiv" is an equivalence relation: *)
 (* Reflexive *)
-Theorem RG_RG_equiv_Reflexive {A : Type}: forall (x : RG A), RG_equiv x x .
+Theorem RG_equiv_Reflexive {A : Type}: forall (rg : RG A), RG_equiv rg rg.
 Proof.
     unfold RG_equiv. intros. split; split; auto.
 Qed.
     
 
 (* Symmetric *)
-Theorem RG_RG_equiv_Symmetric {A : Type}: forall (x y : RG A), RG_equiv x y <-> RG_equiv y x.
+Theorem RG_equiv_Symmetric {A : Type}: forall (rg1 rg2 : RG A), RG_equiv rg1 rg2 <-> RG_equiv rg2 rg1.
 Proof.
     split; split; split; unfold RG_equiv in H; apply H.
 Qed. 
 
 (* Transitive *)
-Theorem RG_RG_equiv_Transitive {A : Type}: forall (x y z : RG A), RG_equiv x y -> RG_equiv y z -> RG_equiv x z.
+Theorem RG_equiv_Transitive {A : Type}: forall (rg1 rg2 rg3 : RG A), RG_equiv rg1 rg2 -> RG_equiv rg2 rg3 -> RG_equiv rg1 rg3.
 Proof.
     split; split; intros; unfold RG_equiv in H; unfold RG_equiv in H0.
     - apply H0. apply H. apply H1.
@@ -59,9 +59,9 @@ Require Import Setoid Morphisms.
 Instance RG_Equivalence_eq {A : Type} : Equivalence (@RG_equiv A).
 Proof.
     unfold RG_equiv. split.
-    - unfold Reflexive. intros. pose proof (@RG_RG_equiv_Reflexive A). apply H.
-    - unfold Symmetric. intros. pose proof (@RG_RG_equiv_Symmetric A). apply H0. apply H.
-    - unfold Transitive. intros. pose proof (@RG_RG_equiv_Transitive A). apply (H1 x y).
+    - unfold Reflexive. intros. pose proof (@RG_equiv_Reflexive A). apply H.
+    - unfold Symmetric. intros. pose proof (@RG_equiv_Symmetric A). apply H0. apply H.
+    - unfold Transitive. intros. pose proof (@RG_equiv_Transitive A). apply (H1 x y).
         + apply H.
         + apply H0.
 Qed.
