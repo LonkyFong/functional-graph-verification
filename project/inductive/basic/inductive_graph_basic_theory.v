@@ -38,7 +38,7 @@ Proof.
                      
         RG_valid := _
     |}.
-    unfold valid_cond. pose proof rg.(RG_valid). firstorder.
+    RG_valid_prover_with rg.
 Defined.
 
 
@@ -120,7 +120,7 @@ Proof.
       RG_edges := fun (n0 n1 : nat) => n0 <> node /\ n1 <> node /\  rg.(RG_edges) n0 n1;
       RG_valid := _
   |}.
-  unfold valid_cond. pose proof rg.(RG_valid). firstorder.
+  RG_valid_prover_with rg.
   - unfold not. intros. inversion H2. congruence.
   - unfold not. intros. inversion H2. congruence.
 Defined.
@@ -161,7 +161,7 @@ Proof.
       RG_edges := fun (n0 n1 : nat) => (n0 = node0 /\ n1 = node1 /\ rg.(RG_nodes) node0 /\ rg.(RG_nodes) node1) \/  rg.(RG_edges) n0 n1;
       RG_valid := _
   |}.
-  unfold valid_cond. pose proof rg.(RG_valid). firstorder.
+  RG_valid_prover_with rg.
   - congruence.
   - congruence.
 Defined.

@@ -173,8 +173,14 @@ Definition IG_valid_cond_fun {A B : Type} (IG_data : NatMap.t (Context' A B)) : 
 .
   
 
-Definition IG_valid_cond {A B : Type} (IG_data : NatMap.t (Context' A B)) : Prop :=
+Definition _valid_cond {A B : Type} (IG_data : NatMap.t (Context' A B)) : Prop :=
   IG_valid_cond_fun IG_data = true.
+
+(* These are shared with RG_valid_prover *)
+Ltac IG_valid_prover := unfold _valid_cond; firstorder.
+(* Ltac IG_valid_prover_with rg := pose proof rg.(RG_valid); unfold valid_cond; firstorder.
+Ltac IG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); pose proof rg2.(RG_valid); unfold valid_cond; firstorder. *)
+
 
 Definition IG_data_unsafe (A B : Type) : Type :=
   NatMap.t (Context' A B).
@@ -182,7 +188,7 @@ Definition IG_data_unsafe (A B : Type) : Type :=
 (* Map instead of list *)
 Record IG (A B : Type) := {
   IG_data : IG_data_unsafe A B;
-  IG_valid : IG_valid_cond IG_data
+  IG_valid : _valid_cond IG_data
 }.
 
 Arguments IG_data {A B}.
@@ -204,12 +210,7 @@ Proof.
     IG_data := NatMap.empty (Context' A B);
     IG_valid := _
   |}).
-  unfold IG_valid_cond.
-  unfold IG_valid_cond_fun.
-  simpl.
-  pose proof NatSetProperties.union_subset_equal.
-  apply H.
-  apply NatSetProperties.subset_refl.
+  IG_valid_prover.
 Defined.
 
 
@@ -273,8 +274,7 @@ Proof.
     IG_data := x';
     IG_valid := _
   |}).
-  unfold IG_valid_cond.
-  unfold IG_valid_cond_fun.
+  IG_valid_prover.
 
 Admitted.
 
@@ -296,6 +296,7 @@ Proof.
     IG_data := NatMap.add n node x.(IG_data);
     IG_valid := _
   |}).
+  IG_valid_prover.
 Admitted.
 
 

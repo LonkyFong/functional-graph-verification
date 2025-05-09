@@ -22,14 +22,9 @@ Proof.
                                     ((A = 1) /\ (B = 2)));
     RG_valid := _
   |}).
-  unfold valid_cond. intros. split; unfold my_Finite_Type.
-  - destruct H.
-    + left. apply H.
-    + right. left. apply H. 
-  - destruct H.
-    + right. left. apply H.
-    + right. right. apply H.
+  RG_valid_prover.
 Defined.
+
 
 
 Print my_Basic_Graph.

@@ -38,8 +38,8 @@ Proof.
         RG_edges := fun (a b : A) => False;
         RG_valid := _
     |}).
-    compute. auto.
-Qed.
+    RG_valid_prover.
+Defined.
 
 Definition isEmpty_RG {A : Type} (g : RG A) : Prop :=
     forall (a : A), g.(RG_nodes) a = False.

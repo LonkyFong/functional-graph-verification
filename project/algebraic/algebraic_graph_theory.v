@@ -16,7 +16,7 @@ Proof.
         RG_edges := fun x y => False;
         RG_valid := _
     |}.
-    unfold valid_cond. intros. destruct H.
+    RG_valid_prover.
 Defined.
 
 
@@ -27,14 +27,9 @@ Proof.
         RG_edges := fun A B => (rg1.(RG_edges) A B) \/ (rg2.(RG_edges) A B);
         RG_valid := _
     |}.
-    unfold valid_cond. intros. split.
-    - destruct H.
-        + pose proof rg1.(RG_valid). unfold valid_cond in X. apply X in H. left. apply H.
-        + pose proof rg2.(RG_valid). unfold valid_cond in X. apply X in H. right. apply H.
-    - destruct H.
-        + pose proof rg1.(RG_valid). unfold valid_cond in X. apply X in H. left. apply H.
-        + pose proof rg2.(RG_valid). unfold valid_cond in X. apply X in H. right. apply H.
+    RG_valid_prover_withs rg1 rg2.
 Defined.
+
 
 
 
@@ -46,14 +41,10 @@ Proof.
         RG_edges := fun A B => overlay.(RG_edges) A B \/ (rg1.(RG_nodes) A /\ rg2.(RG_nodes) B);
         RG_valid := _
     |}.
-    unfold valid_cond. intros. split.
-    - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X. apply X in H. apply H.
-        + simpl. left. apply H.
-    - destruct H.
-        + pose proof (overlay_RG rg1 rg2).(RG_valid). unfold valid_cond in X. apply X in H. apply H.
-        + simpl. right. apply H.
+    RG_valid_prover_withs rg1 rg2.
 Defined.
+
+
 
 
 Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG A :=

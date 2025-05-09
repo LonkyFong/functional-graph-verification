@@ -44,13 +44,9 @@ Proof.
                      
         RG_valid := _
     |}.
-    unfold valid_cond. intros. split.
-    - induction edges.
-        + simpl in H. destruct H.
-        + simpl in H. 
-
+    RG_valid_prover.
 Admitted.
-(* Defined. *)
+
 
 
 
