@@ -28,7 +28,7 @@ Require Import MyProject.project.relational_graph_theory.
 
 (* Section to make rewrite work with IG_equiv *)
 (* This proof is based on === being an equivalence relation *)
-Instance IG_basic_Equivalence_eq : Equivalence IG_basic_equiv.
+Instance IG_basic_Equivalence : Equivalence IG_basic_equiv.
 Proof.
   G_derived_equivalence_prover nat unit IG_basic_to_RG_unlE.
 Qed.
@@ -239,6 +239,8 @@ Theorem IG_basic_spec4 : forall (node : Node) (nodes : list Node) (edges : list 
   (Some (froms, tos), IG_basic_mkGraph (filter (fun n => negb (node =? n)) nodes) (filter (fun '(from, to) => negb ((from =? node) || (to =? node))) edges)).
 (* This is not even a complete specification and it looks like a hard one to prove... *)
 Proof.
+  intros.
+  
 Admitted.
 
 

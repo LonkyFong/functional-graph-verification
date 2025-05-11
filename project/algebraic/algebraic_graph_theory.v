@@ -74,7 +74,7 @@ Qed.
 
 (* Section to make rewrite work with equiv_AG *)
 (* This proof is based on === being an equivalence relation *)
-Instance AG_Equivalence_eq {A : Type} : Equivalence (@AG_equiv A).
+Instance AG_Equivalence {A : Type} : Equivalence (@AG_equiv A).
 Proof.
     G_derived_equivalence_prover A unit (@AG_to_RG_unlE A).
 Qed.

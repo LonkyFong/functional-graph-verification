@@ -18,7 +18,7 @@ Open Scope nat_scope.
 
 (* Section to make rewrite work with IG_equiv *)
 (* This proof is based on === being an equivalence relation *)
-Instance IG_Equivalence_eq {A : Type} : Equivalence (@IG_equiv A).
+Instance IG_Equivalence {A : Type} : Equivalence (@IG_equiv A).
 Proof.
     G_derived_equivalence_prover A unit (@id (IG A unit)).
 Qed. 

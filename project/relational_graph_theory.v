@@ -32,7 +32,7 @@ Qed.
 
 (* Source for rewrite: https://stackoverflow.com/questions/56099646/use-rewrite-tactic-with-my-own-operator-in-coq *)
 Require Import Setoid Morphisms.
-Instance RG_Equivalence_eq {A B : Type} : Equivalence (@RG_equiv A B).
+Instance RG_Equivalence {A B : Type} : Equivalence (@RG_equiv A B).
 Proof.
     unfold RG_equiv. split.
     - unfold Reflexive. intros. pose proof (@RG_equiv_Reflexive A). apply H.
@@ -44,7 +44,7 @@ Qed.
 
 (* Does something very similar as the proof above, but uses "other evidence" for equivalence *)
 Ltac G_derived_equivalence_prover A B f :=
-  pose proof (@RG_Equivalence_eq A B) as H;
+  pose proof (@RG_Equivalence A B) as H;
   destruct H as [Eq_Refl Eq_Symm Eq_Trans]; split;
   [ unfold Reflexive; intros; unfold Reflexive in Eq_Refl; apply Eq_Refl
   | unfold Symmetric; intros; unfold Symmetric in Eq_Symm; apply Eq_Symm; apply H
