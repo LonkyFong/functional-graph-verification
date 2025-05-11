@@ -34,53 +34,53 @@ Print FSetEqProperties.
 
 
 
-Definition IG : Type :=
+Definition IG_basic : Type :=
   NatMap.t (NatSet.t * NatSet.t).
 
 
 (* Start defining functionality: *)
-Definition empty : IG :=
+Definition IG_basic_empty : IG_basic :=
   NatMap.empty (NatSet.t * NatSet.t).
 
 
-Definition isEmpty (x : IG) : bool :=
+Definition IG_basic_isEmpty (x : IG_basic) : bool :=
   NatMap.is_empty x.
 
-Compute isEmpty empty.
+Compute IG_basic_isEmpty IG_basic_empty.
 
 (* Here start the helper functions for "matsh" *)
 
 (* Applies a function to a map entry if it exists quickly *)
-Definition updateEntry (node : Node) (f : (NatSet.t * NatSet.t) -> (NatSet.t * NatSet.t)) (ig : IG) : IG :=
+Definition _updateEntry (node : Node) (f : (NatSet.t * NatSet.t) -> (NatSet.t * NatSet.t)) (ig : IG_basic) : IG_basic :=
   match NatMap.find node ig with
     | Some v => NatMap.add node (f v) ig
     | None => ig
   end.
 
 
-Definition cleanUp' (node : Node) (froms tos : NatSet.t) (ig : IG) : IG :=
+Definition _cleanUp' (node : Node) (froms tos : NatSet.t) (ig : IG_basic) : IG_basic :=
   (* Loop over ingoing edges of removed node to update the outgoing of all of those to not have n anymore *)
-  let ig' := NatSet.fold (fun (elem : Node) (acc : IG) =>
-  updateEntry elem (fun '(currFroms, currTos) => (NatSet.remove node currFroms, currTos))
+  let ig' := NatSet.fold (fun (elem : Node) (acc : IG_basic) =>
+  _updateEntry elem (fun '(currFroms, currTos) => (NatSet.remove node currFroms, currTos))
     acc) tos ig in
 
   (* Loop over outgoing edges of removed node to update the ingoing of all of those to not have n anymore *)
-  NatSet.fold (fun (elem : Node) (acc : IG) =>
-  updateEntry elem (fun '(currFroms, currTos) => (currFroms, NatSet.remove node currTos))
+  NatSet.fold (fun (elem : Node) (acc : IG_basic) =>
+  _updateEntry elem (fun '(currFroms, currTos) => (currFroms, NatSet.remove node currTos))
     acc) froms ig'.
   
 
 
-Definition cleanUp (node : Node) (context : (NatSet.t * NatSet.t)) (ig : IG) : IG :=
+Definition _cleanUp (node : Node) (context : (NatSet.t * NatSet.t)) (ig : IG_basic) : IG_basic :=
   match context with | (froms, tos) =>
-    cleanUp' node froms tos (NatMap.remove node ig)
+    _cleanUp' node froms tos (NatMap.remove node ig)
   end.
 
 
-Definition matsh (node : Node) (ig : IG) : (option (NatSet.t * NatSet.t) * IG) :=
+Definition IG_basic_match (node : Node) (ig : IG_basic) : (option (NatSet.t * NatSet.t) * IG_basic) :=
   match NatMap.find node ig with
     | None => (None, ig)
-    | Some context as sContext => (sContext, cleanUp node context ig) 
+    | Some context as sContext => (sContext, _cleanUp node context ig) 
   end.
 
 
@@ -88,26 +88,26 @@ Definition matsh (node : Node) (ig : IG) : (option (NatSet.t * NatSet.t) * IG) :
 (* Here start the helper functions for "mkGraph" *)
 
 (* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
-Definition add (node : Node) (fromsTos : (NatSet.t * NatSet.t)) (ig : IG) : IG :=
+Definition _add (node : Node) (fromsTos : (NatSet.t * NatSet.t)) (ig : IG_basic) : IG_basic :=
   NatMap.add node fromsTos ig.
 
 
 
-Definition insNode (node : Node) (ig : IG) : IG :=
-  add node (NatSet.empty, NatSet.empty) ig.
+Definition _insNode (node : Node) (ig : IG_basic) : IG_basic :=
+  _add node (NatSet.empty, NatSet.empty) ig.
   
 
-Definition insNodes (nodes : list Node) (ig : IG) : IG :=
-  fold_right insNode ig nodes.
+Definition _insNodes (nodes : list Node) (ig : IG_basic) : IG_basic :=
+  fold_right _insNode ig nodes.
 
 
 (* If one of the nodes of the edge does not exist, nothing happens *)
-Definition insEdge (edge : (Node * Node)) (ig : IG) : IG :=
+Definition _insEdge (edge : (Node * Node)) (ig : IG_basic) : IG_basic :=
 match edge with
-  | (from, to) =>  if NatMap.mem from ig && NatMap.mem to ig then updateEntry from (fun '(froms, tos) => (froms, NatSet.add to tos))
+  | (from, to) =>  if NatMap.mem from ig && NatMap.mem to ig then _updateEntry from (fun '(froms, tos) => (froms, NatSet.add to tos))
                 (
                   (* Now update the other side of the edge *)
-                  updateEntry to (fun '(froms, tos) => (NatSet.add from froms, tos))
+                  _updateEntry to (fun '(froms, tos) => (NatSet.add from froms, tos))
                   ig
                 ) else ig
 end.
@@ -115,51 +115,32 @@ end.
 
 
 
-Definition insEdges (edges : list (Node * Node)) (ig : IG) : IG :=
-  fold_right insEdge ig edges.
+Definition _insEdges (edges : list (Node * Node)) (ig : IG_basic) : IG_basic :=
+  fold_right _insEdge ig edges.
 
 
 
-Definition mkGraph (nodes : list Node) (edges : list (Node * Node)) : IG :=
-  insEdges edges (insNodes nodes empty).
+Definition IG_basic_mkGraph (nodes : list Node) (edges : list (Node * Node)) : IG_basic :=
+  _insEdges edges (_insNodes nodes IG_basic_empty).
 
 
  
-Definition labNodes (ig : IG) : list Node :=
+Definition IG_basic_labNodes (ig : IG_basic) : list Node :=
   map fst (NatMap.elements ig).
 
 
 
 (* Make IG_basic visible *)
 
-Definition showIG (ig : IG) :=
+Definition IG_basic_showIG (ig : IG_basic) :=
   map (fun '(node, (froms, tos)) => (node, (NatSet.elements froms, NatSet.elements tos))) (NatMap.elements ig).
   
-Definition showDecomp (decomp : (option (NatSet.t * NatSet.t) * IG)) :=
+Definition IG_basic_showDecomp (decomp : (option (NatSet.t * NatSet.t) * IG_basic)) :=
   match decomp with
-    | (None, ig) => (None, showIG ig)
-    | (Some (froms, tos), ig) => (Some (NatSet.elements froms, NatSet.elements tos), showIG ig)
+    | (None, ig) => (None, IG_basic_showIG ig)
+    | (Some (froms, tos), ig) => (Some (NatSet.elements froms, NatSet.elements tos), IG_basic_showIG ig)
   end.
 
 
 
-
-
-(* TODO: this should relocate to "examples" after big rename *)
-Compute showIG (mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)]).
-
-Definition myBasicGraph := mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)].
-
-(* Here come the tests for each defined function (that is in the graph class): *)
-
-Compute showIG empty.
-
-Compute isEmpty empty.
-Compute isEmpty myBasicGraph.
-
-Compute showDecomp (matsh 2 myBasicGraph).
-
-Compute showIG (mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)]).
-
-Compute labNodes myBasicGraph.
 

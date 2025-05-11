@@ -24,42 +24,33 @@ Require Import MyProject.project.relational_graph_IG_basic_operations.
 
 (* Adds a node and its in- and out- going edges (= its IG context) to an RG.
     Assumes that the neighboring nodes exist *)
-Definition _accTo_RG (node : Node) (rgIg : RG nat * IG) : RG nat * IG :=
+Definition _accTo_RG (node : Node) (rgIg : RG nat * IG_basic) : RG nat * IG_basic :=
     match rgIg with | (rg, ig) =>
-        match matsh node ig with
+        match IG_basic_match node ig with
         | (Some (froms, tos), rest) => (_extendByContext node froms tos rg, rest)
         | (None, sameIg)            => (rg, sameIg)
         end
     end
 .
 
-Definition IG_basic_to_RG (ig : IG) : RG nat :=
-    match fold_right _accTo_RG (RG_empty, ig) (labNodes ig) with
+Definition IG_basic_to_RG (ig : IG_basic) : RG nat :=
+    match fold_right _accTo_RG (RG_empty, ig) (IG_basic_labNodes ig) with
     | (rg, acc) => rg
     end
 .
 
 
-(* Coercion IG_basic_to_RG : IG >-> RG. *)
+(* Coercion IG_basic_to_RG : IG_basic >-> RG. *)
 
-Definition IG_equiv (ig1 ig2 : IG) : Prop :=
+Definition IG_basic_equiv (ig1 ig2 : IG_basic) : Prop :=
     RG_equiv (IG_basic_to_RG ig1) (IG_basic_to_RG ig2)
 .
 
-Notation "g1 I== g2" := (IG_equiv g1 g2) (at level 80).
+Notation "g1 I== g2" := (IG_basic_equiv g1 g2) (at level 80).
 
 
 
-(* TODO: this should relocate to "examples" after big rename *)
-Example basic_equivalence_test : (mkGraph [1; 2] []) I== (mkGraph [2; 1] []).
-Proof.
-    unfold IG_equiv. unfold RG_equiv. firstorder.
-Qed.
 
-Example basic_equivalence_test' : (mkGraph [1; 2; 3] [(1, 2); (2, 3)]) I== (mkGraph [2; 1; 3] [(2, 3); (1, 2)]).
-Proof.
-    unfold IG_equiv. unfold RG_equiv. firstorder.
-Qed.
 
 
 
@@ -72,7 +63,7 @@ Definition IG_basic_Propify_isEmpty (result : bool) : Prop.
 Proof.
 Admitted.
 
-Definition IG_basic_Propify_matsh (result : option (NatSet.t * NatSet.t) * IG) : (Prop * (Ensemble nat * Ensemble nat)) * RG nat.
+Definition IG_basic_Propify_matsh (result : option (NatSet.t * NatSet.t) * IG_basic) : (Prop * (Ensemble nat * Ensemble nat)) * RG nat.
 Proof.
 Admitted.
 
@@ -82,27 +73,27 @@ Admitted.
 
 
 Theorem IG_basic_empty_relate :
-  IG_basic_to_RG empty = RG_empty.
+  IG_basic_to_RG IG_basic_empty = RG_empty.
 Proof.
 Admitted.
 
-Theorem IG_basic_isEmpty_relate : forall (ig : IG),
-  IG_basic_Propify_isEmpty (isEmpty ig) = RG_isEmpty (IG_basic_to_RG ig).
+Theorem IG_basic_isEmpty_relate : forall (ig : IG_basic),
+  IG_basic_Propify_isEmpty (IG_basic_isEmpty ig) = RG_isEmpty (IG_basic_to_RG ig).
 Proof.
 Admitted.
 
 
-Theorem IG_basic_matsh_relate : forall (node : Node) (ig : IG),
-  IG_basic_Propify_matsh (matsh node ig) = RG_matsh node (IG_basic_to_RG ig).
+Theorem IG_basic_matsh_relate : forall (node : Node) (ig : IG_basic),
+  IG_basic_Propify_matsh (IG_basic_match node ig) = RG_matsh node (IG_basic_to_RG ig).
 Proof.
 Admitted.
 
 Theorem IG_basic_mkGraph_relate : forall (nodes : list Node) (edges : list (Node * Node)),
-  IG_basic_to_RG (mkGraph nodes edges) = RG_mkGraph nodes edges.
+  IG_basic_to_RG (IG_basic_mkGraph nodes edges) = RG_mkGraph nodes edges.
 Proof.
 Admitted.
 
-Theorem IG_basic_labNodes_relate : forall (ig : IG),
-  IG_basic_Propify_labNodes (labNodes ig) = RG_labNodes (IG_basic_to_RG ig).
+Theorem IG_basic_labNodes_relate : forall (ig : IG_basic),
+  IG_basic_Propify_labNodes (IG_basic_labNodes ig) = RG_labNodes (IG_basic_to_RG ig).
 Proof.
 Admitted.

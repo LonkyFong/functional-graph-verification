@@ -13,6 +13,9 @@ Require Import MyProject.project.algebraic.algebraic_graph_to_RG.
 Require Import MyProject.project.algebraic.algebraic_graph_theory.
 
 Require Import MyProject.project.inductive.inductive_graph.
+Require Import MyProject.project.inductive.basic.inductive_graph_basic.
+Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
+
 
 
 (* Mini examples, I had in other files but I moved here for cleanness *)
@@ -99,3 +102,35 @@ Compute show_Decomp (matsh 2 my_basic_graph).
 Compute show_IG (mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")]).
 
 Compute labNodes my_basic_graph.
+
+
+(* IG_basic s --------------------------------------------------------------------------- *)
+
+
+Compute IG_basic_showIG (IG_basic_mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)]).
+
+Definition myBasicGraph := IG_basic_mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)].
+
+(* Here come the tests for each defined function (that is in the graph class): *)
+
+Compute IG_basic_showIG IG_basic_empty.
+
+Compute IG_basic_isEmpty IG_basic_empty.
+Compute IG_basic_isEmpty myBasicGraph.
+
+Compute IG_basic_showDecomp (IG_basic_match 2 myBasicGraph).
+
+Compute IG_basic_showIG (IG_basic_mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)]).
+
+Compute IG_basic_labNodes myBasicGraph.
+
+
+Example basic_equivalence_test : (IG_basic_mkGraph [1; 2] []) I== (IG_basic_mkGraph [2; 1] []).
+Proof.
+    unfold IG_basic_equiv. unfold RG_equiv. firstorder.
+Qed.
+
+Example basic_equivalence_test' : (IG_basic_mkGraph [1; 2; 3] [(1, 2); (2, 3)]) I== (IG_basic_mkGraph [2; 1; 3] [(2, 3); (1, 2)]).
+Proof.
+    unfold IG_basic_equiv. unfold RG_equiv. firstorder.
+Qed.
