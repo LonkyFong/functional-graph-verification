@@ -20,7 +20,7 @@ Require Import MyProject.project.util.NatSet.
 
 Open Scope nat_scope.
 
-(* Specifies behavior of IH functions on an RG via equational specification *)
+(* Specifies behavior of IH functions on an RG via equational specification soon to be outclassed by relational_graph_IG_operations_theory*)
 
 
 (* Here start "meaningful statements" *)
@@ -95,15 +95,15 @@ Admitted.
 
 
 
-Theorem RG_matsh_empty_is_nothing : forall (node : Node),
-  RG_matsh node RG_empty = ((False, (Empty_set nat, Empty_set nat)), RG_empty).
+Theorem RG_match_empty_is_nothing : forall (node : Node),
+  RG_match node RG_empty = ((False, (Empty_set nat, Empty_set nat)), RG_empty).
 Proof.
 Admitted.
 
 
 
 Theorem RG_spec4 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
-  List.In node nodes -> exists froms tos, RG_matsh node (RG_mkGraph nodes edges) =
+  List.In node nodes -> exists froms tos, RG_match node (RG_mkGraph nodes edges) =
   ((True, (froms, tos)), RG_mkGraph (filter (fun n => negb (node =? n)) nodes) (filter (fun '(from, to) => negb ((from =? node) || (to =? node))) edges)).
 (* This is not even a complete specification and it looks like a hard one to prove... *)
 Proof.
@@ -111,6 +111,6 @@ Admitted.
 
 
 Theorem RG_spec5 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
-  not (List.In node nodes) -> RG_matsh node (RG_mkGraph nodes edges) = ((False, (Empty_set nat, Empty_set nat)), RG_mkGraph nodes edges).
+  not (List.In node nodes) -> RG_match node (RG_mkGraph nodes edges) = ((False, (Empty_set nat, Empty_set nat)), RG_mkGraph nodes edges).
 Proof.
 Admitted.

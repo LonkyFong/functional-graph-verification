@@ -36,7 +36,6 @@ Qed.
 
 (* (attempt at) direct equational specifications of an IG_basic: *)
 
-
 (* Block to derive useful conversion theorem "In_labNodes_is_InMap" *)
 
 

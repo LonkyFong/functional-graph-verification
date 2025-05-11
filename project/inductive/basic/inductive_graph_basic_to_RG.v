@@ -17,7 +17,7 @@ Require Import MyProject.project.relational_graph_theory.
 Require Import MyProject.project.relational_graph_IG_basic_operations.
 
 
-(* Defining Conversion function from IG_basic to RG *)
+(* Defining Conversion function from IG_basic to RG (going towards a model-based approach) *)
 (* Also states (and eventually proves) that operations on IG_basic are equivalent to those of RG *)
 
 
@@ -52,9 +52,6 @@ Notation "g1 I== g2" := (IG_basic_equiv g1 g2) (at level 80).
 
 
 
-
-
-
 (* Now go to proving that the implementations from IG basic relate to the RG ones *)
 (* Filling in all the admitteds, should suffice to show that IG_basic operations are equivalent to RG operations *)
 (* Hence, all theorems from one apply to the other *)
@@ -83,8 +80,8 @@ Proof.
 Admitted.
 
 
-Theorem IG_basic_matsh_relate : forall (node : Node) (ig : IG_basic),
-  IG_basic_Propify_matsh (IG_basic_match node ig) = RG_matsh node (IG_basic_to_RG ig).
+Theorem IG_basic_match_relate : forall (node : Node) (ig : IG_basic),
+  IG_basic_Propify_matsh (IG_basic_match node ig) = RG_match node (IG_basic_to_RG ig).
 Proof.
 Admitted.
 

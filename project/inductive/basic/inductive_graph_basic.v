@@ -48,7 +48,7 @@ Definition IG_basic_isEmpty (x : IG_basic) : bool :=
 
 Compute IG_basic_isEmpty IG_basic_empty.
 
-(* Here start the helper functions for "matsh" *)
+(* Here start the helper functions for "match" *)
 
 (* Applies a function to a map entry if it exists quickly *)
 Definition _updateEntry (node : Node) (f : (NatSet.t * NatSet.t) -> (NatSet.t * NatSet.t)) (ig : IG_basic) : IG_basic :=
@@ -88,6 +88,7 @@ Definition IG_basic_match (node : Node) (ig : IG_basic) : (option (NatSet.t * Na
 (* Here start the helper functions for "mkGraph" *)
 
 (* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
+(* So far does not guarantee safety *)
 Definition _add (node : Node) (fromsTos : (NatSet.t * NatSet.t)) (ig : IG_basic) : IG_basic :=
   NatMap.add node fromsTos ig.
 

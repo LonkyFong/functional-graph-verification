@@ -10,8 +10,8 @@ Require Import MyProject.project.util.util.
 (* Defining a Relational Graph and its (possible) operations *)
 
 
-Definition _valid_cond {A : Type} (nodes : Ensemble A) (rel : relation A) : Type :=
-    forall (a1 a2 : A), rel a1 a2 -> nodes a1 /\ nodes a2.
+Definition _valid_cond {A : Type} (nodes : Ensemble A) (edges : relation A) : Prop :=
+    forall (a1 a2 : A), edges a1 a2 -> nodes a1 /\ nodes a2.
 
 
 Record RG (A : Type) := {
@@ -117,15 +117,15 @@ Definition RG_getIncidentEdges {A : Type} (node : A) (rg : RG A) : relation A :=
 
 (* A little exotic, but useful for IGs *)
 (* Adds a node and its in- and out- going edges (= its IG context) to an RG.
-    Assumes that the neighboring nodes exist *)
+    Adds the neighbouring nodes, in case they do not exists *)
 Definition _extendByContext (node : nat) (froms tos : NatSet.t) (rg : RG nat) : RG nat.
 Proof.
     refine {|
         RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (_customEnsembleAdd node rg.(RG_nodes))  n;
-        RG_edges := fun (n0 n1 : nat) =>
-                                (NatSet.In n0 froms /\ n1 = node)
-                                \/ (n0 = node /\ NatSet.In n1 tos)
-                                \/ rg.(RG_edges) n0 n1
+        RG_edges := fun (n1 n2 : nat) =>
+                                (NatSet.In n1 froms /\ n2 = node)
+                                \/ (n1 = node /\ NatSet.In n2 tos)
+                                \/ rg.(RG_edges) n1 n2
                                 ;
                      
         RG_valid := _

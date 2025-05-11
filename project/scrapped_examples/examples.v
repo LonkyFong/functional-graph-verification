@@ -124,6 +124,9 @@ Compute IG_basic_showIG (IG_basic_mkGraph [1; 2; 3] [(1, 2); (2, 3); (3, 1)]).
 
 Compute IG_basic_labNodes myBasicGraph.
 
+(* Self-loops *)
+Compute IG_basic_showIG (IG_basic_mkGraph [1] [(1, 1)]).
+
 
 Example basic_equivalence_test : (IG_basic_mkGraph [1; 2] []) I== (IG_basic_mkGraph [2; 1] []).
 Proof.

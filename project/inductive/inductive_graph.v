@@ -82,12 +82,14 @@ Definition Decomp (Graph : Type -> Type -> Type) (A B : Type) : Type :=
   (MContext A B * Graph A B). *)
 
 
-
+(* Todo: this is incorrect, since according to the paper, multigraphs are allowed, which this does not permit *)
+(* This should be some "multimap" *)
 Definition Adj' (B : Type) := NatMap.t B.
 
 (* No node needed, since the node is the key *)
 Definition Context' (A B : Type) : Type :=
   (Adj' B * A * Adj' B).
+
 
 Definition MContext' (A B : Type) : Type :=
     option (Context' A B).
