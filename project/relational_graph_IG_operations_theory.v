@@ -10,11 +10,13 @@ Require Import MyProject.project.util.util.
 
 (* Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory. *)
-Require Import MyProject.project.relational_graph_IG_operations.
 
 Require Import Coq.Sets.Ensembles.
 
 Require Import MyProject.project.util.NatSet.
+Require Import MyProject.project.relational_graph.
+Require Import MyProject.project.relational_graph_IG_operations.
+
 
 
 Open Scope nat_scope.

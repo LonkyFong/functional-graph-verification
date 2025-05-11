@@ -1,4 +1,4 @@
-Require Import String.
+(* Require Import String.
 Require Import Coq.Arith.Arith.
 Open Scope string_scope.
 
@@ -20,7 +20,7 @@ Require Import MyProject.project.util.NatSet.
 
 Open Scope nat_scope.
 
-(* Specifies behavior of IH functions on an RG via equational specification soon to be outclassed by relational_graph_IG_operations_theory*)
+(* Specifies behavior of IH functions on an RG via equational specification "OUTCLASSED" by relational_graph_IG_operations_theory*)
 
 
 (* Here start "meaningful statements" *)
@@ -113,4 +113,4 @@ Admitted.
 Theorem RG_spec5 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
   not (List.In node nodes) -> RG_match node (RG_mkGraph nodes edges) = ((False, (Empty_set nat, Empty_set nat)), RG_mkGraph nodes edges).
 Proof.
-Admitted.
+Admitted. *)

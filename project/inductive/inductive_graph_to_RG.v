@@ -22,7 +22,7 @@ Definition labEdges {A B : Type} (ig : IG A B) : list (LEdge B).
 Proof.
 Admitted. 
 
-Definition IG_to_RG {A B : Type} (ig : IG A B) : RG A.
+Definition IG_to_RG {A B : Type} (ig : IG A B) : RG A B.
 Proof.
     Print labNodes.
     (* list of node labels *)
@@ -33,8 +33,8 @@ Proof.
     refine {|
         RG_nodes := fun (a : A) =>
                             fold_right (fun (v : A) (acc: Prop) => (a = v) \/ acc) False nodes;
-
-        RG_edges := fun (a1 a2 : A) =>
+(* This is wrong now, that there are edge labels to consider *)
+        RG_edges := fun (a1 a2 : A) l =>
                             fold_right (fun (e : (option A) * (option A)) (acc: Prop) => match e with
                                 | (Some from, Some to) => ((a1 = from) /\ (a2 = to)) \/ acc
                                 (* This case should never happen *)

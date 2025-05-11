@@ -30,7 +30,7 @@ Require Import MyProject.project.relational_graph_theory.
 (* This proof is based on === being an equivalence relation *)
 Instance IG_Equivalence_eq : Equivalence IG_basic_equiv.
 Proof.
-  G_derived_equivalence_prover nat IG_basic_to_RG.
+  G_derived_equivalence_prover nat unit IG_basic_to_RG_unlE.
 Qed.
 
 

@@ -1,4 +1,4 @@
-Require Import String.
+(* Require Import String.
 Require Import Coq.Arith.Arith.
 Open Scope string_scope.
 
@@ -16,7 +16,7 @@ Require Import Coq.Sets.Ensembles.
 Require Import MyProject.project.util.NatSet.
 
 
-(* Defines the IG_basic functions in terms of an RG (without multigraph) soon to be outclassed by relational_graph_IG_operations*)
+(* Defines the IG_basic functions in terms of an RG (without multigraph) soon to be "OUTCLASSED" by relational_graph_IG_operations*)
   (* {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
 
 
@@ -95,4 +95,4 @@ Definition RG_mkGraph (nodes : list Node) (edges : list (Node * Node)) : RG nat 
  
 
 Definition RG_labNodes (rg : RG nat) : Ensemble Node :=
-  rg.(RG_nodes).
+  rg.(RG_nodes). *)

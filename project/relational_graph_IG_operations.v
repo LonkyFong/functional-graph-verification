@@ -12,7 +12,6 @@ Require Import Bool.
 
 Require Import MyProject.project.util.util.
 
-Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
 
 
@@ -24,100 +23,13 @@ Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
+Require Import MyProject.project.relational_graph.
+
 
 (* Defines the IG functions in terms of an RG (notice that it has generic edge or node label types) *)
 
 
   (* {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
-
-Definition edgeRelation (A B: Type) := A -> A -> B -> Prop.
-
-
-(* Here, I first _temporarily_ define a more powerful RG, which has edge labels. The current RG can be derived from it *)
-
-
-Definition _valid_cond {A B: Type} (nodes : Ensemble A) (edges : edgeRelation A B) : Prop :=
-    forall (a1 a2 : A) (b : B), edges a1 a2 b -> nodes a1 /\ nodes a2.
-
-
-Record RG (A B: Type) := {
-    RG_nodes : Ensemble A;
-    RG_edges : edgeRelation A B;
-    RG_valid : _valid_cond RG_nodes RG_edges
-}.
-
-
-Arguments RG_nodes {A B}.
-Arguments RG_edges {A B}.
-Arguments RG_valid {A B}.
-
-
-Ltac RG_valid_prover := unfold _valid_cond; firstorder.
-Ltac RG_valid_prover_with rg := pose proof rg.(RG_valid); RG_valid_prover.
-Ltac RG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); RG_valid_prover_with rg2.
-
-(* Two relational graphs are "the same", when their Ensemble and relation are the same *)
-Definition RG_equiv {A B : Type} (rg1 rg2 : RG A B) : Prop :=
-    (* The first condition is definitely needed, as we can have "singleton" graphs *)
-    (forall (a : A), rg1.(RG_nodes) a <-> rg2.(RG_nodes) a)
-    /\ (forall (a1 a2 : A) (b : B), rg1.(RG_edges) a1 a2 b <-> rg2.(RG_edges) a1 a2 b)
-.
-Notation "g1 === g2" := (RG_equiv g1 g2) (at level 100, right associativity).
-
-
-Definition RG_unlE (A : Type) := RG A unit.
-(* The followign two don't actually make sense, since one needs a node type for... well nodes to exists *)
-(* Definition RG_unlN (B : Type) := RG unit B.
-Definition RG_unl (B : Type) := RG unit unit. *)
-
-
-Definition my_Basic_Graph : RG_unlE nat.
-Proof.
-  refine ({|
-    RG_nodes :=     fun X => (X = 0) \/ (X = 1) \/ (X = 2);
-    RG_edges := (fun (A B: nat) l => ((A = 0) /\ (B = 1)) \/ 
-                                                ((A = 1) /\ (B = 2)));
-    RG_valid := _
-  |}).
-  RG_valid_prover.
-Defined.
-
-
-Definition my_Basic_Labelled_Graph : RG nat string.
-Proof.
-
-  refine ({|
-    RG_nodes := fun X => (X = 0) \/ (X = 1) \/ (X = 2);
-    RG_edges := (fun (A B : nat) (l : string)  => ((A = 0) /\ (B = 1) /\ (l = "this is a label")) \/ 
-                                                  ((A = 0) /\ (B = 1) /\ (l = "We can have multigraphs??")) \/ 
-                                                  ((A = 1) /\ (B = 2) /\ (l = "this is a label")));
-    RG_valid := _
-  |}).
-  RG_valid_prover.
-Defined.
-
-
-
-
-
-
-
-(* Defining fundamental Operations on RGs: *)
-
-Definition RG_empty {A B : Type} : RG A B.
-Proof.
-    refine {|
-        RG_nodes := fun a => False;
-        RG_edges := fun a1 a2 l => False;
-        RG_valid := _
-    |}.
-    RG_valid_prover.
-Defined.
-
-Definition RG_isEmpty {A B: Type} (rg : RG A B) : Prop :=
-    forall (a : A), rg.(RG_nodes) a = False
-.
-
 
 
 (* There's more but I didn't bring it over from relational_graph yet *)

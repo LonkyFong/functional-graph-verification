@@ -29,11 +29,11 @@ Definition my_Finite_Type : (Ensemble nat) :=
     fun X => (X = 0) \/ (X = 1) \/ (X = 2) .
 
 
-Definition my_Basic_Graph : RG nat.
+Definition my_Basic_Graph : RG nat unit.
 Proof.
   refine ({|
     RG_nodes := my_Finite_Type;
-    RG_edges := (fun (A B : nat) => ((A = 0) /\ (B = 1)) \/ 
+    RG_edges := (fun (A B : nat) l => ((A = 0) /\ (B = 1)) \/ 
                                     ((A = 1) /\ (B = 2)));
     RG_valid := _
   |}).
@@ -51,16 +51,37 @@ Compute my_Basic_Graph.(RG_edges).
 
 Example RG_existsPath_example : RG_existsPath 0 1 my_Basic_Graph.
 Proof.
-    compute. apply t_step. auto.
+    compute. apply t_step. exists tt. auto.
 Qed.
 
 (* 0 -> 1 -> 2 *)
 Example RG_existsPath_example' : RG_existsPath 0 2 my_Basic_Graph.
 Proof.
     compute. apply (t_trans _ _ _ 1).
-    - apply t_step. auto.
-    - apply t_step. auto.
+    - apply t_step. exists tt. auto.
+    - apply t_step. exists tt. auto.
 Qed.
+
+
+
+
+
+Definition my_Basic_Labelled_Graph : RG nat string.
+Proof.
+
+  refine ({|
+    RG_nodes := fun X => (X = 0) \/ (X = 1) \/ (X = 2);
+    RG_edges := (fun (A B : nat) (l : string)  => ((A = 0) /\ (B = 1) /\ (l = "this is a label")) \/ 
+                                                  ((A = 0) /\ (B = 1) /\ (l = "We can have multigraphs??")) \/ 
+                                                  ((A = 1) /\ (B = 2) /\ (l = "this is a label")));
+    RG_valid := _
+  |}).
+  RG_valid_prover.
+Defined.
+
+
+
+
 
 
 (* AGs --------------------------------------------------------------------------- *)

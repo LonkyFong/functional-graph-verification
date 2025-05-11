@@ -20,7 +20,7 @@ Open Scope nat_scope.
 (* This proof is based on === being an equivalence relation *)
 Instance IG_Equivalence_eq {A : Type} : Equivalence (@IG_equiv A).
 Proof.
-    G_derived_equivalence_prover A (@id (IG A unit)).
+    G_derived_equivalence_prover A unit (@id (IG A unit)).
 Qed. 
 
 
