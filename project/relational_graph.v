@@ -69,7 +69,7 @@ Proof.
 Defined.
 
 Definition RG_isEmpty {A B: Type} (rg : RG A B) : Prop :=
-    forall (a : A), rg.(RG_nodes) a = False
+    forall (a : A), rg.(RG_nodes) a <-> False
 .
 
 
@@ -142,7 +142,7 @@ Definition RG_getIncidentEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRela
 Definition _extendByContext (node : nat) (froms tos : NatSet.t) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
     refine {|
-        RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (_customEnsembleAdd node rg.(RG_nodes))  n;
+        RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (cEnsembleAdd node rg.(RG_nodes))  n;
         RG_edges := fun (n1 n2 : nat) l =>
                                 (NatSet.In n1 froms /\ n2 = node)
                                 \/ (n1 = node /\ NatSet.In n2 tos)

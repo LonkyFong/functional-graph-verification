@@ -25,6 +25,9 @@ Require Import Coq.Sets.Ensembles.
 
 Require Import MyProject.project.relational_graph.
 
+Require Import MyProject.project.util.util.
+
+
 
 (* Defines the IG functions in terms of an RG (notice that it has generic edge or node label types) *)
 
@@ -32,14 +35,6 @@ Require Import MyProject.project.relational_graph.
   (* {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
 
 
-(* There's more but I didn't bring it over from relational_graph yet *)
-
-
-
-(* Now go to defining the IG ("not basic") operations,  this is what in the end will stay in this file *)
-
-
-                                             
 (* A "set" of adjacencies with the edge label and the label of the neighbour  *)
 (* type Adj b = [(b, Node)] *)
 Definition Adj (A B : Type) := B -> A -> Prop.
@@ -82,13 +77,10 @@ Definition _getFromsAndTos {A B : Type} (node : A) (rg : RG A B) : Prop * Contex
 .
 
 
-
-
 Definition RG_match {A B : Type} (node : A) (rg : RG A B) : (Prop * Context A B) * RG A B :=
   (_getFromsAndTos node rg, _eliminate node rg)
 .
 
-Require Import MyProject.project.util.util.
 
 Definition _add {A B : Type} (context : Context A B) (rg : RG A B) : RG A B.
 Proof.
@@ -97,7 +89,7 @@ Proof.
   refine {|
       RG_nodes := fun (n : A) =>  (exists l, froms l n) \/
                                   (exists l, tos l n) \/
-                                  _customEnsembleAdd node rg.(RG_nodes) n;
+                                  cEnsembleAdd node rg.(RG_nodes) n;
       RG_edges := fun (n1 n2 : A) (l : B) =>  (froms l n1 /\ n2 = node) \/
                                               (n1 = node /\ tos l n2) \/ 
                                               rg.(RG_edges) n1 n2 l;

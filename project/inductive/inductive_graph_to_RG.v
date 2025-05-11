@@ -11,10 +11,7 @@ Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
 
 
-(* Defining Conversion from Inductive Graph to Record Graph, this is a work in progress *)
-
-
-
+(* Defining Conversion from Inductive Graph to Relational Graph, this is a work in progress *)
 
  
 

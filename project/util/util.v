@@ -3,18 +3,52 @@ Require Import Coq.Arith.Arith.
 Require Import List.
 
 Require Import Coq.Sets.Ensembles.
+Require Import Setoid Morphisms.
 
 
 (* Utility things, that don't really belong anywhere else *)
 
+
+(* Defining my own Ensemble operations, as the library ones are really clunky and untransparent *)
+
 (* This works better in proofs than the library Add for ensembles *)
-Definition _customEnsembleAdd {A : Type} (a : A) (en : Ensemble A) : Ensemble A :=
+Definition cEnsembleAdd {A : Type} (a : A) (en : Ensemble A) : Ensemble A :=
   fun (x : A) => x = a \/ en x
 .
 
-Definition _listToEnsemble {A : Type} (az : list A) : Ensemble A :=
-  fold_right _customEnsembleAdd (Empty_set A) az
+Definition cEnsembleUnion {A : Type} (en1 en2 : Ensemble A) : Ensemble A :=
+  fun (a : A) => en1 a \/ en2 a
 .
+
+
+Definition cListToEnsemble {A : Type} (az : list A) : Ensemble A :=
+  fold_right cEnsembleAdd (Empty_set A) az
+.
+
+Definition cEnsemble_equiv {A : Type} (en1 en2 : Ensemble A) : Prop :=
+  forall a, en1 a <-> en2 a
+.
+
+Notation "en1 S== en2" := (cEnsemble_equiv en1 en2) (at level 100, right associativity).
+
+Instance Ensemble_Equivalence {A : Type} : Equivalence (@cEnsemble_equiv A).
+Proof.
+  unfold cEnsemble_equiv. firstorder.
+Qed.
+
+
+
+
+(* Lemma fold_right_preserves_invariant:
+  forall (A B C : Type) (f : A -> B -> B) (g : B -> C),
+    (forall a b, g (f a b) = g b) ->
+    forall l b0, g (fold_right f b0 l) = g b0.
+Proof.
+  intros. induction l; simpl.
+  - reflexivity.
+  - rewrite H. apply IHl.
+Qed.
+ *)
 
 
 
