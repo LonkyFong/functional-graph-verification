@@ -51,6 +51,7 @@ Notation "g1 I== g2" := (IG_basic_equiv g1 g2) (at level 80).
 
 
 
+(* This does not work, since the functions on RGs don't really perform computations *)
 
 (* Now go to proving that the implementations from IG basic relate to the RG ones *)
 (* Filling in all the admitteds, should suffice to show that IG_basic operations are equivalent to RG operations *)

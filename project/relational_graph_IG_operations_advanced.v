@@ -4,6 +4,8 @@ Open Scope string_scope.
 Require Import List.
 Import ListNotations.
 
+(* This is a dead end, since RGs are not decidable *)
+
 (*
 Require Import Coq.Arith.Arith.
 

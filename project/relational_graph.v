@@ -136,23 +136,6 @@ Definition RG_getIncidentEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRela
 
 
 
-(* A little exotic, but useful for IGs *)
-(* Adds a node and its in- and out- going edges (= its IG context) to an RG.
-    Adds the neighbouring nodes, in case they do not exists *)
-Definition _extendByContext (node : nat) (froms tos : NatSet.t) (rg : RG_unlE nat) : RG_unlE nat.
-Proof.
-    refine {|
-        RG_nodes := fun (n : nat) => NatSet.In n froms \/ NatSet.In n tos \/ (cEnsembleAdd node rg.(RG_nodes))  n;
-        RG_edges := fun (n1 n2 : nat) l =>
-                                (NatSet.In n1 froms /\ n2 = node)
-                                \/ (n1 = node /\ NatSet.In n2 tos)
-                                \/ rg.(RG_edges) n1 n2 l
-                                ;
-                     
-        RG_valid := _
-    |}.
-    RG_valid_prover_with rg.
-Defined.
 
 (* Connectedness *)
 Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=

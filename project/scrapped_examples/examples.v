@@ -14,7 +14,6 @@ Require Import MyProject.project.algebraic.algebraic_graph_theory.
 
 Require Import MyProject.project.inductive.inductive_graph.
 Require Import MyProject.project.inductive.basic.inductive_graph_basic.
-Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
 
 
 
@@ -98,31 +97,63 @@ Proof.
 Qed.
 
 
+(* Messing around --------------------------------------------------------------------------- *)
+(* 
+Compute IG_show (add ([], 2, "a", [("nodel", 1); ("nose",1)]) (add ([], 1, "a", []) IG_empty)). 
+
+Definition my_basic_graph := IG_mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")].
+Compute IG_show my_basic_graph.
 
 
+Definition my_basic_graph' := IG_mkGraph [(1, "a"); (2, "b"); (3, "c")] [(3, 1, "edge3")].
+Compute IG_show my_basic_graph'.
+Compute IG_show (insEdge (1, 2 , "edge1") my_basic_graph').
 
+Compute IG_show (add ([("edge3", 3)], 1, "a", [("edge1", 2)]) (IG_mkGraph [(2, "b"); (3, "c")] [])).
+
+Theorem bla : IG_match 2 my_basic_graph = (None, IG_empty).
+Proof.
+  compute.
+
+
+Theorem bla : insEdge (1, 2 , "edge1") my_basic_graph' = IG_empty.
+Proof.
+  unfold insEdge.
+  unfold my_basic_graph'.
+  unfold IG_match.
+  
+
+
+Theorem bla : my_basic_graph = IG_empty.
+Proof.
+  unfold my_basic_graph.
+  unfold IG_mkGraph.
+  unfold insEdges.
+  unfold fold_right.
+ *)
 
 
 
 (* IGs --------------------------------------------------------------------------- *)
 
 
-Compute show_IG (mkGraph [(1, 1); (2, 2); (3, 3)] [(1, 2, 1); (2, 3, 2); (3, 1, 3)]).
+Compute IG_show (IG_mkGraph [(1, 1); (2, 2); (3, 3)] [(1, 2, 1); (2, 3, 2); (3, 1, 3)]).
 
-Definition my_basic_graph := mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")].
+Definition my_basic_graph := IG_mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")].
 
 (* Here come the tests for each defined function (that is in the graph class): *)
 
-Compute show_IG empty.
+Compute IG_show IG_empty.
 
-Compute isEmpty empty.
-Compute isEmpty my_basic_graph.
+Compute IG_isEmpty IG_empty.
+Compute IG_isEmpty my_basic_graph.
 
-Compute show_Decomp (matsh 2 my_basic_graph).
+Compute IG_show my_basic_graph.
+Compute Decomp_show (IG_match 2 my_basic_graph).
 
-Compute show_IG (mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")]).
+Compute IG_show (IG_mkGraph [(1, "a"); (2, "b"); (3, "c")] [(1, 2, "edge1"); (2, 3, "edge2"); (3, 1, "edge3")]).
 
-Compute labNodes my_basic_graph.
+Compute IG_labNodes my_basic_graph.
 
 
 (* IG_basic s --------------------------------------------------------------------------- *)
