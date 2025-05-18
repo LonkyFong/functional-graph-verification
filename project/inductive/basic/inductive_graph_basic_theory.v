@@ -196,7 +196,7 @@ Proof.
   - firstorder. congruence.
 Qed.
 
-
+(* Think about enforcing non-emptiness of the list with (x::xs) *)
 Theorem  IG_basic_non_empty_isEmpty_false : forall (nodes : list Node) (edges : list (Node * Node)),
   length nodes <> 0 <-> IG_basic_isEmpty ((IG_basic_mkGraph nodes edges)) = false.
 Proof.

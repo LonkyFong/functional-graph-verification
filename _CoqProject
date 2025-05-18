@@ -1,12 +1,20 @@
 -Q . MyProject
 ./project/util/NatSet.v
+./project/util/NatMap.v
 ./project/util/util.v
+
+./project/relational_graph_decidable.v
+
+
 
 ./project/relational_graph.v
 ./project/relational_graph_theory.v
 
 ./project/relational_graph_IG_operations.v
 ./project/relational_graph_IG_operations_theory.v
+
+# ./project/relational_graph_IG_operations_advanced.v
+# ./project/relational_graph_IG_operations_advanced_theory.v
 
 
 ./project/algebraic/algebraic_graph.v

@@ -61,7 +61,6 @@ Fixpoint AG_to_RG_unlE {A : Type} (ag : AG A) : RG_unlE A :=
 Coercion AG_to_RG_unlE : AG >-> RG_unlE.
 
 
-(* todo: define this in terms of RG_unlE_equiv *)
 Definition AG_equiv {A : Type} (ag1 ag2 : AG A) : Prop :=
     RG_equiv (AG_to_RG_unlE ag1) (AG_to_RG_unlE ag2).
 

@@ -64,3 +64,67 @@ Theorem spec5 : forall (A B : Type) (n : LNode A) (nl : list (LNode A)) (el : li
   not (In n nl) -> matsh (fst n) (mkGraph nl el) = (None, mkGraph nl el).
 Admitted.
 
+
+
+(* Stuff for the vaolidity checker *)
+
+Definition set_from_list (l : list node) : option NatSet.t :=
+  fold_right (fun (k : node) (acc : option NatSet.t) =>
+                bind acc (fun (acc : NatSet.t) => if NatSet.mem k acc then None else Some (NatSet.add k acc))
+              ) (Some NatSet.empty) l.
+
+  
+
+Definition IG_map_out_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
+  set_from_list (
+    concat (
+      map (fun '((_, (_, _, out_map)) : (node * Context' A B)) => map fst (NatMap.elements out_map))
+        
+      (NatMap.elements IG_data)
+    )
+  )
+.
+
+
+Definition IG_map_in_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
+  set_from_list (
+    concat (
+      map ( fun '((_, (in_map, _, t_step)) : (node * Context' A B)) => map fst (NatMap.elements in_map))
+      (NatMap.elements IG_data)
+    )
+  )
+.
+
+Definition IG_nodes_keys {A B : Type} (IG_data : NatMap.t (Context' A B)) : option NatSet.t :=
+  set_from_list (map fst (NatMap.elements IG_data))
+.
+
+
+Definition IG_valid_cond_fun {A B : Type} (IG_data : NatMap.t (Context' A B)) : bool :=
+  let in_keys := IG_map_in_keys IG_data in
+  let out_keys := IG_map_out_keys IG_data in
+
+  let edge_diffs := bind in_keys (fun (in_keys : NatSet.t) => bind out_keys
+                                  (fun (out_keys : NatSet.t) => Some (NatSet.diff in_keys out_keys))) in
+
+  let edge_keys := bind in_keys (fun (in_keys : NatSet.t) => bind out_keys
+                                  (fun (out_keys : NatSet.t) => Some (NatSet.union in_keys out_keys))) in
+
+  
+  let node_keys := IG_nodes_keys IG_data in
+
+  match edge_diffs, edge_keys, node_keys with
+  | Some edge_diffs, Some edge_keys, Some node_keys =>
+    NatSet.is_empty edge_diffs && NatSet.equal edge_keys node_keys
+  | _, _, _ => false
+  end
+.
+  
+
+Definition _valid_cond {A B : Type} (IG_data : NatMap.t (Context' A B)) : Prop :=
+  IG_valid_cond_fun IG_data = true.
+
+
+
+Definition IG_data_unsafe (A B : Type) : Type :=
+  NatMap.t (Context' A B).

@@ -111,3 +111,4 @@ Theorem IG_basic_labNodes_relate : forall (ig : IG_basic),
   IG_basic_Propify_labNodes (IG_basic_labNodes ig) S== RG_labNodes (IG_basic_to_RG_unlE ig).
 Proof.
 Admitted.
+

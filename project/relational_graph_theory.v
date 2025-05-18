@@ -53,3 +53,5 @@ Ltac G_derived_equivalence_prover A B f :=
     | apply H0
     ]
   ].
+
+Print and.

@@ -38,7 +38,6 @@ Qed.
 
 
 
-
 (* Lemma fold_right_preserves_invariant:
   forall (A B C : Type) (f : A -> B -> B) (g : B -> C),
     (forall a b, g (f a b) = g b) ->
@@ -78,3 +77,6 @@ Ltac bdestruct X :=
     [ auto with bdestruct
     | destruct H as [H|H];
        [ | try first [apply not_lt in H | apply not_le in H]]].
+
+
+       

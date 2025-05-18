@@ -6,29 +6,29 @@ Require Import MyProject.project.util.NatSet.
 Require Import MyProject.project.util.util.
 
 
+Require Import List.
+Import ListNotations.
+
+
+
 
 (* Defining a Relational Graph and its (possible) operations *)
 
-Definition _edgeRelation (A B: Type) := A -> A -> B -> Prop.
+Definition _edgeRelation (A B : Type) := A -> A -> B -> Prop.
 
 Definition _unlabelEdgeRelation {A B: Type} (edges : _edgeRelation A B) : relation A :=
     fun (a1 a2 : A) => exists (l: B), edges a1 a2 l.
 
-
-
-(* Here, I first _temporarily_ define a more powerful RG, which has edge labels. The current RG can be derived from it *)
-
-
-Definition _valid_cond {A B: Type} (nodes : Ensemble A) (edges : _edgeRelation A B) : Prop :=
+Definition _valid_cond {A B : Type} (nodes : Ensemble A) (edges : _edgeRelation A B) : Prop :=
     forall (a1 a2 : A) (b : B), edges a1 a2 b -> nodes a1 /\ nodes a2.
 
 
-Record RG (A B: Type) := {
+(* Is is possible to write operations "on" it, but as soon as you want to write a function that would return some "result", things get complicated *)
+Record RG (A B : Type) := {
     RG_nodes : Ensemble A;
     RG_edges : _edgeRelation A B;
     RG_valid : _valid_cond RG_nodes RG_edges
 }.
-
 
 Arguments RG_nodes {A B}.
 Arguments RG_edges {A B}.
@@ -161,4 +161,22 @@ Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
 (* Start implementing search *)
 
 
+(* From CertiGraph *)
+(* Context {Vertex Edge: Type}.
 
+Record PreGraph {EV: EqDec Vertex eq} {EE: EqDec Edge eq} := {
+  vvalid : Ensemble Vertex;
+  evalid : Ensemble Edge;
+  src : Edge -> Vertex;
+  dst : Edge -> Vertex
+}.
+
+Context {EV: EqDec Vertex eq}.
+Context {EE: EqDec Edge eq}.
+
+Record LabeledGraph {DV DE DG: Type} := {
+  pg_lg: PreGraph;
+  vlabel: Vertex -> DV;
+  elabel: Edge -> DE;
+  glabel: DG
+}. *)

@@ -48,14 +48,7 @@ Definition RG_Decomp (A B : Type) := ((Prop * RG_Context A B) * RG A B)%type.
 (* type LEdge b = (Node,Node,b) *)
 Definition RG_Edge (A B : Type) :=  (A * A * B)%type.
 
-(* Start defining functionality: *)
-Print RG_empty.
-(* Definition RG_empty {A B} : RG A B :=
-    RG_empty. *)
 
-Print RG_isEmpty.
-(* Definition RG_isEmpty {A B: Type} (rg : RG A B) : Prop :=
-  RG_isEmpty rg. *)
 
 
 
@@ -86,6 +79,16 @@ Definition RG_Decomp_equiv {A B : Type} (d1 d2 : RG_Decomp A B) : Prop :=
 Notation "c1 D== c2" := (RG_Decomp_equiv c1 c2) (at level 79, right associativity).
 
 
+(* Start defining functionality: *)
+Print RG_empty.
+(* Definition RG_empty {A B} : RG A B :=
+    RG_empty. *)
+
+Print RG_isEmpty.
+(* Definition RG_isEmpty {A B: Type} (rg : RG A B) : Prop :=
+  RG_isEmpty rg. *)
+
+
 
 (* Helper for match *)
 (* Removes a node from the nodeset and any edges *)
@@ -100,6 +103,7 @@ Proof.
   - unfold not. intros. inversion H3. congruence.
   - unfold not. intros. inversion H3. congruence.
 Defined.
+
 
 
 (* Checks if the node is in the RG (the Prop return) and returns two sets of alls incoming neighbors and outgoing neighbors *)
