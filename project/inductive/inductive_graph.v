@@ -69,6 +69,9 @@ Definition _updateEntry {A B : Type} (node : Node) (f : Context' A B -> Context'
     | None => ig
   end.
 
+(* Definition _updateEntry {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) : IG A B := 
+  NatMap.mapi (fun (n : Node) (c : Context' A B) => if n =? node then f c else c) ig. *)
+
 Definition _addSucc {A B : Type} (node : Node) (label : B) (context' : Context' A B) : Context' A B :=
   match context' with
   | (froms, l, tos) => (froms, l, (label, node) :: tos)
@@ -283,17 +286,18 @@ Require Import Recdef. (* Must import this to use the Function feature *)
 
 Import ListNotations.
 Require Import Coq.Wellfounded.Inverse_Image.
+Require Import Coq.Relations.Relation_Operators.
 
 
 
 
-Definition dProdDfs (A B : Type) := {_ : list Node & IG A B}.
+Definition dProdDfs (A B : Type) := {_ : IG A B & list Node}.
 
 (* Lexicographic order on (nat * nat) *)
-Definition lex_dProdDfs (A B : Type) := Relation_Operators.lexprod (list Node)
-                                                (fun a => IG A B)
-                                                (fun l1 l2 => Peano.lt (length l1) (length l2))
-                                                (fun a:list Node => fun ig1 ig2 => Peano.lt (NatMap.cardinal ig1) (NatMap.cardinal ig2)). 
+Definition lex_dProdDfs (A B : Type) := lexprod (IG A B)
+                                                (fun a => list Node)
+                                                (fun ig1 ig2 => Peano.lt (NatMap.cardinal ig1) (NatMap.cardinal ig2))
+                                                (fun a => fun l1 l2 => Peano.lt (length l1) (length l2)).
 
 
 (* Prove lexicographic order is well-founded *)
@@ -309,7 +313,7 @@ Qed.
 
 
 Definition prodTodPairDfs {A B : Type} (p : list Node * IG A B) : dProdDfs A B :=
-  existT _ (fst p) (snd p).
+  existT _ (snd p) (fst p). (*It flips the order of the arguments *)
 
 Definition lex_prodDfs (A B : Type) (nodesIg1 nodesIg2 : list Node * IG A B) : Prop := 
   lex_dProdDfs _ _ (prodTodPairDfs nodesIg1) (prodTodPairDfs nodesIg2).
@@ -330,6 +334,152 @@ Qed.
 
 
 
+Require Import Lia.
+(* util *)
+Require Import MyProject.project.util.util.
+
+
+
+Check _updAdj.
+
+(* This proof is adapted from the link below. It blows my mind, that this is not in stdlib *)
+(* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
+Lemma cardinal_Add_In:
+    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> WP.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
+  Proof.
+  assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> WP.Add k e (NatMap.remove k m) m) as remove_In_Add.
+  { intros. unfold WP.Add.
+    intros.
+    rewrite WF.add_o.
+    destruct (WF.eq_dec k y).
+    - apply NatMap.find_1. rewrite <- WF.MapsTo_m; [exact H|assumption|reflexivity|reflexivity].
+    - rewrite WF.remove_neq_o by assumption. reflexivity.
+  }
+  intros.
+  assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')).
+  { intros y. rewrite 2!WF.remove_o.
+    destruct (WF.eq_dec x y).
+    - reflexivity.
+    - unfold WP.Add in H0. rewrite H0.
+      rewrite WF.add_neq_o by assumption. reflexivity.
+  }
+  apply WP.Equal_cardinal in H1.
+  rewrite 2!WP.cardinal_fold.
+  destruct H as (e' & H).
+  rewrite WP.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
+  try now (compute; auto).
+  2:apply NatMap.remove_1; reflexivity.
+  2:apply remove_In_Add; assumption.
+  rewrite WP.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m') (m2:=m') (k:=x) (e:=e);
+  try now (compute; auto).
+  - rewrite <- 2!WP.cardinal_fold. congruence.
+  - apply NatMap.remove_1. reflexivity.
+  - apply remove_In_Add.
+    apply NatMap.find_2. unfold WP.Add in H0. rewrite H0.
+    rewrite WF.add_eq_o; reflexivity.
+  Qed.
+
+
+
+Lemma _add_value_does_not_matter_for_cardinality : forall {A : Type} (node : Node) (c c' : A) (m : NatMap.t A),
+  NatMap.cardinal (NatMap.add node c m) = NatMap.cardinal (NatMap.add node c' m).
+Proof.
+  intros.
+  pose proof cardinal_Add_In.
+  apply (H _ _ _ node c).
+  - apply WF.add_in_iff. left. reflexivity.
+  - unfold WP.Add. intros. rewrite WF.add_o. rewrite WF.add_o. rewrite WF.add_o. destruct (NatSetProperties.MP.FM.eq_dec node y).
+    + reflexivity.
+    + reflexivity.
+Qed.
+
+
+
+
+
+
+
+Lemma _IG_updateEntry_does_not_change_cardinality : forall {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B), 
+    NatMap.cardinal (_updateEntry node f ig) = NatMap.cardinal ig.
+Proof.
+  intros. unfold _updateEntry.
+
+  destruct (NatMap.find node ig) eqn:split.
+  - Search NatMap.cardinal. Locate cardinal_fold.
+  Check WP.Equal_cardinal.
+
+  assert (NatMap.Equal ig (NatMap.add node c ig)). { 
+      apply WF.find_mapsto_iff in split.
+
+    apply WF.Equal_mapsto_iff.
+    split; intros.
+    - apply WF.add_mapsto_iff.
+       bdestruct (node =? k).
+      + subst. left. split.
+      -- reflexivity.
+      -- apply WF.find_mapsto_iff in split. apply WF.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
+      + right. split.
+      -- assumption.
+      -- assumption.
+    - apply WF.add_mapsto_iff in H. destruct H.
+      + destruct H. subst. assumption.
+      + destruct H. assumption.
+  }
+  rewrite H at 2.
+  apply _add_value_does_not_matter_for_cardinality.
+  - reflexivity.
+
+Qed.
+
+
+
+Lemma _IG_updAdj_does_not_change_cardinality : forall {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B), 
+    NatMap.cardinal (_updAdj adj f ig) = NatMap.cardinal ig.
+Proof.
+  intros.
+  unfold _updAdj.
+  induction adj.
+  - simpl. reflexivity.
+  - simpl. rewrite <- IHadj.
+    pose proof (@_IG_updateEntry_does_not_change_cardinality A B).
+    destruct a.
+    rewrite H. reflexivity.
+Qed.
+
+
+
+Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
+  (exists x, NatMap.find key map = Some x) -> (S (NatMap.cardinal (NatMap.remove key map)) = NatMap.cardinal map).
+Proof.
+  
+  intros.
+  pose proof WP.cardinal_2.
+  destruct H eqn:hu.
+  assert (~ NatMap.In key (NatMap.remove key map)). {
+    unfold not. intros.
+    apply WF.remove_in_iff in H1.
+    destruct H1.
+    destruct H1.
+    reflexivity.
+
+  }
+  apply (H0 _ _ map _ x) in H1.
+  - rewrite <- H1. reflexivity.
+  - unfold WP.Add. 
+  
+  
+  
+  unfold WP.Add. intros. bdestruct (y =? key).
+  + rewrite H2. rewrite e. assert (key = key). {
+    reflexivity.
+  }  pose proof WF.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
+  + pose proof WF.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
+    pose proof WF.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
+  
+Defined.
+
+
+
 
 
 Function IG_dfs' {A B : Type} (nodesIg : list Node * IG A B) {wf (lex_prodDfs A B) nodesIg} : list Node := 
@@ -345,19 +495,65 @@ Function IG_dfs' {A B : Type} (nodesIg : list Node * IG A B) {wf (lex_prodDfs A 
     end
   end.
 Proof.
-  - admit.
-  - admit.
+  - intros. unfold lex_prodDfs. unfold lex_dProdDfs. 
+    unfold prodTodPairDfs.
+    simpl.
+    apply left_lex.
+
+    Print lexprod. 
+    unfold IG_match in teq2.
+    destruct (NatMap.find n ig) eqn:split.
+    + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+    
+      unfold _cleanSplit in split0. 
+      assert (S (NatMap.cardinal i) = NatMap.cardinal (ig)). {
+        destruct c.
+        destruct p.
+        inversion split0.
+        rewrite _IG_updAdj_does_not_change_cardinality.
+        rewrite _IG_updAdj_does_not_change_cardinality.
+        apply _map_find_some_remove_lowers_cardinality.
+        exists (a0, a1, a).
+        apply split.
+
+      }
+      assert (same = i). {
+        inversion teq2.
+        reflexivity.
+      } 
+      rewrite H0. rewrite <- H. lia.
+
+    + inversion teq2.
+  
+  - intros. unfold lex_prodDfs. unfold lex_dProdDfs.
+    unfold prodTodPairDfs. simpl.
+
+    unfold IG_match in teq2.
+    destruct (NatMap.find n ig) eqn:split.
+    + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+      inversion teq2.
+    
+    + inversion teq2. apply right_lex. auto.
+
   - apply  wf_lex_prodDfs.
-Admitted.
+Defined.
+
+
+Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
+  IG_dfs' A B (nodes, ig).
+
+Compute IG_dfs'caller [1] IG_empty.
+
+
+
+Compute IG_dfs'caller [1] my_complicated_graph.
 
 
 
 
+Compute 1 + 2.
 
-
-
-
-
+Compute 2 + 2.
 
 
 
@@ -372,7 +568,7 @@ Fixpoint IG_dfs {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
                 match IG_match n ig with
                 | (Some cntxt, rest) => n :: IG_dfs (suc cntxt ++ ns) rest
                 | (None, same) => IG_dfs ns same
-                end
+               end
   end.
 Proof.
 - intros. Admitted.

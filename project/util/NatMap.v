@@ -13,6 +13,8 @@ Check Nat_as_OT.lt. (*   : positive -> positive -> Prop *)
 
 
 
+
+
 Module PairNat_as_OT := PairOrderedType(Nat_as_OT)(Nat_as_OT).
 Definition NodePair := PairNat_as_OT.t.
 
