@@ -139,17 +139,17 @@ Definition add {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
   end.
 
 
-Definition insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B :=
+Definition _insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B :=
   match node with
   | (n, l) => add ([], n, l, []) ig
   end.
 
-Definition insNodes {A B : Type} (nodes : list (LNode A)) (ig : IG A B) : IG A B :=
-  fold_right insNode ig nodes.
+Definition _insNodes {A B : Type} (nodes : list (LNode A)) (ig : IG A B) : IG A B :=
+  fold_right _insNode ig nodes.
 
 
 
-Definition insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B :=
+Definition _insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B :=
   match edge with
   | (from, to, l) =>
                     let (mcxt, ig') := IG_match from ig in
@@ -160,13 +160,13 @@ Definition insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B :=
   end.
 
 
-Definition insEdges {A B : Type} (edges : list (LEdge B)) (ig : IG A B) : IG A B :=
-  fold_right insEdge ig edges.
+Definition _insEdges {A B : Type} (edges : list (LEdge B)) (ig : IG A B) : IG A B :=
+  fold_right _insEdge ig edges.
 
 
 
 Definition IG_mkGraph {A B : Type} (nodes : list (LNode A)) (edges : list (LEdge B)) : IG A B :=
-  insEdges edges (insNodes nodes IG_empty).
+  _insEdges edges (_insNodes nodes IG_empty).
 
  
 Definition IG_labNodes {A B : Type} (ig : IG A B) : list (LNode A) :=
@@ -579,7 +579,10 @@ Defined.
 Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
   IG_dfs' A B (nodes, ig).
 
-Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation); simpl.
+Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation; simpl).
+
+
+
 
 Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
   IG_dfs'_computer.
@@ -587,30 +590,109 @@ Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
   reflexivity.
 Defined.
 
+Example IG_dfs'_test' : exists n, IG_dfs'caller [1] (@IG_mkGraph string string [(1, "one"); (2, "two")] [ 
+  (1,2, "link")
+  ]) = n.
+  IG_dfs'_computer.
 
-(* Example IG_dfs'_test' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
-  unfold IG_dfs'caller.
-  rewrite IG_dfs'_equation.
-  simpl.
-
-
-
-
-
-
-
-  (* IG_dfs'_computer. *)
-  exists [].
+  exists [1; 2].
   reflexivity.
-Defined. *)
+Qed.
+
+
+
+
+Example IG_dfs'_test'' : exists n, IG_dfs'caller [1] (IG_mkGraph [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five")
+] [ 
+  (1,2, "link");
+  (2,3, "link")
+  ]) = n.
+  IG_dfs'_computer.
+
+  exists [1; 2; 3].
+  reflexivity.
+Qed.
+
+Compute 1 + 2.
+
+Lemma always_exists : forall l : list Node, exists n : list Node, l = n.
+Proof.
+  intros. exists l. reflexivity.
+Qed.
+
+
+(* This should be able to compile, but is just way too slow *)
+(* Example IG_dfs'_test''' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
+  unfold IG_dfs'caller.
+
+  IG_dfs'_computer.
+  apply always_exists.
+
+Qed. *)
+
+
+(* Start proving some properties of DFS *)
+Print incl.
+
+Ltac IG_dfs'_computer' := unfold IG_dfs'caller in *; repeat (rewrite IG_dfs'_equation in *; simpl in *).
+
+
+Theorem IG_dfs'_returns_only_nodes : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (g : IG A B),
+  incl (IG_dfs'caller l (IG_mkGraph nodes edges)) (map fst nodes). 
+
+Proof.
+  intros.
+  induction nodes.
+  - simpl.  
+  
+Admitted.
+
+(* Following this website: *)
+(* https://sharmaeklavya2.github.io/theoremdep/nodes/graph-theory/dfs/dfs.html *)
 
 
 
 
 
+Lemma IG_match_no_more_in_graph : forall (A B : Type) (x : Node) (g : IG A B),
+  let (_, g') := IG_match x g in ~ In x (map fst (IG_labNodes g')).
+Proof.
+  intros. destruct (IG_match x g) eqn:HH.
+  - unfold not. intros. unfold IG_match in HH. unfold IG_labNodes in H.
+    assert (exists e, NatMap.find x i = Some e). {
+       (* use _In_labNodes_in_InMap here *)
+      admit.
+    } destruct (NatMap.find x g) eqn:HHH.
+    + admit.
+    + inversion HH. rewrite H3 in HHH. destruct H0. rewrite HHH in H0. inversion H0.
+    
+  
+  
+
+   
+Admitted.
 
 
+Theorem IG_dfs'_no_duplicates : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (g : IG A B),
+  NoDup (IG_dfs'caller l g).
+Proof.
+  intros.
+  induction l.
+  - IG_dfs'_computer.
+    apply NoDup_nil.
+  - IG_dfs'_computer. destruct (IG_isEmpty g) eqn:HH.
+    + apply NoDup_nil.
+    + destruct (IG_match a g) eqn:HHH.
+      -- destruct m eqn:HHHH.
+        ++ apply NoDup_cons.
+          --- inversion IHl.
+            ++++ unfold not. intros.  admit.
+            ++++  admit.
+          --- 
+          
+Admitted.
 
+(* I nned to show that the remainder of the graph , does not have a anymore *) 
 
 
 

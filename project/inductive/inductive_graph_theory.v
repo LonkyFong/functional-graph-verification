@@ -1,4 +1,4 @@
-(* Require Import Coq.micromega.Lia.
+Require Import Coq.micromega.Lia.
 Require Import Coq.Logic.FunctionalExtensionality.
 Require Import Coq.Logic.PropExtensionality.
 
@@ -23,6 +23,8 @@ Require Import MyProject.project.inductive.inductive_graph_to_RG.
 Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
 
+Require Import MyProject.project.util.NatMap.
+
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG s  *)
 
 
@@ -37,11 +39,49 @@ Qed.
 (* (attempt at) direct equational specifications of an IG: *)
 
 (* Block to derive useful conversion theorem "In_labNodes_is_InMap" *)
+Check NatMap.elements .
+
+
 
 
 (* Helper lemma for converting an In (of a map) to an InA, which will eventually be turned to a NatMap.In (which has useful lemmas)  *)
-Lemma _In_map_fst_InA : forall (A B: Type) (a : A) (l : list (A * B)),
-  In a (map fst l) <-> exists (a0 : B), InA (fun (x el : (A * B)) => x = el) (a, a0) l.
+Lemma _In_map_fst_InA : forall (A B: Type) (x : LNode A) (l : list (Node * (Context' A B))),
+  In x (map (fun '(v, (_, l, _)) => (v, l)) l) <-> exists (froms tos : Adj B), InA (fun (e1 e2 : (Node * (Context' A B))) => NatMap.eq_key_elt e1 e2) (fst x, (froms, snd x, tos)) l.  
+Proof.
+  intros. induction l; simpl.
+  - split; intros.
+    + destruct H.
+    + destruct H as [froms [tos H]]. inversion H.
+  - split; intros.
+    + destruct H.
+      -- destruct a as [n [[froms label] tos]]. exists froms, tos. left. destruct H. simpl. reflexivity.  
+      -- edestruct IHl. apply H0 in H. destruct H as [froms [tos H]]. exists froms, tos. apply InA_cons. right. assumption.
+    + destruct H as [froms [tos H]]. inversion H.
+      -- left. destruct a as [n [[fromss labell] toss]]. destruct x. destruct H1. simpl in H1. simpl in H3. inversion H3. rewrite H1. reflexivity.
+      -- right. apply IHl. exists froms, tos. assumption.
+Qed.   
+
+
+(* This is the most useful one for proving other statements.
+  Use it to convert from "use friendly" In- statements to "provable" NatMap.In- statements  *)
+Lemma _In_labNodes_is_InMap : forall (A B : Type) (x : LNode A) (ig : IG A B),
+  In x (IG_labNodes ig) <-> exists froms tos, NatMap.MapsTo (fst x) (froms, snd x, tos) ig.     
+Proof.
+  intros. unfold IG_labNodes.
+  pose proof (WF.elements_mapsto_iff ig).
+  symmetry.
+  rewrite _In_map_fst_InA.
+
+  split; intros.
+  + destruct H0 as [fromss [toss H0]]. exists fromss, toss. destruct (H (fst x) (fromss, snd x, toss)).
+    apply H1 in H0. assumption.
+  + destruct H0 as [froms [tos H0]]. exists froms, tos. apply H. apply H0.
+Qed.
+
+
+(* Prove the same, but only for keys *)
+Lemma _In_map_fst_InA' : forall (A: Type) (a : Node) (l : list (Node * A)),
+  In a (map fst l) <-> exists (a0 : A), InA (fun (x el : (Node * A)) => NatMap.eq_key_elt x el) (a, a0) l.
 Proof.
   intros. induction l; simpl.
   - split; intros.
@@ -52,53 +92,41 @@ Proof.
       -- exists (snd a0). left. destruct a0. destruct H. simpl. reflexivity.
       -- edestruct IHl. apply H0 in H. destruct H. exists x. apply InA_cons. right. assumption.
     + destruct H. inversion H.
-      -- left. destruct a0. destruct H1. simpl. reflexivity.
+      -- left. destruct a0. destruct H1. simpl in *. rewrite H1. reflexivity.
       -- right. apply IHl. exists x. assumption.
-Qed.  
-
-
-
-(* Conversion from key equality from map to my own (simply written in a slightly different manner) *)
-Lemma _In_conditions_same : (NatMap.eq_key_elt (elt:=NatSet.t * NatSet.t)) = (fun x el : Node * (NatSet.t * NatSet.t) => x = el).
-Proof.
-  unfold NatMap.eq_key_elt. unfold NatMap.Raw.PX.eqke.
-  apply functional_extensionality.
-  intros.
-  apply functional_extensionality.
-  intros.
-  destruct x, x0.
-  simpl.
-  apply propositional_extensionality.
-  split; intros.
-  - destruct H. subst. reflexivity.
-  - inversion H. auto.
 Qed.
 
-(* This is the most useful one for proving other statements.
-  Use it to convert from "use friendly" In- statements to "provable" NatMap.In- statements  *)
-Lemma _In_labNodes_is_InMap : forall (x : Node) (ig : IG),
-  In x (IG_labNodes ig) <-> NatMap.In x ig.
+Lemma _complicated_fst_is_fst : forall (A B : Type),
+(fun x0 : NatMap.key * (Adj B * A * Adj B) => fst (let '(v, (_, l, _)) := x0 in (v, l))) = fst.
 Proof.
-  intros. unfold IG_labNodes.
-  rewrite _In_map_fst_InA.
-  pose proof (WF.elements_in_iff ig).
-  rewrite _In_conditions_same in H.
-  specialize H with x.
-  symmetry.
-  assumption.
+  intros.
+  apply functional_extensionality. intros. destruct x as [n [[froms l] tos]]. simpl. reflexivity.
+Qed. 
+
+
+Lemma _In_labNodes_is_InMap' : forall (A B : Type) (x : Node) (ig : IG A B),
+  In x (map fst (IG_labNodes ig)) <-> NatMap.In x ig. 
+Proof.
+  intros. unfold IG_labNodes. rewrite map_map.
+  rewrite _complicated_fst_is_fst.
+
+  apply _In_map_fst_InA'.
 Qed.
+
+
+
 
 
 (* Here start "meaningful statements" *)
 
 
 (* 5 statements on inserting (helpers for mkGraph): update, insEdge, insEdges, insNode, insNodes *)
-Lemma _updateEntry_does_not_change_key_set : forall (node : Node) (f : NatSet.t * NatSet.t -> NatSet.t * NatSet.t) (ig : IG) (x : Node),
-  In x (IG_labNodes (_updateEntry node f ig)) <-> In x (IG_labNodes ig).
+Lemma _updateEntry_does_not_change_key_set : forall (A B : Type) (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) (x : Node),
+  In x (map fst (IG_labNodes (_updateEntry node f ig))) <-> In x (map fst (IG_labNodes ig)).
 Proof.
   intros. unfold _updateEntry.
-  destruct (NatMap.find (elt:=NatSet.t * NatSet.t) node ig) eqn:isIn.
-  - rewrite _In_labNodes_is_InMap. rewrite _In_labNodes_is_InMap. rewrite WF.add_in_iff.
+  destruct (NatMap.find node ig) eqn:isIn.
+  - rewrite !_In_labNodes_is_InMap'. rewrite WF.add_in_iff.
     rewrite WF.in_find_iff. split.
     + intros. destruct H.
       -- rewrite <- H. rewrite isIn. unfold not. intros. discriminate H0.
@@ -108,19 +136,23 @@ Proof.
 Qed.
 
 
-Lemma _insEdge_does_not_add_node : forall (edge : (Node * Node)) (ig : IG) (x : Node),
+
+
+
+Lemma _insEdge_does_not_add_node : forall (A B : Type) (edge : LEdge B) (ig : IG A B) (x : LNode A),
   In x (IG_labNodes (_insEdge edge ig)) <-> In x (IG_labNodes ig).
 Proof.
-  intros. unfold _insEdge. destruct edge.
+Admitted.
+  (* intros. unfold _insEdge. destruct edge.
   destruct (NatMap.mem (elt:=NatSet.t * NatSet.t) n ig && NatMap.mem (elt:=NatSet.t * NatSet.t) n0 ig) eqn:H0.
   - rewrite _updateEntry_does_not_change_key_set.
     rewrite _updateEntry_does_not_change_key_set.
     reflexivity.
   - reflexivity.
-Qed.
+Qed. *)
 
 
-Lemma _insEdges_does_not_add_nodes : forall (edges : list (Node * Node)) (ig : IG) (x : Node),
+Lemma _insEdges_does_not_add_nodes : forall (A B : Type) (edges : list (LEdge B)) (ig : IG A B) (x : LNode A), 
   In x (IG_labNodes (_insEdges edges ig)) <-> In x (IG_labNodes ig).
 Proof.
   intros. simpl. induction edges.
@@ -129,17 +161,18 @@ Proof.
 Qed. 
 
 
-Lemma _insNode_any_ins_node : forall (node : Node) (ig : IG) (x : Node),
+Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
   In x (IG_labNodes (_insNode node ig)) <-> In x (node :: IG_labNodes ig).
 Proof.
-  intros. simpl. unfold _insNode.
-  rewrite _In_labNodes_is_InMap. rewrite WF.add_in_iff.
+Admitted.
+  (* intros. simpl. unfold _insNode.
+  rewrite _In_labNodes_is_InMap. rewrite WF.add_mapsto_iff.
   rewrite _In_labNodes_is_InMap.
   reflexivity.
-Qed.  
+Qed. *)
 
 
-Lemma _insNodes_any_ins_all_nodes : forall (nodes : list Node) (ig : IG) (x : Node),
+Lemma _insNodes_any_ins_all_nodes : forall (A B : Type) (nodes : list (LNode A)) (ig : IG A B) (x : LNode A),
   In x (IG_labNodes (_insNodes nodes ig)) <-> In x (nodes ++ IG_labNodes ig).
 Proof.
   intros. induction nodes.
@@ -147,19 +180,20 @@ Proof.
     - simpl. rewrite _insNode_any_ins_node. simpl. rewrite IHnodes. reflexivity.
 Qed.
 
-Lemma _insEdge_on_empty_is_empty : forall (edge : Node * Node),
-  _insEdge edge IG_empty = IG_empty.
+Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
+  _insEdge edge (@IG_empty A B)= IG_empty. 
 (* This proof is very similar to "insEdge_does_not_add_node", but using it here it is more complicated than just doing it again  *)
 Proof.
-  intros. unfold _insEdge. destruct edge.
+Admitted.
+  (* intros. unfold _insEdge. destruct edge.
   destruct (NatMap.mem (elt:=NatSet.t * NatSet.t) n IG_empty && NatMap.mem (elt:=NatSet.t * NatSet.t) n0 IG_empty) eqn:cond.
   - compute. reflexivity.
   - reflexivity.
-Qed. 
+Qed.  *)
 
 
-Lemma _insEdges_on_empty_is_empty : forall (edges : list (Node * Node)),
-  _insEdges edges IG_empty = IG_empty.
+Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
+  _insEdges edges (@IG_empty A B) = IG_empty.
 (* This proof is very similar to "insEdges_does_not_add_nodes", but using it here it is more complicated than just doing it again  *)
 Proof.
   intros. induction edges; simpl.
@@ -170,7 +204,7 @@ Qed.
 
 
 (* "big" statement: *)
-Theorem IG_mkGraph_any_ins_all_nodes : forall (nl : list Node) (el : list (Node * Node)) (x : Node),
+Theorem IG_mkGraph_any_ins_all_nodes : forall (A B : Type) (nl : list (LNode A)) (el : list (LEdge B)) (x : LNode A),
   In x (IG_labNodes (IG_mkGraph nl el)) <-> In x nl.
 Proof.
   intros. unfold IG_mkGraph. rewrite _insEdges_does_not_add_nodes. rewrite _insNodes_any_ins_all_nodes.
@@ -178,12 +212,12 @@ Proof.
 Qed.
 
 
-Theorem IG_empty_isEmpty : IG_isEmpty IG_empty = true.
+Theorem IG_empty_isEmpty : forall (A B : Type), IG_isEmpty (@IG_empty A B) = true.
 Proof.
   compute. reflexivity.
 Qed.
 
-Theorem IG_labNodes_empty_nil : IG_labNodes IG_empty = [].
+Theorem IG_labNodes_empty_nil : forall (A B : Type), IG_labNodes (@IG_empty A B) = [].
 Proof.
   compute. reflexivity.
 Qed.
@@ -197,7 +231,7 @@ Proof.
 Qed.
 
 (* Think about enforcing non-emptiness of the list with (x::xs) *)
-Theorem  IG_non_empty_isEmpty_false : forall (nodes : list Node) (edges : list (Node * Node)),
+Theorem  IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
   length nodes <> 0 <-> IG_isEmpty ((IG_mkGraph nodes edges)) = false.
 Proof.
   intros. unfold IG_isEmpty. rewrite <- _not_NatMap_Empty_is_empty_false. unfold not.
@@ -228,15 +262,15 @@ Qed.
 
 
 
-Theorem IG_matsh_empty_is_nothing : forall (node : Node), IG_match node IG_empty = (None, IG_empty).
+Theorem IG_matsh_empty_is_nothing : forall (A B : Type) (node : Node), IG_match node (@IG_empty A B) = (None, IG_empty).   
 Proof.
   intros. compute. reflexivity.
 Qed.
 
 
-Theorem IG_spec4 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
-  In node nodes -> exists froms tos, IG_match node (IG_mkGraph nodes edges) =
-  (Some (froms, tos), IG_mkGraph (filter (fun n => negb (node =? n)) nodes) (filter (fun '(from, to) => negb ((from =? node) || (to =? node))) edges)).
+Theorem IG_spec4 : forall (A B : Type) (node : Node) (nodes : list (LNode A)) (edges : list (LEdge B)), 
+  In node (map fst nodes) -> exists froms tos, IG_match node (IG_mkGraph nodes edges) =
+  (Some (froms, tos), IG_mkGraph (filter (fun '(n, _) => negb (node =? n)) nodes) (filter (fun '(from, to, _) => negb ((from =? node) || (to =? node))) edges)).
 (* This is not even a complete specification and it looks like a hard one to prove... *)
 Proof.
   intros.
@@ -244,8 +278,8 @@ Proof.
 Admitted.
 
 
-Theorem IG_spec5 : forall (node : Node) (nodes : list Node) (edges : list (Node * Node)), 
-  not (In node nodes) -> IG_match node (IG_mkGraph nodes edges) = (None, IG_mkGraph nodes edges).
+Theorem IG_spec5 : forall (A B : Type) (node : Node) (nodes : list (LNode A)) (edges : list (LEdge B)), 
+  not (In node (map fst nodes)) -> IG_match node (IG_mkGraph nodes edges) = (None, IG_mkGraph nodes edges).
 Proof.
 Admitted.
 
@@ -254,6 +288,63 @@ Admitted.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(* 
 (* Stuff for the vaolidity checker *)
 
 Definition set_from_list (l : list node) : option NatSet.t :=
@@ -343,4 +434,4 @@ gmap id = id
 grev . grev = gmap swap . gmap swap
 = gmap (swap . swap)
 = gmap id
-= id *)
+= id  *)

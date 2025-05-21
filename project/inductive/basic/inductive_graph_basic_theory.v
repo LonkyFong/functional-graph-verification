@@ -18,10 +18,12 @@ Require Import Setoid Morphisms.
 Require Import MyProject.project.util.NatSet.
 
 Require Import MyProject.project.inductive.basic.inductive_graph_basic.
-Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
 
 Require Import MyProject.project.relational_graph.
 Require Import MyProject.project.relational_graph_theory.
+
+Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
+
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG_basic s  *)
 
@@ -54,7 +56,7 @@ Proof.
     + destruct H. inversion H.
       -- left. destruct a0. destruct H1. simpl. reflexivity.
       -- right. apply IHl. exists x. assumption.
-Qed.  
+Qed.
 
 
 

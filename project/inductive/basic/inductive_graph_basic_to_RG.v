@@ -24,14 +24,18 @@ Require Import MyProject.project.relational_graph_IG_operations.
 
 (* Adds a node and its in- and out- going edges (= its IG context) to an RG.
     Assumes that the neighboring nodes exist *)
-Definition _accTo_RG_unlE (node : Node) (rgIg : RG_unlE nat * IG_basic) : RG_unlE nat * IG_basic :=
+Definition _accTo_RG_unlE (node : Node) (rgIg : RG_unlE nat * IG_basic) : RG_unlE nat * IG_basic.
+Proof. Admitted.
+
+(* _extendByContext is no longer defined
+:=
     match rgIg with | (rg, ig) =>
         match IG_basic_match node ig with
         | (Some (froms, tos), rest) => (_extendByContext node froms tos rg, rest)
         | (None, sameIg)            => (rg, sameIg)
         end
     end
-.
+. *)
 
 Definition IG_basic_to_RG_unlE (ig : IG_basic) : RG_unlE nat :=
     match fold_right _accTo_RG_unlE (RG_empty, ig) (IG_basic_labNodes ig) with
