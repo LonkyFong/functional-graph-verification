@@ -8,6 +8,8 @@ Import ListNotations.
 
 Require Import MyProject.project.util.NatMap.
 Require Import MyProject.project.util.NatSet.
+(* util *)
+Require Import MyProject.project.util.util.
 Open Scope nat_scope.
 
 (* This file defines an inductive graph using maps like Erwig *)
@@ -221,6 +223,17 @@ Definition IG_labEdges {A B : Type} (ig : IG A B) : list (LEdge B) :=
 
 
 
+
+
+
+
+
+Require Import Recdef.
+Require Import Lia.
+
+
+
+
 (* Here stars DFS stuff *)
 
 
@@ -229,6 +242,18 @@ Definition suc {A B : Type} (c : Context A B) : list Node :=
   match c with
   | (_, _, _, tos) => map snd tos
   end.
+
+(* Vanilla version of dfs: *)
+Fail Fixpoint IG_dfs {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
+  match nodes with
+  | [] => []
+  | n :: ns => if IG_isEmpty ig then [] else
+                match IG_match n ig with
+                | (Some cntxt, rest) => n :: IG_dfs (suc cntxt ++ ns) rest
+                | (None, same) => IG_dfs ns same
+               end
+  end.
+
 
 Fixpoint IG_dfs_fuled {A B : Type} (nodes : list Node) (ig : IG A B) (fuel : nat) : list Node :=
   match fuel with
@@ -243,6 +268,7 @@ Fixpoint IG_dfs_fuled {A B : Type} (nodes : list Node) (ig : IG A B) (fuel : nat
                   end
     end
   end.
+
 Definition my_complicated_graph :=
   IG_mkGraph
     [(1, "a"); (2, "b"); (3, "c"); (4, "d"); (5, "e"); (6, "f")]
@@ -266,8 +292,7 @@ Compute IG_dfs_fuled [1] my_complicated_graph 50.
 
 
 
-
-
+(* Now comes the version of termination proof *)
 
 (* https://fzn.fr/teaching/coq/ecole10/summer/lectures/lec10.pdf *)
 
@@ -334,13 +359,7 @@ Qed.
 
 
 
-Require Import Lia.
-(* util *)
-Require Import MyProject.project.util.util.
 
-
-
-Check _updAdj.
 
 (* This proof is adapted from the link below. It blows my mind, that this is not in stdlib *)
 (* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
@@ -405,8 +424,7 @@ Proof.
   intros. unfold _updateEntry.
 
   destruct (NatMap.find node ig) eqn:split.
-  - Search NatMap.cardinal. Locate cardinal_fold.
-  Check WP.Equal_cardinal.
+  - 
 
   assert (NatMap.Equal ig (NatMap.add node c ig)). { 
       apply WF.find_mapsto_iff in split.
@@ -479,8 +497,65 @@ Proof.
 Defined.
 
 
+Lemma IG_dft'terminates1 : forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B)(n : Node) (ns : list Node),
+  nodes = n :: ns ->
+  nodesIg = (n :: ns, ig) ->
+  IG_isEmpty ig = false ->
+  forall (m : MContext A B) (same : IG A B) (cntxt : Context A B),
+  m = Some cntxt -> IG_match n ig = (Some cntxt, same) -> lex_prodDfs A B (suc cntxt ++ ns, same) (n :: ns, ig).
+Proof.
+  intros. unfold lex_prodDfs. unfold lex_dProdDfs. 
+  unfold prodTodPairDfs.
+  simpl.
+  apply left_lex.
 
+  unfold IG_match in H3.
+  destruct (NatMap.find n ig) eqn:split.
+  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+    unfold _cleanSplit in split0. 
+    assert (S (NatMap.cardinal i) = NatMap.cardinal (ig)). {
+      destruct c.
+      destruct p.
+      inversion split0.
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      apply _map_find_some_remove_lowers_cardinality.
+      exists (a0, a1, a).
+      apply split.
 
+    }
+    assert (same = i). {
+      inversion H3.
+      reflexivity.
+    } 
+    rewrite H5. rewrite <- H4. lia.
+
+  + inversion H3.
+Qed.
+
+Lemma IG_dft'terminates2 :
+  forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B) (n : Node) (ns : list Node),
+  nodes = n :: ns ->
+  nodesIg = (n :: ns, ig) ->
+  IG_isEmpty ig = false ->
+  forall (m : MContext A B) (same : IG A B),
+  m = None -> IG_match n ig = (None, same) -> lex_prodDfs A B (ns, same) (n :: ns, ig).
+Proof.
+  intros. unfold lex_prodDfs. unfold lex_dProdDfs.
+  unfold prodTodPairDfs. simpl.
+
+  unfold IG_match in H3.
+  destruct (NatMap.find n ig) eqn:split.
+  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+    inversion H3.
+  
+  + inversion H3. apply right_lex. auto.
+Qed.
+  
+Lemma IG_dft'terminates3 : forall A B : Type, well_founded (lex_prodDfs A B).
+Proof.
+  apply wf_lex_prodDfs.
+Qed.
 
 Function IG_dfs' {A B : Type} (nodesIg : list Node * IG A B) {wf (lex_prodDfs A B) nodesIg} : list Node := 
   match nodesIg with
@@ -495,83 +570,44 @@ Function IG_dfs' {A B : Type} (nodesIg : list Node * IG A B) {wf (lex_prodDfs A 
     end
   end.
 Proof.
-  - intros. unfold lex_prodDfs. unfold lex_dProdDfs. 
-    unfold prodTodPairDfs.
-    simpl.
-    apply left_lex.
-
-    Print lexprod. 
-    unfold IG_match in teq2.
-    destruct (NatMap.find n ig) eqn:split.
-    + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
-    
-      unfold _cleanSplit in split0. 
-      assert (S (NatMap.cardinal i) = NatMap.cardinal (ig)). {
-        destruct c.
-        destruct p.
-        inversion split0.
-        rewrite _IG_updAdj_does_not_change_cardinality.
-        rewrite _IG_updAdj_does_not_change_cardinality.
-        apply _map_find_some_remove_lowers_cardinality.
-        exists (a0, a1, a).
-        apply split.
-
-      }
-      assert (same = i). {
-        inversion teq2.
-        reflexivity.
-      } 
-      rewrite H0. rewrite <- H. lia.
-
-    + inversion teq2.
-  
-  - intros. unfold lex_prodDfs. unfold lex_dProdDfs.
-    unfold prodTodPairDfs. simpl.
-
-    unfold IG_match in teq2.
-    destruct (NatMap.find n ig) eqn:split.
-    + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
-      inversion teq2.
-    
-    + inversion teq2. apply right_lex. auto.
-
-  - apply  wf_lex_prodDfs.
+  - exact IG_dft'terminates1.
+  - exact IG_dft'terminates2.
+  - exact IG_dft'terminates3.
 Defined.
 
 
 Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
   IG_dfs' A B (nodes, ig).
 
-Compute IG_dfs'caller [1] IG_empty.
+Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation); simpl.
+
+Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
+  IG_dfs'_computer.
+  exists [].
+  reflexivity.
+Defined.
+
+
+(* Example IG_dfs'_test' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
+  unfold IG_dfs'caller.
+  rewrite IG_dfs'_equation.
+  simpl.
 
 
 
-Compute IG_dfs'caller [1] my_complicated_graph.
 
 
 
 
-Compute 1 + 2.
-
-Compute 2 + 2.
-
-
-
+  (* IG_dfs'_computer. *)
+  exists [].
+  reflexivity.
+Defined. *)
 
 
 
-(* Vanilla version: *)
-Fixpoint IG_dfs {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-  match nodes with
-  | [] => []
-  | n :: ns => if IG_isEmpty ig then [] else
-                match IG_match n ig with
-                | (Some cntxt, rest) => n :: IG_dfs (suc cntxt ++ ns) rest
-                | (None, same) => IG_dfs ns same
-               end
-  end.
-Proof.
-- intros. Admitted.
+
+
 
 
 
