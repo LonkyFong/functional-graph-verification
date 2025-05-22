@@ -132,7 +132,7 @@ Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
 (* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
 Definition add {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
   match context with
-  | (froms, node, label, tos) =>
+  | (froms, node, label, tos) => if NatMap.mem node ig then ig else
                                 let ig' := NatMap.add node (froms, label, tos) ig in
                                 let ig'' := _updAdj tos (_addPred node) ig' in
                                 _updAdj froms (_addSucc node) ig''
