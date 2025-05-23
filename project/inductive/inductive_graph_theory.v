@@ -265,15 +265,6 @@ Qed.
 
 
 
-Definition filterAndRemoveDuplicates (l : list nat) : list nat :=
-  fold_right (fun (k : nat) (acc : list nat) => if (k =? 420) || existsb (Nat.eqb k ) acc then acc else k :: acc) [] l.
-
-
-Compute filterAndRemoveDuplicates [1 ; 2 ; 3 ; 1 ; 2 ; 3; 420].
-
-Check Forall.
-Check NoDupA.
-
 
 Lemma _mem_different_insNodes : forall (A B : Type) (n : Node) (a : A) (nodes : list (LNode A)) (ig : IG A B),
   ~ InA (fun x y : NatSet.Node * A => fst x = fst y) (n, a) nodes ->
@@ -298,7 +289,6 @@ Proof.
         ++ auto.
         ++ firstorder.
 Qed.
-
 
 
 
@@ -332,81 +322,81 @@ Qed.
 (* this is just a pallete- swap version of the 4 _updateEntry  proofs further above *)
 
 (* this is just a pallete- swap version of the 4 _updateEntry  proofs further above *)
-Lemma _updateEntry_filter_clearSucc_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (whose : Node) (l : B) (ig : IG A B) (x : LNode A),
-  In x (IG_labNodes (_updateEntry node (_addPred whose l) ig)) <-> In x (IG_labNodes ig).   
+Lemma _updateEntry_clearSucc_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (whose : Node) (ig : IG A B) (x : LNode A),
+  In x (IG_labNodes (_updateEntry node (_clearSucc whose) ig)) <-> In x (IG_labNodes ig).   
 Proof.
-  (* intros. unfold _updateEntry. unfold _addPred. 
+  intros. unfold _updateEntry. unfold _clearSucc. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
     + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
       -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists ((l, whose) :: froms), tos. apply WF.add_mapsto_iff. left. split. 
+      -- subst. exists froms, (filter (fun '(_, n) => negb (n =? whose)) tos). apply WF.add_mapsto_iff. left. split. 
         ++ reflexivity.
         ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
           apply (WF.MapsTo_fun isIn).
           assumption.
         }
-        inversion H0. firstorder.
+        inversion H0. subst. reflexivity.
       -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
-  - reflexivity. *)
-Admitted.
+  - reflexivity.
+Qed.
 
 
-Lemma _updAdj_filter_clearSucc_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (fromss : Adj B)  (ig : IG A B) (x : LNode A),  
-  In x
-(IG_labNodes
-(_updAdj (filter (fun '(_, n) => negb (n =? node)) fromss) (fun (_ : B) (y : Context' A B) => _clearSucc node y)
-(ig))) <-> In x (IG_labNodes ig).
+Lemma _updAdj_filter_clearSucc_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (froms : Adj B)  (ig : IG A B) (x : LNode A),  
+  In x (IG_labNodes
+    (_updAdj (filter (fun '(_, n) => negb (n =? node)) froms) (fun (_ : B) (y : Context' A B) => _clearSucc node y)
+  ig)) <-> In x (IG_labNodes ig).
 Proof.
-  (* intros. unfold _updAdj.
-  induction adj.
+  intros. unfold _updAdj.
+  induction froms.
   - simpl. reflexivity.
-  - simpl. destruct a. rewrite _updateEntry_addPred_does_not_change_lab_nodes. rewrite <- IHadj. reflexivity. *)
-Admitted.
+  - simpl. destruct a. bdestruct (n =? node).
+    + simpl. assumption.
+    +  simpl. rewrite _updateEntry_clearSucc_does_not_change_lab_nodes. rewrite <- IHfroms. reflexivity.
+Qed.
 
 
 
-Lemma _updateEntry_filter_clearPred_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (whose : Node) (l : B) (ig : IG A B) (x : LNode A),
-  In x (IG_labNodes (_updateEntry node (_addPred whose l) ig)) <-> In x (IG_labNodes ig).    
+Lemma _updateEntry_clearPred_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (whose : Node) (ig : IG A B) (x : LNode A),
+  In x (IG_labNodes (_updateEntry node (_clearPred whose) ig)) <-> In x (IG_labNodes ig).     
 Proof.
-
-
-  (* intros. unfold _updateEntry. unfold _addPred. 
+  intros. unfold _updateEntry. unfold _clearPred. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
     + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
       -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists ((l, whose) :: froms), tos. apply WF.add_mapsto_iff. left. split. 
+      -- subst. exists  (filter (fun '(_, n) => negb (n =? whose)) froms), tos. apply WF.add_mapsto_iff. left. split. 
         ++ reflexivity.
         ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
           apply (WF.MapsTo_fun isIn).
           assumption.
         }
-        inversion H0. firstorder.
+        inversion H0. subst. reflexivity.
       -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
-  - reflexivity. *)
-Admitted.
+  - reflexivity.
+Qed.
 
 
-Lemma _updAdj_filter_clearPred_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (toss : Adj B)  (ig : IG A B) (x : LNode A), 
-  In x
-(IG_labNodes
-(_updAdj (filter (fun '(_, n) => negb (n =? node)) toss) (fun (_ : B) (y : Context' A B) => _clearPred node y)
-(ig))) <-> In x (IG_labNodes ig).
+Lemma _updAdj_filter_clearPred_does_not_change_lab_nodes : forall (A B : Type) (node : Node) (tos : Adj B)  (ig : IG A B) (x : LNode A), 
+  In x (IG_labNodes
+    (_updAdj (filter (fun '(_, n) => negb (n =? node)) tos) (fun (_ : B) (y : Context' A B) => _clearPred node y)
+  ig)) <-> In x (IG_labNodes ig).
 Proof.
-  (* intros. unfold _updAdj.
-  induction adj.
+  intros. unfold _updAdj.
+  induction tos.
   - simpl. reflexivity.
-  - simpl. destruct a. rewrite _updateEntry_addPred_does_not_change_lab_nodes. rewrite <- IHadj. reflexivity. *)
-Admitted.
+  - simpl. destruct a. bdestruct (n =? node).
+    + simpl. assumption.
+    +  simpl. rewrite _updateEntry_clearPred_does_not_change_lab_nodes. rewrite <- IHtos. reflexivity.
+Qed.
 
 
 
@@ -510,8 +500,6 @@ Qed.
 
 
 
-
-
 Lemma _insEdges_does_not_add_nodes : forall (A B : Type) (edges : list (LEdge B)) (ig : IG A B) (x : LNode A), 
   In x (IG_labNodes (_insEdges edges ig)) <-> In x (IG_labNodes ig).
 Proof.
@@ -524,12 +512,8 @@ Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
   _insEdge edge (@IG_empty A B)= IG_empty. 
 (* This proof is very similar to "insEdge_does_not_add_node", but using it here it is more complicated than just doing it again  *)
 Proof.
-Admitted.
-  (* intros. unfold _insEdge. destruct edge.
-  destruct (NatMap.mem (elt:=NatSet.t * NatSet.t) n IG_empty && NatMap.mem (elt:=NatSet.t * NatSet.t) n0 IG_empty) eqn:cond.
-  - compute. reflexivity.
-  - reflexivity.
-Qed.  *)
+  intros. compute. destruct edge as [[_ _] _]. reflexivity.
+Qed.
 
 
 Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
@@ -541,22 +525,24 @@ Proof.
   - rewrite IHedges. rewrite _insEdge_on_empty_is_empty. reflexivity.
 Qed.
 
-
+Lemma _filter_identity : forall (A B: Type) (l : list (A * B)),
+  filter (fun '(_, _) => true) l = l.
+Proof.
+  intros. rewrite forallb_filter_id.
+    + reflexivity.
+    + induction l.
+      -- simpl. reflexivity.
+      -- simpl. rewrite IHl.
+        ++ destruct a. simpl. reflexivity.
+Qed.
 
 (* "big" statement: *)
 Theorem IG_mkGraph_any_ins_all_nodes : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)) (x : LNode A),
   NoDupA (fun x y => fst x = fst y) nodes ->
-
   In x (IG_labNodes (IG_mkGraph nodes edges)) <-> In x nodes.
 Proof.
   intros. unfold IG_mkGraph. rewrite _insEdges_does_not_add_nodes. rewrite _insNodes_any_ins_all_nodes.
-  - rewrite app_nil_r. simpl. rewrite forallb_filter_id.
-    + reflexivity.
-    + induction nodes.
-      -- simpl. reflexivity.
-      -- simpl. rewrite IHnodes.
-        ++ destruct a. simpl. reflexivity.
-        ++ inversion H. assumption.
+  - rewrite app_nil_r. simpl. rewrite _filter_identity. reflexivity.
   - assumption.
 Qed.
 
@@ -572,7 +558,8 @@ Proof.
 Qed.
 
 
-Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A), not (NatMap.Empty m) <-> NatMap.is_empty m = false.
+Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
+  not (NatMap.Empty m) <-> NatMap.is_empty m = false.
 Proof.
   intros. unfold not. rewrite WF.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
   - firstorder. congruence.
@@ -581,37 +568,53 @@ Qed.
 
 (* Think about enforcing non-emptiness of the list with (x::xs) *)
 Theorem  IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
+  NoDupA (fun x y => fst x = fst y) nodes ->
   length nodes <> 0 <-> IG_isEmpty ((IG_mkGraph nodes edges)) = false.
 Proof.
   intros. unfold IG_isEmpty. rewrite <- _not_NatMap_Empty_is_empty_false. unfold not.
   destruct nodes; simpl; unfold IG_mkGraph.
   - firstorder.
-    apply H.
+    apply H0.
     apply WP.elements_Empty.
 
     rewrite _insEdges_on_empty_is_empty. compute. reflexivity.
   - firstorder.
-    + apply WP.elements_Empty in H0.
-      assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
-        unfold not. intros. destruct H1. inversion H1.
+    + apply WP.elements_Empty in H1.
+      assert (HH : not (exists (froms tos : Adj B), InA (fun (e1 e2 : (Node * (Context' A B))) => NatMap.eq_key_elt e1 e2) (fst l, (froms, snd l, tos)) [])). {
+        unfold not. intros. destruct H2 as [froms [tos H2]]. inversion H2.
       }
-      rewrite <- _In_conditions_same in HH.
 
-      unfold not in HH. apply HH.
+      unfold not in HH. apply HH. clear HH.
+
+      apply (IG_mkGraph_any_ins_all_nodes _ B _ edges l) in H.
+      assert (In l (l :: nodes)). {
+        firstorder.
+      }
+      apply H in H2. clear H.
+
+
+      rewrite _In_labNodes_is_InMap in H2.
+      destruct H2 as [fromss [toss H2]].
+      exists fromss, toss.
+
       
-      pose proof WF.elements_in_iff.
-      edestruct H1.
-      rewrite H0 in H2.
-      apply H2.
+      apply -> WF.elements_mapsto_iff in H2.
+      unfold IG_mkGraph in H2.
+      assert (NatMap.elements (elt:=Adj B * A * Adj B) (_insEdges edges (_insNodes (l :: nodes) IG_empty)) = []). {
+        assumption.
+
+      }
+      rewrite  H in H2.
+      assumption.
+
       
-      apply _In_labNodes_is_InMap.
-      apply IG_mkGraph_any_ins_all_nodes. simpl. left. reflexivity.
     + congruence.
 Qed.
 
 
 
-Theorem IG_matsh_empty_is_nothing : forall (A B : Type) (node : Node), IG_match node (@IG_empty A B) = (None, IG_empty).   
+Theorem IG_matsh_empty_is_nothing : forall (A B : Type) (node : Node),
+  IG_match node (@IG_empty A B) = (None, IG_empty).   
 Proof.
   intros. compute. reflexivity.
 Qed.
