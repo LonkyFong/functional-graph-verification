@@ -465,7 +465,6 @@ Proof.
 Qed.
 
 
-
 Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
   (exists x, NatMap.find key map = Some x) -> (S (NatMap.cardinal (NatMap.remove key map)) = NatMap.cardinal map).
 Proof.
@@ -583,7 +582,6 @@ Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation;
 
 
 
-
 Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
   IG_dfs'_computer.
   exists [].
@@ -631,81 +629,101 @@ Qed.
 Qed. *)
 
 
-(* Start proving some properties of DFS *)
-Print incl.
-
-Ltac IG_dfs'_computer' := unfold IG_dfs'caller in *; repeat (rewrite IG_dfs'_equation in *; simpl in *).
 
 
-Theorem IG_dfs'_returns_only_nodes : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (g : IG A B),
-  incl (IG_dfs'caller l (IG_mkGraph nodes edges)) (map fst nodes). 
 
+
+
+
+
+
+
+
+
+
+
+
+(* Messing around wiht sets and induction over them *)
+
+Function set_counts (set : NatSet.t) {measure NatSet.cardinal set} : nat :=
+  match NatSet.choose set with
+  | None => 0
+  | Some n => n + set_counts (NatSet.remove n set)
+  end.
 Proof.
   intros.
-  induction nodes.
-  - simpl.  
-  
-Admitted.
+  unfold lt.
+  assert (S (NatSet.cardinal (NatSet.remove n set)) = NatSet.cardinal set). {
+    apply NatSetProperties.remove_cardinal_1.
+    apply NatSetProperties.choose_mem_1.
+    assumption.
+  }
+  lia.
+Defined.
 
-(* Following this website: *)
-(* https://sharmaeklavya2.github.io/theoremdep/nodes/graph-theory/dfs/dfs.html *)
+Compute set_counts (NatSet.add 1 (NatSet.add 2 (NatSet.add 3 NatSet.empty))).
+
+Definition set_counts' (set : NatSet.t) : nat :=
+  NatSet.fold (fun n acc => n + acc) set 0.
 
 
 
-
-
-Lemma IG_match_no_more_in_graph : forall (A B : Type) (x : Node) (g : IG A B),
-  let (_, g') := IG_match x g in ~ In x (map fst (IG_labNodes g')).
+Theorem set_counts_is_set_counts' : forall (set : NatSet.t),
+  set_counts set = set_counts' set.
 Proof.
-  intros. destruct (IG_match x g) eqn:HH.
-  - unfold not. intros. unfold IG_match in HH. unfold IG_labNodes in H.
-    assert (exists e, NatMap.find x i = Some e). {
-       (* use _In_labNodes_in_InMap here *)
-      admit.
-    } destruct (NatMap.find x g) eqn:HHH.
-    + admit.
-    + inversion HH. rewrite H3 in HHH. destruct H0. rewrite HHH in H0. inversion H0.
-    
+  apply (well_founded_induction
+           (well_founded_ltof _ NatSet.cardinal)).
+  intros set IH.
+
+  destruct (NatSet.choose set) eqn:Hchoose.
+  - (* Some n *)
+    assert (Hmem : NatSet.In e set).
+    { apply NatSet.choose_1. easy. }
+
+    assert (Hrem : NatSet.cardinal (NatSet.remove e set) < NatSet.cardinal set).
+    {   assert (S (NatSet.cardinal (NatSet.remove e set)) = NatSet.cardinal set). {
+    apply NatSetProperties.remove_cardinal_1.
+    apply NatSetProperties.choose_mem_1.
+    assumption.
+  }
+  lia. }
+  specialize (IH (NatSet.remove e set)).
+  unfold ltof in IH.
+  apply IH in Hrem.
+
+  rewrite set_counts_equation. rewrite Hchoose. 
+  unfold set_counts'. simpl.
+
+    (* Use NatSet.fold_add *)
+    assert (Hadd : NatSet.Equal set (NatSet.add e (NatSet.remove e set))).
+    { Search NatSet.add. rewrite NatSetProperties.MP.add_remove; firstorder.
+    }
+
+    rewrite NatSetProperties.fold_equal.
+
+
+    + rewrite NatSetProperties.fold_add.
+      -- apply Nat.add_cancel_l. apply Hrem.
+      -- auto.
+      -- firstorder.
+      -- unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
+      -- apply NatSetProperties.remove_mem_1.
+    + auto.
+    + firstorder.
+    + unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
+    + apply NatSet.equal_1. assumption.
+  - rewrite set_counts_equation. rewrite Hchoose. 
   
-  
-
-   
-Admitted.
-
-
-Theorem IG_dfs'_no_duplicates : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (g : IG A B),
-  NoDup (IG_dfs'caller l g).
-Proof.
-  intros.
-  induction l.
-  - IG_dfs'_computer.
-    apply NoDup_nil.
-  - IG_dfs'_computer. destruct (IG_isEmpty g) eqn:HH.
-    + apply NoDup_nil.
-    + destruct (IG_match a g) eqn:HHH.
-      -- destruct m eqn:HHHH.
-        ++ apply NoDup_cons.
-          --- inversion IHl.
-            ++++ unfold not. intros.  admit.
-            ++++  admit.
-          --- 
-          
-Admitted.
-
-(* I nned to show that the remainder of the graph , does not have a anymore *) 
-
-
-
-
-
-
-
-
-
-
-
-
-
+  (* None *)
+    apply NatSet.choose_2 in Hchoose.
+    unfold set_counts'.
+    rewrite NatSetProperties.fold_equal.
+    + rewrite NatSetProperties.fold_empty. reflexivity.
+    + auto.
+    + firstorder.
+    + unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
+    + apply NatSet.equal_1. apply NatSetProperties.MP.empty_is_empty_1. assumption.    
+Qed.
 
 
 

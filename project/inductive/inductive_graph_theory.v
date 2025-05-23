@@ -404,7 +404,7 @@ Qed.
 
 Lemma IG_match_removes_node : forall (A B : Type) (query : Node) (mContext : MContext A B) (ig rest : IG A B),
   IG_match query ig = (mContext, rest) -> 
-  forall label, not (In (query, label) (IG_labNodes rest)).
+  (forall label, not (In (query, label) (IG_labNodes rest))).
 Proof.
   intros. unfold not. intros.
   unfold IG_match in H. destruct (NatMap.find query ig) eqn:HH.
@@ -424,8 +424,7 @@ Proof.
 Qed.
 
 
-
-
+(* TODO: think of this being a permutation, maybe its too hard *)
 Lemma IG_match_just_removes_node : forall (A B : Type) (query hit : Node) (label : A) (ig rest : IG A B) (froms tos : Adj B) (x : LNode A),
   IG_match query ig = (Some (froms, hit, label, tos), rest) -> 
   In x (IG_labNodes ig) <-> In x ((hit, label) :: IG_labNodes rest). 
@@ -636,6 +635,394 @@ Proof.
 Admitted.
 
 
+
+
+
+(* Start proving some properties of DFS *)
+
+Lemma _In_map_fst_exists_second : forall (A B: Type) (a : A) (l : list (A * B)),
+In a (map fst l) <-> exists second, In (a, second) l.
+Proof.
+  intros. induction l; simpl.
+  - firstorder.
+  - destruct a0. split; intros.
+    + destruct H.
+      -- exists b. left. subst. auto.
+      -- firstorder.
+    + destruct H. destruct H.
+      -- left. inversion H. auto.
+      -- right. apply IHl. exists x. assumption.
+Qed.
+
+
+
+
+Definition _nodeAmount {A B : Type} (ig : IG A B) : nat :=
+  NatMap.cardinal ig.
+
+
+(* here start the theorems on match decreasing the cardinality: *)
+
+(* Copy from inductive graph *)
+Lemma _IG_updateEntry_does_not_change_cardinality : forall {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B), 
+    NatMap.cardinal (_updateEntry node f ig) = NatMap.cardinal ig.
+Proof.
+  intros. unfold _updateEntry.
+
+  destruct (NatMap.find node ig) eqn:split.
+  - 
+
+  assert (NatMap.Equal ig (NatMap.add node c ig)). { 
+      apply WF.find_mapsto_iff in split.
+
+    apply WF.Equal_mapsto_iff.
+    split; intros.
+    - apply WF.add_mapsto_iff.
+       bdestruct (node =? k).
+      + subst. left. split.
+      -- reflexivity.
+      -- apply WF.find_mapsto_iff in split. apply WF.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
+      + right. split.
+      -- assumption.
+      -- assumption.
+    - apply WF.add_mapsto_iff in H. destruct H.
+      + destruct H. subst. assumption.
+      + destruct H. assumption.
+  }
+  rewrite H at 2.
+  apply _add_value_does_not_matter_for_cardinality.
+  - reflexivity.
+
+Qed.
+
+
+(* Copy from inductive graph *)
+Lemma _IG_updAdj_does_not_change_cardinality : forall {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B), 
+    NatMap.cardinal (_updAdj adj f ig) = NatMap.cardinal ig.
+Proof.
+  intros.
+  unfold _updAdj.
+  induction adj.
+  - simpl. reflexivity.
+  - simpl. rewrite <- IHadj.
+    pose proof (@_IG_updateEntry_does_not_change_cardinality A B).
+    destruct a.
+    rewrite H. reflexivity.
+Qed.
+
+(* Copy from inductive graph *)
+Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
+  (exists x, NatMap.find key map = Some x) -> (NatMap.cardinal map = S (NatMap.cardinal (NatMap.remove key map))).
+Proof.
+  
+  intros.
+  pose proof WP.cardinal_2.
+  destruct H eqn:hu.
+  assert (~ NatMap.In key (NatMap.remove key map)). {
+    unfold not. intros.
+    apply WF.remove_in_iff in H1.
+    destruct H1.
+    destruct H1.
+    reflexivity.
+
+  }
+  apply (H0 _ _ map _ x) in H1.
+  - rewrite <- H1. reflexivity.
+  - unfold WP.Add. 
+  
+  
+  
+  unfold WP.Add. intros. bdestruct (y =? key).
+  + rewrite H2. rewrite e. assert (key = key). {
+    reflexivity.
+  }  pose proof WF.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
+  + pose proof WF.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
+    pose proof WF.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
+  
+Defined.
+
+(* Copy of IG_dft'terminates1 *)
+Theorem _IG_match_decreases_nodeAmount : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+  IG_match n ig = (Some c, rest) -> _nodeAmount rest < _nodeAmount ig.
+Proof.
+  intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
+  assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
+
+  unfold IG_match in H.
+  destruct (NatMap.find node ig) eqn:split.
+  - destruct (_cleanSplit node c (NatMap.remove node ig)) eqn:split0.
+    inversion H. subst.
+    unfold _cleanSplit in split0.
+    destruct c as [[fromss labell] toss].
+    inversion split0.
+    clear split0 H1.
+    
+
+  
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      apply _map_find_some_remove_lowers_cardinality.
+      exists (fromss, labell, toss).
+      apply split.
+      - inversion H.
+      
+
+    }
+    unfold _nodeAmount.
+    lia.
+Qed.
+
+
+
+(* Alternative way to prove _IG_match_decreases_nodeAmount *)
+Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),
+  NatMap.cardinal ig = length (IG_labNodes ig).
+Proof.
+  intros. unfold IG_labNodes. rewrite map_length.
+  rewrite NatMap.cardinal_1. reflexivity. 
+Qed.
+
+Require Import Coq.Sorting.Permutation.
+
+
+
+
+Lemma _lists_diff_by_one : forall (A : Type) (l l' : list A) (x diff : A),
+  Permutation l (diff :: l') -> length l = S (length l').
+Proof.
+  intros. apply Permutation_length in H. simpl in H. assumption.
+Qed.
+
+Lemma IG_match_labNodes_permuation : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+  IG_match n ig = (Some c, rest) -> let '(_, node, label, _) := c in Permutation (IG_labNodes ig) ((node, label) :: IG_labNodes rest).
+Proof.
+Admitted. 
+
+
+Theorem _IG_match_decreases_nodeAmount_permutation : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+  IG_match n ig = (Some c, rest) -> _nodeAmount rest < _nodeAmount ig.
+Proof.
+  intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
+  assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
+    rewrite !IG_labNodes_len_cardinal.
+    apply IG_match_labNodes_permuation in H.
+    apply _lists_diff_by_one in H.
+    - assumption.
+    - apply (node, label).
+  }
+  unfold _nodeAmount.
+  lia.
+Qed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+Lemma always_empty_is_empty : forall (A : Type) (l : list A),
+  match l with
+  | [] | _ => (@nil A)
+  end = [].
+Proof.
+  intros. destruct l; reflexivity.
+Qed.
+
+(* Definition  *)
+Theorem IG_dfs'_returns_only_nodes : forall (A B : Type) (l : list Node) (ig : IG A B),
+  incl (IG_dfs'caller l ig) (map fst (IG_labNodes ig)). 
+
+Proof.
+  intros A B l. (* Maybe the l needs to stay general in the induction hypothesis....*)
+  apply (well_founded_induction
+           (well_founded_ltof _ (@_nodeAmount A B))).  (* induction nodes. *)
+  unfold ltof.
+  intros ig IH.
+
+  unfold incl. intros.
+  unfold IG_dfs'caller in H. rewrite IG_dfs'_equation in H.
+  destruct l.
+  - apply in_nil in H. destruct H.
+  - destruct (IG_isEmpty ig) eqn:em.
+    + apply in_nil in H. destruct H.
+    + destruct (IG_match n ig) eqn:mm.
+      destruct m eqn:mmm.
+      -- simpl in *. destruct H.
+        ++ destruct c as [[[froms node] label] tos]. 
+            apply IG_match_returns_node in mm as mmmm.
+            subst.
+
+          
+          eapply IG_match_just_removes_node in mm.
+          apply _In_map_fst_exists_second.
+          exists label.
+          apply mm.
+          simpl. left. reflexivity.
+
+        ++ destruct c as [[[froms node] label] tos].
+            specialize (IH i).
+            apply _IG_match_decreases_nodeAmount in mm as IH'.
+            apply IH in IH'.
+            unfold incl in IH'.
+            specialize (IH' a).
+            unfold IG_dfs'caller in IH'.
+            assert (ig = add (froms, node, label, tos) i). {
+              admit.
+            }
+            rewrite H0.
+            rewrite _In_map_fst_exists_second.
+            exists label.
+            rewrite IG_add_adds_node.
+            assert (NatMap.mem node i = false). {
+              admit.
+            }
+            rewrite H1.
+            simpl.
+            right.
+            rewrite _In_map_fst_exists_second.
+
+
+            exists label.
+            Check IG_add_adds_node.
+            simpl.
+            (* Now, I am going to have to show that I can "upgrade" the IH to the inductive setp *)
+            unfold IG_match in mm.
+            
+            rewrite IG_dfs'_equation in mm. simpl in mm.
+         
+
+              Search NatMap.cardinal.
+              intros.
+
+            } unfold incl in IH.   
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(* Following this website: *)
+(* https://sharmaeklavya2.github.io/theoremdep/nodes/graph-theory/dfs/dfs.html *)
+
+
+
+
+
+
+
+Theorem IG_dfs'_no_duplicates : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (ig : IG A B),
+  NoDup (IG_dfs'caller l ig).
+Proof.
+  intros. unfold IG_dfs'caller.
+  induction l.
+  - IG_dfs'_computer.
+    apply NoDup_nil.
+  - IG_dfs'_computer. destruct (IG_isEmpty ig) eqn:HH.
+    + apply NoDup_nil.
+    + destruct (IG_match a ig) eqn:HHH.
+      destruct m eqn:HHHH.
+      -- apply NoDup_cons.
+        ++ destruct c as [[[froms node] label] tos].
+          pose proof IG_match_removes_node.
+          specialize (H A B a (Some (froms, node, label, tos)) ig i HHH).
+          unfold not. intros.
+          apply IG_dfs'_returns_only_nodes in H0.
+          rewrite _In_map_fst_exists_second in H0.
+          firstorder. 
+        
+        ++ inversion IHl.
+          --- assert ([] = IG_dfs'caller l i). {
+                admit. (* this is trus *)
+              }
+              assert (NoDup (IG_dfs'caller (suc c) i)). {
+                (* suc c could litteraly be any node, the only ting, we do know, is that all of them are in i (well.. if it is wellformed)
+                 and also,  *)
+                admit.
+              }
+              Print NoDup.
+              (* a is no longer in i, so c (context of a) is neither. This means that suc c  *)
+          
+
+               admit.
+          --- (* hell*) admit.
+      -- subst. (* now, I know they are the same, since match is none*) admit.
+Admitted.
+
+
+
+
+
+
+(* I nned to show that the remainder of the graph , does not have a anymore *) 
 
 
 
