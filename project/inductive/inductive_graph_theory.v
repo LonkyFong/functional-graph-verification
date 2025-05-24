@@ -661,6 +661,7 @@ Definition _nodeAmount {A B : Type} (ig : IG A B) : nat :=
   NatMap.cardinal ig.
 
 
+
 (* here start the theorems on match decreasing the cardinality: *)
 
 (* Copy from inductive graph *)
@@ -819,9 +820,38 @@ Qed.
 
 
 
+Function remove_nodes (nodes : list nat) {wf (fun (x y : list nat) => lt (length x) (length y)) nodes} : list nat :=
+  match nodes with
+  | [] => []
+  | n :: ns => if n =? 420 then remove_nodes ns else n :: remove_nodes ns
+  end.
+Proof.
+  - intros. firstorder.
+  - intros. firstorder.
+  - apply well_founded_ltof.
+Defined.
 
+Lemma remove_nodes_is_incl : forall (nodes : list nat),
+  incl (remove_nodes nodes) nodes.
+Proof.
+  apply (well_founded_induction
+          (well_founded_ltof _ (@length nat))). 
+  intros.
 
-
+  unfold incl. intros. rewrite remove_nodes_equation in H0. destruct x.
+  - assumption.
+  - specialize (H x). simpl. destruct (n =? 420).
+    + unfold ltof in H.
+    assert ( length x < length (n :: x)). {
+      firstorder.
+    } specialize (H H1). unfold incl in H. specialize (H a). apply H in H0. right. assumption.
+    + simpl in H0. destruct H0.
+      -- left. auto.
+      -- right. unfold ltof in H.
+        assert ( length x < length (n :: x)). {
+          firstorder.
+        } specialize (H H1). unfold incl in H. specialize (H a). apply H in H0. assumption.
+Qed.
 
 
 
@@ -843,87 +873,97 @@ Proof.
   intros. destruct l; reflexivity.
 Qed.
 
+Check well_founded_induction.
+Print well_founded.
+Print Acc.
+
+Check well_founded_ltof.
+Check well_founded.
+Check ltof.
+
+
+(* (nodesIg : list Node * IG A B) {wf (lex_prodDfs A B) nodesIg} *)
+
+(* TODO: define that IG equivalence yields the same resulsts on most operations,
+such that it is possible to rewrite using them *)
+
+Require Import Coq.Relations.Relation_Operators.
+
+
 (* Definition  *)
-Theorem IG_dfs'_returns_only_nodes : forall (A B : Type) (l : list Node) (ig : IG A B),
-  incl (IG_dfs'caller l ig) (map fst (IG_labNodes ig)). 
-
+Theorem IG_dfs'_returns_only_nodes : forall (A B : Type) (nodesIg : list NatSet.Node * IG A B),
+  let '(nodes, ig) := nodesIg in
+  incl (IG_dfs'caller nodes ig) (map fst (IG_labNodes ig)). 
 Proof.
-  intros A B l. (* Maybe the l needs to stay general in the induction hypothesis....*)
+  intros A B. (* Maybe the l needs to stay general in the induction hypothesis....*)
   apply (well_founded_induction
-           (well_founded_ltof _ (@_nodeAmount A B))).  (* induction nodes. *)
-  unfold ltof.
-  intros ig IH.
+           (wf_lex_prodDfs A B)).  (* induction nodes. *)
+  
+  
+  intros nodesIG IH.
+  destruct nodesIG as [nodes ig].
 
-  unfold incl. intros.
+  unfold incl in *. intros.
   unfold IG_dfs'caller in H. rewrite IG_dfs'_equation in H.
-  destruct l.
+  destruct nodes.
   - apply in_nil in H. destruct H.
   - destruct (IG_isEmpty ig) eqn:em.
     + apply in_nil in H. destruct H.
-    + destruct (IG_match n ig) eqn:mm.
-      destruct m eqn:mmm.
-      -- simpl in *. destruct H.
+    + destruct (IG_match n ig) eqn:mat.
+      destruct m (*eqn:mm*).
+      -- simpl in *.
+          destruct H.
+          (* Continue here: *)
         ++ destruct c as [[[froms node] label] tos]. 
-            apply IG_match_returns_node in mm as mmmm.
+            apply IG_match_returns_node in mat as mmmm.
             subst.
 
           
-          eapply IG_match_just_removes_node in mm.
+          eapply IG_match_just_removes_node in mat.
           apply _In_map_fst_exists_second.
           exists label.
-          apply mm.
+          apply mat.
           simpl. left. reflexivity.
 
         ++ destruct c as [[[froms node] label] tos].
-            specialize (IH i).
-            apply _IG_match_decreases_nodeAmount in mm as IH'.
-            apply IH in IH'.
-            unfold incl in IH'.
-            specialize (IH' a).
-            unfold IG_dfs'caller in IH'.
-            assert (ig = add (froms, node, label, tos) i). {
-              admit.
+            specialize (IH (suc (froms, node, label, tos) ++ nodes, i)).
+            assert (lex_prodDfs A B (suc (froms, node, label, tos) ++ nodes, i) (n :: nodes, ig)). {
+              unfold lex_prodDfs. unfold lex_dProdDfs. 
+              unfold prodTodPairDfs.
+              simpl.
+              apply left_lex.
+              apply _IG_match_decreases_nodeAmount in mat.
+              unfold _nodeAmount in mat.
+              assumption.
             }
-            rewrite H0.
+            specialize (IH H0).
+            apply IH in H.
+
+            rewrite _In_map_fst_exists_second in H.
+            destruct H.
             rewrite _In_map_fst_exists_second.
-            exists label.
-            rewrite IG_add_adds_node.
-            assert (NatMap.mem node i = false). {
-              admit.
-            }
-            rewrite H1.
+            exists x.
+
+            pose proof IG_match_just_removes_node.
+
+
+            specialize (H1 _ _ _ _ _ _ _ _ _ (a, x) mat).
+            apply H1.
             simpl.
-            right.
-            rewrite _In_map_fst_exists_second.
+            right. assumption.
+      -- unfold IG_match in mat. destruct (NatMap.find n ig) eqn:HH.
+        ++ destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0. inversion mat.
+        ++ (*i * ig*) inversion mat. subst.
+            specialize (IH (nodes, i)).
+            assert (lex_prodDfs A B (nodes, i) (n :: nodes, i)). {
+              unfold lex_prodDfs. unfold lex_dProdDfs. 
+              unfold prodTodPairDfs.
+              simpl.
+              apply right_lex.
+              auto.
+            } specialize (IH H0). firstorder.
 
-
-            exists label.
-            Check IG_add_adds_node.
-            simpl.
-            (* Now, I am going to have to show that I can "upgrade" the IH to the inductive setp *)
-            unfold IG_match in mm.
-            
-            rewrite IG_dfs'_equation in mm. simpl in mm.
-         
-
-              Search NatMap.cardinal.
-              intros.
-
-            } unfold incl in IH.   
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
+Qed.
 
 
 
