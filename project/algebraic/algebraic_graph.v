@@ -135,11 +135,15 @@ Definition removeVertex (x : nat) (ag : AG nat) : AG nat :=
 
 Compute removeVertex 1 (1 *** 2 +++ 3 *** 4 +++ 1 *** 2).
 
+
+
 Definition splitVertex {A : Type} (x : nat) (l : list nat) (ag : AG nat) : AG nat :=
     gmapVertex (fun g' => match g' with
                           | Vertex y => if eqb x y then vertices l else Vertex y
                           | _ => g'
                           end) ag.
+
+
 
 Compute splitVertex 1 [0; 1] (1 *** (2 +++ 3)).
 

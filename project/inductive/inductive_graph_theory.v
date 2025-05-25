@@ -983,13 +983,6 @@ Qed.
 
 
 
-
-
-
-
-
-
-
 (* Following this website: *)
 (* https://sharmaeklavya2.github.io/theoremdep/nodes/graph-theory/dfs/dfs.html *)
 
@@ -1022,7 +1015,7 @@ Proof.
              eapply IG_match_removes_node in mat.
              apply mat in H.
              apply H.
-             
+
             ++ specialize (IH (suc c ++ nodes, i)).
                 assert (lex_prodDfs A B (suc c ++ nodes, i) (n :: nodes, ig)). {
                   unfold lex_prodDfs. unfold lex_dProdDfs. 
@@ -1052,23 +1045,6 @@ Qed.
 
 
 (* I nned to show that the remainder of the graph , does not have a anymore *) 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
