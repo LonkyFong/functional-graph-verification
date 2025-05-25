@@ -316,7 +316,16 @@ Proof.
   - unfold _cleanSplit in H. destruct c as [[fromss label] toss]. inversion H. reflexivity. 
   - inversion H.
 Qed.
-  
+
+Lemma IG_match_none_returns_graph : forall (A B : Type) (query : Node) (ig i : IG A B),
+  IG_match query ig = (None, i) -> ig = i.
+Proof.
+  intros. unfold IG_match in H. destruct (NatMap.find query ig).
+  - destruct (_cleanSplit query c (NatMap.remove query ig)). inversion H.
+  - inversion H. reflexivity.
+Qed.
+
+
 
 
 (* this is just a pallete- swap version of the 4 _updateEntry  proofs further above *)
@@ -899,7 +908,6 @@ Proof.
   apply (well_founded_induction
            (wf_lex_prodDfs A B)).  (* induction nodes. *)
   
-  
   intros nodesIG IH.
   destruct nodesIG as [nodes ig].
 
@@ -982,34 +990,6 @@ Qed.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 (* Following this website: *)
 (* https://sharmaeklavya2.github.io/theoremdep/nodes/graph-theory/dfs/dfs.html *)
 
@@ -1019,46 +999,55 @@ Qed.
 
 
 
-Theorem IG_dfs'_no_duplicates : forall (A B : Type) (l : list Node) (nodes : list (LNode A)) (edges : list (LEdge B)) (ig : IG A B),
-  NoDup (IG_dfs'caller l ig).
+Theorem IG_dfs'_no_duplicates : forall (A B : Type) (nodesIg : list NatSet.Node * IG A B),
+  let '(nodes, ig) := nodesIg in
+  NoDup (IG_dfs'caller nodes ig).
 Proof.
-  intros. unfold IG_dfs'caller.
-  induction l.
-  - IG_dfs'_computer.
-    apply NoDup_nil.
-  - IG_dfs'_computer. destruct (IG_isEmpty ig) eqn:HH.
-    + apply NoDup_nil.
-    + destruct (IG_match a ig) eqn:HHH.
-      destruct m eqn:HHHH.
-      -- apply NoDup_cons.
-        ++ destruct c as [[[froms node] label] tos].
-          pose proof IG_match_removes_node.
-          specialize (H A B a (Some (froms, node, label, tos)) ig i HHH).
-          unfold not. intros.
-          apply IG_dfs'_returns_only_nodes in H0.
-          rewrite _In_map_fst_exists_second in H0.
-          firstorder. 
-        
-        ++ inversion IHl.
-          --- assert ([] = IG_dfs'caller l i). {
-                admit. (* this is trus *)
-              }
-              assert (NoDup (IG_dfs'caller (suc c) i)). {
-                (* suc c could litteraly be any node, the only ting, we do know, is that all of them are in i (well.. if it is wellformed)
-                 and also,  *)
-                admit.
-              }
-              Print NoDup.
-              (* a is no longer in i, so c (context of a) is neither. This means that suc c  *)
-          
+  intros A B. 
+  apply (well_founded_induction
+          (wf_lex_prodDfs A B)).  (* induction nodes. *)
+  intros nodesIG IH.
+  destruct nodesIG as [nodes ig].
 
-               admit.
-          --- (* hell*) admit.
-      -- subst. (* now, I know they are the same, since match is none*) admit.
-Admitted.
-
-
-
+  unfold IG_dfs'caller. rewrite IG_dfs'_equation. destruct nodes.
+    - apply NoDup_nil.
+    - destruct (IG_isEmpty ig) eqn:igEmpty.
+      + apply NoDup_nil.
+      + destruct (IG_match n ig) eqn:mat.
+         destruct m eqn:mm.
+         -- apply NoDup_cons.
+            ++ pose proof IG_dfs'_returns_only_nodes.
+              unfold incl in H. unfold not. intros. unfold IG_dfs'caller in H.
+              specialize (H _ _ (suc c ++ nodes, i) _ H0). apply _In_map_fst_exists_second in H. destruct H.
+             eapply IG_match_removes_node in mat.
+             apply mat in H.
+             apply H.
+             
+            ++ specialize (IH (suc c ++ nodes, i)).
+                assert (lex_prodDfs A B (suc c ++ nodes, i) (n :: nodes, ig)). {
+                  unfold lex_prodDfs. unfold lex_dProdDfs. 
+                  unfold prodTodPairDfs.
+                  simpl.
+                  apply left_lex.
+                  apply _IG_match_decreases_nodeAmount in mat.
+                  unfold _nodeAmount in mat.
+                  assumption.
+                }
+                specialize (IH H).
+                apply IH.
+        --  apply IG_match_none_returns_graph in mat. subst.
+            specialize (IH (nodes, i)).
+            assert (lex_prodDfs A B (nodes, i) (n :: nodes, i)). {
+              unfold lex_prodDfs. unfold lex_dProdDfs. 
+              unfold prodTodPairDfs.
+              simpl.
+              apply right_lex.
+              auto.
+            }
+            specialize (IH H).
+            apply IH.
+Qed.
+            
 
 
 
