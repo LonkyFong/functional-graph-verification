@@ -275,4 +275,126 @@ Compute searchGraphUnique (1 +++ 1) [].
 
 Compute searchGraphUnique (1 *** 2 +++ 2 *** 3 +++ 1 *** 3) [].
 
+Definition setEqual (s1 s2 : set nat) : bool.
+Proof.
+Admitted.
 
+Definition AG_measure {A : Type} (ag : AG A) : nat.
+Proof.
+Admitted.
+
+Require Import Recdef.
+
+Function recHelper (left right : AG nat) (f : AG nat -> set nat -> set nat) (prev : set nat) {measure AG_measure left} : set nat :=
+  let result := f left prev  in if setEqual result prev then recHelper right left f result else result.
+Proof.
+Admitted.  
+
+ 
+Fail Function canReachFrom (ag : AG nat) (acc : set nat) {measure AG_measure ag} : set nat :=
+  match ag with
+    | Empty => acc
+    | Vertex x => acc
+    | Overlay ag1 ag2 => recHelper ag1 ag2 (fun agx acc => canReachFrom agx acc) acc
+    | Connect ag1 ag2 => let ovel := recHelper ag1 ag2 (fun agx acc => canReachFrom agx acc) acc in
+                            let RHS := searchGraphUnique ag2 [] in
+                            if fold_right (fun x acc => acc || (set_mem eq_nat_dec x RHS)) false acc then acc ++ RHS else acc 
+    end.
+
+
+(* This works in Haskell ;( *)
+Fail Function canReachFrom' (ag : AG nat) (acc : set nat) {measure AG_measure ag} : set nat :=
+  match ag with
+    | Empty => acc
+    | Vertex x => acc
+    | Overlay ag1 ag2 => let result := canReachFrom' (ag1, acc) in 
+                            let result' := canReachFrom' (ag2, result) in 
+                            if setEqual acc result' then acc else canReachFrom' (ag, result')
+
+    | Connect ag1 ag2 =>   let result := canReachFrom' (ag1, acc) in 
+                            let result' := canReachFrom' (ag2, result) in
+                            let LHS := searchGraphUnique ag1 [] in
+
+                            let RHS := searchGraphUnique ag2 [] in
+                            let result'' := if existsb (fun x => (set_mem eq_nat_dec x LHS)) result' then result' ++ RHS else result' in
+                            if setEqual acc result'' then acc else canReachFrom' (ag, result'')
+    end.
+
+
+Fixpoint listEqual (l1 l2 : list nat) : bool :=
+  match l1, l2 with
+    | [], [] => true
+    | x :: xs, y :: ys => if eq_nat_dec x y then listEqual xs ys else false
+    | _, _ => false
+  end.
+
+(* Function merge (l1l2 : list nat * list nat) {measure (fun (ll : list nat * list nat) => let (x, y) := ll in length x + length y) l1l2} : list nat :=  
+    match l1l2 with
+    | ([], l2) => l2
+    | (l1, []) => l1
+    | (x :: xs, y :: ys) => if (x <? y) then x :: merge (xs, y :: ys) else y :: merge (x :: xs, ys)
+    end.
+Proof.
+Admitted. *)
+
+Fixpoint filterOutOf (remove from : list nat) : list nat :=
+  match from with
+    | [] => []
+    | x :: xs => if existsb (fun y => x =? y) remove then filterOutOf remove xs else x :: filterOutOf remove xs
+  end.
+
+(* When getting rid of the fuel, the function is alwas gbeing called on a (bigger list (max amount on nodes in the graph) and a samller graph) these should be summable together. No lexographic order business *) 
+Fixpoint canReachFrom_fuled (ag : AG nat) (acc : list nat) (fuel : nat) : list nat :=
+    match fuel with
+        | 0 => acc
+        | S fuel' => match ag with
+                        | Empty => acc
+                        | Vertex x => acc
+                        | Overlay ag1 ag2 => let result := canReachFrom_fuled ag1 acc fuel' in 
+                                                let result' := canReachFrom_fuled ag2 result fuel' in 
+                                                if listEqual acc result' then acc else canReachFrom_fuled ag result' fuel' (*actually, result' is never smaller*)
+
+                        | Connect ag1 ag2 =>   let result := canReachFrom_fuled ag1 acc fuel' in 
+                                                let result' := canReachFrom_fuled ag2 result fuel' in
+                                                let LHS := searchGraphUnique ag1 [] in
+
+                                                let RHS := searchGraphUnique ag2 [] in
+                                                let result'' := if existsb (fun x => (set_mem eq_nat_dec x LHS)) result' then result' ++ filterOutOf result' RHS else result' in  
+                                                if listEqual acc result'' then acc else canReachFrom_fuled ag result'' fuel'
+                        end
+    end.
+
+Compute canReachFrom_fuled (Vertex 1) [1] 10.
+Compute canReachFrom_fuled ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1] 7.
+Compute canReachFrom_fuled ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 7.
+Compute canReachFrom_fuled ((1 *** 2) +++ (3 *** 4)) [1; 3] 7.
+
+
+
+
+
+
+Definition canReachWF (agAcc1 agAcc2 : AG nat * set nat) : Prop.
+Proof.
+Admitted.
+
+
+Function canReachFrom' (agAcc : AG nat * set nat) {wf canReachWF agAcc} : set nat :=  
+  match agAcc with
+    | (ag, acc) => 
+  match ag with
+    | Empty => acc
+    | Vertex x => acc
+    | Overlay ag1 ag2 => let result := canReachFrom'(ag1, acc) in 
+                            let result' := canReachFrom' (ag2, result) in 
+                            if setEqual acc result' then acc else canReachFrom' (ag, result')
+
+    | Connect ag1 ag2 =>   let result := canReachFrom' (ag1, acc) in 
+                            let result' := canReachFrom' (ag2, result) in
+                            let LHS := searchGraphUnique ag1 [] in
+
+                            let RHS := searchGraphUnique ag2 [] in
+                            let result'' := if existsb (fun x => (set_mem eq_nat_dec x LHS)) result' then result' ++ RHS else result' in
+                            if setEqual acc result'' then acc else canReachFrom' (ag, result'')
+    end
+                            end.
