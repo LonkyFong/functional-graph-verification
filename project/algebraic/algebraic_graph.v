@@ -275,50 +275,15 @@ Compute searchGraphUnique (1 +++ 1) [].
 
 Compute searchGraphUnique (1 *** 2 +++ 2 *** 3 +++ 1 *** 3) [].
 
-Definition setEqual (s1 s2 : set nat) : bool.
-Proof.
-Admitted.
 
-Definition AG_measure {A : Type} (ag : AG A) : nat.
-Proof.
-Admitted.
 
 Require Import Recdef.
 
-Function recHelper (left right : AG nat) (f : AG nat -> set nat -> set nat) (prev : set nat) {measure AG_measure left} : set nat :=
-  let result := f left prev  in if setEqual result prev then recHelper right left f result else result.
-Proof.
-Admitted.  
-
- 
-Fail Function canReachFrom (ag : AG nat) (acc : set nat) {measure AG_measure ag} : set nat :=
-  match ag with
-    | Empty => acc
-    | Vertex x => acc
-    | Overlay ag1 ag2 => recHelper ag1 ag2 (fun agx acc => canReachFrom agx acc) acc
-    | Connect ag1 ag2 => let ovel := recHelper ag1 ag2 (fun agx acc => canReachFrom agx acc) acc in
-                            let RHS := searchGraphUnique ag2 [] in
-                            if fold_right (fun x acc => acc || (set_mem eq_nat_dec x RHS)) false acc then acc ++ RHS else acc 
-    end.
 
 
-(* This works in Haskell ;( *)
-Fail Function canReachFrom' (ag : AG nat) (acc : set nat) {measure AG_measure ag} : set nat :=
-  match ag with
-    | Empty => acc
-    | Vertex x => acc
-    | Overlay ag1 ag2 => let result := canReachFrom' (ag1, acc) in 
-                            let result' := canReachFrom' (ag2, result) in 
-                            if setEqual acc result' then acc else canReachFrom' (ag, result')
 
-    | Connect ag1 ag2 =>   let result := canReachFrom' (ag1, acc) in 
-                            let result' := canReachFrom' (ag2, result) in
-                            let LHS := searchGraphUnique ag1 [] in
 
-                            let RHS := searchGraphUnique ag2 [] in
-                            let result'' := if existsb (fun x => (set_mem eq_nat_dec x LHS)) result' then result' ++ RHS else result' in
-                            if setEqual acc result'' then acc else canReachFrom' (ag, result'')
-    end.
+
 
 
 Fixpoint listEqual (l1 l2 : list nat) : bool :=
@@ -328,14 +293,6 @@ Fixpoint listEqual (l1 l2 : list nat) : bool :=
     | _, _ => false
   end.
 
-(* Function merge (l1l2 : list nat * list nat) {measure (fun (ll : list nat * list nat) => let (x, y) := ll in length x + length y) l1l2} : list nat :=  
-    match l1l2 with
-    | ([], l2) => l2
-    | (l1, []) => l1
-    | (x :: xs, y :: ys) => if (x <? y) then x :: merge (xs, y :: ys) else y :: merge (x :: xs, ys)
-    end.
-Proof.
-Admitted. *)
 
 Fixpoint filterOutOf (remove from : list nat) : list nat :=
   match from with
@@ -374,27 +331,73 @@ Compute canReachFrom_fuled ((1 *** 2) +++ (3 *** 4)) [1; 3] 7.
 
 
 
-Definition canReachWF (agAcc1 agAcc2 : AG nat * set nat) : Prop.
-Proof.
-Admitted.
 
 
-Function canReachFrom' (agAcc : AG nat * set nat) {wf canReachWF agAcc} : set nat :=  
-  match agAcc with
-    | (ag, acc) => 
-  match ag with
-    | Empty => acc
-    | Vertex x => acc
-    | Overlay ag1 ag2 => let result := canReachFrom'(ag1, acc) in 
-                            let result' := canReachFrom' (ag2, result) in 
-                            if setEqual acc result' then acc else canReachFrom' (ag, result')
 
-    | Connect ag1 ag2 =>   let result := canReachFrom' (ag1, acc) in 
-                            let result' := canReachFrom' (ag2, result) in
-                            let LHS := searchGraphUnique ag1 [] in
 
-                            let RHS := searchGraphUnique ag2 [] in
-                            let result'' := if existsb (fun x => (set_mem eq_nat_dec x LHS)) result' then result' ++ RHS else result' in
-                            if setEqual acc result'' then acc else canReachFrom' (ag, result'')
-    end
-                            end.
+(* This is pretty promising :) *)
+
+Fixpoint canReachFromInOneStep (ag : AG nat) (from : list nat) : list nat :=
+ match ag with
+        | Empty => []
+        | Vertex x => []
+        | Overlay ag1 ag2 => canReachFromInOneStep ag1 from ++ canReachFromInOneStep ag2 from
+
+        | Connect ag1 ag2 =>  canReachFromInOneStep ag1 from ++ canReachFromInOneStep ag2 from
+                              ++ 
+                              (
+                                let LHS := searchGraphUnique ag1 [] in
+
+                                let RHS := searchGraphUnique ag2 [] in
+                                if existsb (fun x => (set_mem eq_nat_dec x LHS)) from then RHS else []
+                              )
+    end.
+
+
+Compute canReachFromInOneStep (Vertex 1) [1].
+Compute canReachFromInOneStep ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
+Compute canReachFromInOneStep ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].
+Compute canReachFromInOneStep ((1 *** 2) +++ (3 *** 4)) [1; 3].
+
+
+Fixpoint canReachInNSteps (ag : AG nat) (from : list nat) (n : nat) : list nat :=
+  match n with
+    | 0 => from
+    | S n' => canReachInNSteps ag (canReachFromInOneStep ag from) n'
+  end.
+
+Compute canReachInNSteps (Vertex 1) [1] 10.
+Compute canReachInNSteps ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1] 3.
+Compute canReachInNSteps ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 7.   
+Compute canReachInNSteps ((1 *** 2) +++ (3 *** 4)) [1; 3] 7.
+
+Fixpoint canReachInNorFewerSteps (ag : AG nat) (from : list nat) (n : nat) : list nat :=
+  match n with
+    | 0 => from
+    | S n' => canReachInNorFewerSteps ag from n' ++ canReachInNSteps ag from (S n')
+  end.
+
+Compute canReachInNorFewerSteps (Vertex 1) [1] 5.
+Compute canReachInNorFewerSteps ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1] 1.
+Compute canReachInNorFewerSteps ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 4.   
+Compute canReachInNorFewerSteps ((1 *** 2) +++ (3 *** 4)) [1; 3] 0.
+
+
+
+(* This is a small optimization, since we can stop searching, when if we add a step we no longer make progress, we can stop *)
+Fixpoint canReachInAnyAmountOfStepsRec (ag : AG nat) (from : list nat) (n fuel : nat) : list nat :=
+    match fuel with
+        | 0 => canReachInNorFewerSteps ag from n
+        | S fuel' => if listEqual (canReachInNorFewerSteps ag from n) (canReachInNorFewerSteps ag from (S n)) then canReachInNorFewerSteps ag from n else
+                        canReachInAnyAmountOfStepsRec ag from (S n) fuel'
+        end
+   .
+
+
+Definition canReachInAnyAmountOfSteps (ag : AG nat) (from : list nat) :=
+  canReachInAnyAmountOfStepsRec ag from 0 (countNodes ag).
+  
+Compute canReachInAnyAmountOfSteps (Vertex 1) [1].
+Compute canReachInAnyAmountOfSteps ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
+Compute canReachInAnyAmountOfSteps ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].   
+Compute canReachInAnyAmountOfSteps ((1 *** 2) +++ (3 *** 4)) [1; 3].
