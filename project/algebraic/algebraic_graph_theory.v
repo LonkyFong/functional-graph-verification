@@ -169,3 +169,214 @@ Proof.
     reflexivity.
 Qed.
 
+
+
+(* Here, I start proving things about BFS *)
+
+Require Import List.
+
+Require Import MyProject.project.util.NatSet.
+
+Lemma if_result_same : forall (A : Type) (b : bool) (x : A), 
+    (if b then x else x) = x.
+Proof.
+    intros.
+    destruct b.
+    - reflexivity.
+    - reflexivity.
+Qed.
+
+Lemma NatSet_intersection_singleton : forall (s : NatSet.t) (x : nat),
+NatSet.mem x s = true -> NatSet.inter s (NatSet.singleton x) = NatSet.singleton x.
+Proof.
+Admitted.
+
+
+
+Lemma NatList_filterOutOf_makes_subset : forall (s : NatSet.t) (l : list nat),
+    incl (NatList_filterOutOf s l) l.
+Proof.
+    unfold incl. intros. unfold NatList_filterOutOf in H. apply filter_In in H. firstorder.
+Qed.
+
+
+
+Lemma NatList_filterOutOf_splits_In : forall (s : NatSet.t) (l : list nat) x,
+    In x l -> In x (NatSet.elements s) \/ In x (NatList_filterOutOf s l).
+Proof.
+    intros. induction l.
+    - simpl in H. firstorder.
+    - simpl in H. destruct H.
+        + subst. simpl. destruct (negb (NatSet.mem x s)) eqn:mem.
+            -- right. firstorder.
+            -- left. apply Bool.negb_false_iff in mem. apply NatSet.mem_2 in mem. apply NatSet.elements_1 in mem.
+                apply SetoidList.InA_alt in mem. destruct mem. destruct H. subst. assumption.
+        + specialize (IHl H). destruct IHl.
+            -- left.  assumption.
+            -- right. simpl. destruct (negb (NatSet.mem a s)).
+                ++ simpl. right. assumption.
+                ++ assumption.
+Qed.
+
+
+
+ 
+
+
+
+Lemma consolidation_fold_right_preserves_nodes : forall (l : list (NatSet.t)) y,
+    (exists x, In x l /\ NatSet.In y x) <-> (In y (fold_right (fun (next : NatSet.t) (acc : list nat) => NatSet.elements next ++ NatList_filterOutOf next acc) nil l)) .
+Proof.
+    intros. induction l.
+    - simpl. firstorder.
+    - split; intros.
+        + destruct H. simpl in H. destruct H. destruct H.
+            -- subst. simpl. apply in_or_app. left. apply NatSet.elements_1 in H0.
+                apply SetoidList.InA_alt in H0. destruct H0. destruct H. subst. assumption.
+            -- assert (exists x : NatSet.t, In x l /\ NatSet.In y x). { firstorder.
+            } destruct IHl. specialize (H2 H1).
+              simpl. apply in_or_app. apply NatList_filterOutOf_splits_In. assumption.
+        + simpl in H.  apply in_app_or in H.  destruct H.
+            -- exists a. split.
+                ++ simpl. auto.
+                ++ apply NatSet.elements_2. apply SetoidList.InA_alt. exists y. auto.
+            -- destruct IHl. apply NatList_filterOutOf_makes_subset in H. apply H1 in H. firstorder.
+Qed.
+
+Lemma NatSet_In_is_In_elements : forall (s : NatSet.t) (x : nat),
+    NatSet.In x s <-> In x (NatSet.elements s).
+Proof.
+    intros. split; intros.
+    - apply NatSet.elements_1 in H. apply SetoidList.InA_alt in H. destruct H. destruct H. subst. assumption.
+    - apply NatSet.elements_2. apply SetoidList.InA_alt. exists x. auto.
+Qed.
+
+
+Lemma In_AG_nodeSet_is_In_RG : forall (ag : AG nat) (x : nat),
+    NatSet.In x (AG_nodeSet ag) <-> (AG_to_RG_unlE ag).(RG_nodes) x.
+Proof.
+Admitted.
+
+
+Lemma _singleStep_returns_only_nodes : forall (ag : AG nat) (from : NatSet.t),
+    forall x, NatSet.In x (_singleStep ag from) -> (AG_to_RG_unlE ag).(RG_nodes) x.
+Proof.
+    intros. induction ag.
+    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
+    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
+    - simpl. simpl in H. apply NatSet.union_1 in H. firstorder.
+    - simpl. simpl in H. apply NatSet.union_1 in H. destruct H.
+        + apply NatSet.union_1 in H. firstorder.
+        + destruct (NatSet.is_empty (NatSet.inter (AG_nodeSet ag1) from)) eqn:split.
+            -- apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
+            -- right. apply In_AG_nodeSet_is_In_RG. assumption.
+Qed.
+
+(* Tactic Notation "skip" := admit. *)
+
+
+(* TODO: continue here *)
+Lemma _upToNStepsCapCaller_returns_only_nodes : forall (ag : AG nat) (from : NatSet.t) (n : nat) x y,
+    In x (_upToNStepsCapCaller ag from n) -> NatSet.In y x -> (AG_to_RG_unlE ag).(RG_nodes) y.
+Proof.
+    intros. generalize dependent from. 
+     induction n.
+    - intros. simpl in H. destruct H.
+        + admit.
+        + rewrite if_result_same in H. simpl in H. destruct H.
+    - intros. simpl in H. simpl in IHn. destruct (NatSet.equal (NatSet.inter from (AG_nodeSet ag))
+(NatSet.union (NatSet.inter from (AG_nodeSet ag)) (_singleStep ag (NatSet.inter from (AG_nodeSet ag))))) eqn:split.
+        + destruct H.
+            -- admit.
+            -- simpl in H. destruct H.
+        + simpl in H.
+
+Admitted.
+            
+          
+
+
+
+
+Theorem AG_BFS_returns_only_nodes : forall (nodes : list nat) (ag : AG nat),
+  forall x, In x (AG_BFS ag nodes) -> (AG_to_RG_unlE ag).(RG_nodes) x. 
+Proof.
+    intros.
+    (* unfold AG_BFS in H.
+    unfold RG_nodes.
+    unfold AG_to_RG_unlE. *)
+    induction ag.
+    - simpl. unfold AG_BFS in H. simpl in H. apply in_app_or in H. destruct H.
+        + admit.
+        + rewrite if_result_same in H. simpl in H. apply H.
+    - simpl in *. apply in_app_or in H. destruct H.
+        + admit.
+        + simpl in H. rewrite if_result_same in H. rewrite NatSet_intersection_singleton in H.
+            -- admit.
+            -- admit.
+    - unfold AG_BFS in H. apply consolidation_fold_right_preserves_nodes in H.
+        destruct H.
+        apply _upToNStepsCapCaller_returns_only_nodes in H.
+        assumption.
+    
+    - unfold AG_BFS in H. apply consolidation_fold_right_preserves_nodes in H.
+        destruct H.
+        apply _upToNStepsCapCaller_returns_only_nodes in H.
+        assumption.
+Admitted.
+
+
+
+(* https://plv.mpi-sws.org/c11comp/coq/extralib.html *)
+Definition disjoint {A : Type} (l1 l2 : list A) :=
+  forall a, In a l1 /\ In a l2 -> False.  
+
+
+Lemma nodup_app: forall (A: Type) (l1 l2: list A),
+  NoDup (l1 ++ l2) <->
+  NoDup l1 /\ NoDup l2 /\ disjoint l1 l2.
+Proof.
+Admitted.
+
+
+Lemma NatList_filterOutOf_disjoint : forall (s : NatSet.t) (l : list nat),
+    disjoint (NatSet.elements s) (NatList_filterOutOf s l).
+Proof.
+Admitted.
+
+
+Lemma NoDup_NatSet_elements : forall (s : NatSet.t),
+    NoDup (NatSet.elements s).
+Proof.
+    intros. pose proof (NatSet.elements_3w s). induction (NatSet.elements s).
+    - apply NoDup_nil.
+    - inversion H. apply NoDup_cons.
+        + unfold not in *. intros. apply H2. apply SetoidList.InA_alt. exists a. auto.
+        + apply IHl. assumption.
+Qed.
+
+
+
+Lemma NoDup_fold_right_filterOutOf : forall (l : list (NatSet.t)),
+    NoDup (fold_right (fun (next : NatSet.t) (acc : list nat) => NatSet.elements next ++ NatList_filterOutOf next acc) nil l).
+Proof.
+    intros. induction l.
+    - simpl. apply NoDup_nil.
+    - simpl. apply nodup_app. split.
+        + apply NoDup_NatSet_elements.
+        + split.
+            -- apply NoDup_filter. assumption.
+            -- apply NatList_filterOutOf_disjoint.
+Qed.
+
+
+
+
+
+Theorem AG_BFS_no_duplicates : forall (nodes : list nat) (ag : AG nat),
+  NoDup (AG_BFS ag nodes).
+Proof.
+    intros.
+    unfold AG_BFS.
+    apply NoDup_fold_right_filterOutOf.
+Qed.

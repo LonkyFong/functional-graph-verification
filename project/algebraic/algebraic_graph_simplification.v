@@ -2,6 +2,8 @@ Require Import MyProject.project.algebraic.algebraic_graph.
 
 Require Import Recdef.
 
+(* This hit a wall, since rewriting to make the expression smaller again is a difficult task *)
+
 Definition AG_measure {A : Type} (ag : AG A) : nat.
 Proof.
 Admitted.

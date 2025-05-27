@@ -991,7 +991,6 @@ Qed.
 
 
 
-
 Theorem IG_dfs'_no_duplicates : forall (A B : Type) (nodesIg : list NatSet.Node * IG A B),
   let '(nodes, ig) := nodesIg in
   NoDup (IG_dfs'caller nodes ig).

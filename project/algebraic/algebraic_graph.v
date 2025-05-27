@@ -320,80 +320,95 @@ let leftAndRight := fun (ag1 ag2 : AG nat) => NatSet.union (AG_nodeSet ag1) (AG_
 Definition AG_nodeAmount (ag : AG nat) : nat :=
     NatSet.cardinal (AG_nodeSet ag).
 
-Fixpoint NatList_filterOutOf (remove from : list nat) : list nat :=
-  match from with
-    | [] => []
-    | x :: xs => if existsb (fun y => x =? y) remove then NatList_filterOutOf remove xs else x :: NatList_filterOutOf remove xs
-    end.
 
 
-Definition NatList_union (l1 l2 : list nat) :=
-    l1 ++ NatList_filterOutOf l1 l2.
+Definition NatList_filterOutOf (remove : NatSet.t) (from : list nat) : list nat :=
+    filter (fun x => negb (NatSet.mem x remove)) from.
+
+    
+
+
+(* Definition NatList_remove_duplicates (l : list nat) : list nat :=
+  fold_left (fun acc next => if existsb (fun y => y =? next) acc then acc else acc ++ [next]) l nil. *)
+  
+
+
+(* Definition NatList_union (l1 l2 : list nat) :=
+    l1 ++ NatList_remove_duplicates (NatList_filterOutOf l1 l2). *)
 
 (* This is pretty promising :) *)
 
-Fixpoint canReachFromInOneStep (ag : AG nat) (from : list nat) : list nat :=
-let leftAndRight := fun (ag1 ag2 : AG nat) (from : list nat) => NatList_union (canReachFromInOneStep ag1 from) (canReachFromInOneStep ag2 from) in
+Fixpoint _singleStep (ag : AG nat) (from : NatSet.t) : NatSet.t :=
+let leftAndRight := fun (ag1 ag2 : AG nat) (from : NatSet.t) => NatSet.union (_singleStep ag1 from) (_singleStep ag2 from) in
  match ag with
-        | Empty => []
-        | Vertex x => []
+        | Empty => NatSet.empty
+        | Vertex x => NatSet.empty
         | Overlay ag1 ag2 => leftAndRight ag1 ag2 from
 
-        | Connect ag1 ag2 => NatList_union (leftAndRight ag1 ag2 from) (
+        | Connect ag1 ag2 => NatSet.union (leftAndRight ag1 ag2 from) (
                                 let LHS := AG_nodeSet ag1 in
                                 let RHS := AG_nodeSet ag2 in 
-                                if NatSet.is_empty (NatSet.inter LHS (NatSet_fromList from)) then [] else NatSet.elements RHS
+                                if NatSet.is_empty (NatSet.inter LHS from) then NatSet.empty else RHS
         )
                   
     end.
 
-Compute canReachFromInOneStep (Vertex 1) [1]. 
-Compute canReachFromInOneStep ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
-Compute canReachFromInOneStep ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].
-Compute canReachFromInOneStep ((1 *** 2) +++ (3 *** 4)) [1; 3].
+Definition _singleStep_caller (ag : AG nat) (from : list nat) : list nat :=
+    NatSet.elements (_singleStep ag (NatSet_fromList from)).
+
+Compute _singleStep_caller (Vertex 1) [1]. 
+Compute _singleStep_caller ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
+Compute _singleStep_caller ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].
+Compute _singleStep_caller ((1 *** 2) +++ (3 *** 4)) [1; 3].
 
 
 (* This is not needed, as using it repeatedly is slow *)
-Fixpoint canReachInNorFewerSteps (ag : AG nat) (from : list nat) (n : nat) : list (list nat) :=
+Fixpoint canReachInNorFewerSteps (ag : AG nat) (from : NatSet.t) (n : nat) : list (NatSet.t) :=
   match n with
     | 0 => []
-    | S n' => from :: canReachInNorFewerSteps ag (canReachFromInOneStep ag from) n'
+    | S n' => from :: canReachInNorFewerSteps ag (_singleStep ag from) n'
   end.
-Compute canReachInNorFewerSteps (Vertex 1) [1] 3.
+
+Definition canReachInNorFewerSteps_caller (ag : AG nat) (from : list nat) (n : nat) : list (list nat) :=
+    map NatSet.elements (canReachInNorFewerSteps ag (NatSet_fromList from) n).
+
+Compute canReachInNorFewerSteps_caller (Vertex 1) [1] 3.
 (* Notice, that when we have a cycle, the list is infinite *)
-Compute canReachInNorFewerSteps ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3 +++ 4 *** 1)) [1] 6. 
-Compute canReachInNorFewerSteps ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 4.   
-Compute canReachInNorFewerSteps ((1 *** 2) +++ (3 *** 4)) [1; 3] 10.
+Compute canReachInNorFewerSteps_caller ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3 +++ 4 *** 1)) [1] 6. 
+Compute canReachInNorFewerSteps_caller ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 4.   
+Compute canReachInNorFewerSteps_caller ((1 *** 2) +++ (3 *** 4)) [1; 3] 10.
 
 
 
-Fixpoint canReachInNorFewerStepsCapped (ag : AG nat) (from : list nat) (visited : NatSet.t) (n : nat) : list (list nat) :=
+Fixpoint _upToNStepsCap (ag : AG nat) (from visited : NatSet.t) (n : nat) : list NatSet.t :=
   match n with
     | 0 => []
     | S n' => from ::
-            let next := canReachFromInOneStep ag from in
-            let nextVisited := NatSet.union visited (NatSet_fromList next) in
+            let next := _singleStep ag from in
+            let nextVisited := NatSet.union visited next in 
             if NatSet.equal visited nextVisited then [] else
-                 canReachInNorFewerStepsCapped ag next nextVisited  n'
+                 _upToNStepsCap ag next nextVisited  n'
   end.
 
-Definition canReachInNStepsListCapped_caller (ag : AG nat) (from : list nat) (n : nat) : list (list nat) :=
-    canReachInNorFewerStepsCapped ag from (NatSet_fromList from) (S n).
 
 
-Compute canReachInNStepsListCapped_caller (Vertex 1) [1] 10.
-Compute canReachInNStepsListCapped_caller ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1] 10.
-Compute canReachInNStepsListCapped_caller ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 1000.   
-Compute canReachInNStepsListCapped_caller ((1 *** 2) +++ (3 *** 4)) [1; 3] 0.
+Definition _upToNStepsCapCaller (ag : AG nat) (from : NatSet.t) (n : nat) : list NatSet.t :=
+    let trimmedFrom := NatSet.inter from (AG_nodeSet ag) in
+    _upToNStepsCap ag trimmedFrom trimmedFrom (S n).
+
+Definition canReachInNStepsListCapped_caller2 (ag : AG nat) (from : list nat) (n : nat) : list (list nat) :=
+    map NatSet.elements (_upToNStepsCapCaller ag (NatSet_fromList from) n).
+
+Compute canReachInNStepsListCapped_caller2 (Vertex 1) [1] 10.
+Compute canReachInNStepsListCapped_caller2 ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1] 10.
+Compute canReachInNStepsListCapped_caller2 ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1] 1000.   
+Compute canReachInNStepsListCapped_caller2 ((1 *** 2) +++ (3 *** 4)) [1; 3] 0.
 
 
+Definition AG_BFS (ag : AG nat) (from : list nat) :=
+    fold_right (fun next acc => NatSet.elements next ++ (NatList_filterOutOf next acc)) [] (_upToNStepsCapCaller ag (NatSet_fromList from) (AG_nodeAmount ag)).
 
-Definition canReachInAnyAmountOfSteps (ag : AG nat) (from : list nat) :=
-    fold_left (fun acc nextSet => NatList_union acc nextSet ) (canReachInNStepsListCapped_caller ag from (AG_nodeAmount ag)) [].
-
-Compute canReachInAnyAmountOfSteps (Vertex 1) [1].
-Compute canReachInAnyAmountOfSteps ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
-Compute canReachInAnyAmountOfSteps ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].   
-Compute canReachInAnyAmountOfSteps ((1 *** 2) +++ (3 *** 4)) [1; 3].
-
-
+Compute AG_BFS (Vertex 1) [1].
+Compute AG_BFS ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
+Compute AG_BFS ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].   
+Compute AG_BFS ((1 *** 2) +++ (3 *** 4)) [1; 3].
