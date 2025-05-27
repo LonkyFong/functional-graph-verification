@@ -272,6 +272,7 @@ A -> B + B -> C + A -> C => A (B + C) + B -> C (suboptimal!!)
 
 
 
+
 (* Conversion to relational representation, for euality checking: *)
 
 (* Fixpoint toSet' (ag : AG nat) : fSetAVLNatGraph :=
