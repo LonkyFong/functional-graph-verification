@@ -1070,6 +1070,29 @@ Qed.
 
 
 
+(* Showing properties about transpose: *)
+
+Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
+    IG_to_RG (IG_grev ig) === RG_transpose (IG_to_RG ig). 
+Proof.
+  intros A B.
+      apply (well_founded_induction
+           (well_founded_ltof _ (@NatMap.cardinal _))).
+    intros ig IH.
+    unfold IG_grev. unfold IG_gmap. rewrite IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    destruct m eqn:mm.
+    - specialize (IH i). assert (ltof (NatMap.t (Context' A B)) (NatMap.cardinal (elt:=Context' A B)) i ig). {
+      admit.
+    }
+    specialize (IH H). clear H.
+    unfold IG_grev in IH.
+(* TODO: continue here but first think about how IG_to_RG could be defined differently to work better with this *)
+    
+Admitted.
+    
+    
+
+Qed.
 
 
 

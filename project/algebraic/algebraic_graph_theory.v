@@ -401,3 +401,22 @@ Proof.
     unfold AG_BFS.
     apply NoDup_fold_right_filterOutOf.
 Qed.
+
+
+
+
+
+
+
+
+
+
+(* Here some things about "Transpose:" *)
+
+Theorem AG_transpose_is_RG : forall (ag : AG nat),
+    AG_to_RG_unlE (transpose ag) === RG_transpose (AG_to_RG_unlE ag). 
+Proof.
+    intros. induction ag; simpl; firstorder.
+Qed.
+    
+

@@ -300,7 +300,7 @@ Compute IG_dfs_fuled [1] my_complicated_graph 50.
 
 Require Import Coq.Arith.Arith.
 Require Import Coq.Arith.Wf_nat.
-Require Import Coq.Init.Nat.
+(* Require Import Coq.Init.Nat. *)
 Require Import Coq.Lists.List.
 Require Import Coq.Program.Wf.
 Require Import Coq.Wellfounded.Wellfounded.
@@ -635,6 +635,57 @@ Qed. *)
 
 
 
+(* Transpose: *)
+
+
+Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
+  match IG_matchAny ig with
+    | (Some c, rest) => f c (IG_ufold f acc rest)
+    | (None, rest) => acc
+  end
+.
+Proof.
+Admitted.
+
+Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure NatMap.cardinal ig} : IG C D :=
+  match IG_matchAny ig with
+    | (Some c, rest) => add (f c) (IG_gmap_diy f rest)
+    | (None, rest) => IG_gmap_diy f rest
+  end
+.
+Proof.
+Admitted.
+
+
+Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
+  IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => add (f c) acc) IG_empty ig.
+
+
+Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
+  IG_gmap (fun '((froms, node, l, tos) : Context A B) => (tos, node, l, froms)) ig
+.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -724,10 +775,6 @@ Proof.
     + unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
     + apply NatSet.equal_1. apply NatSetProperties.MP.empty_is_empty_1. assumption.    
 Qed.
-
-
-
-
 
 
 

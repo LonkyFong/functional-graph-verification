@@ -136,6 +136,16 @@ Definition RG_getIncidentEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRela
 
 
 
+Definition RG_transpose {A B : Type} (rg : RG A B) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := rg.(RG_nodes);
+        RG_edges := fun a1 a2 l => rg.(RG_edges) a2 a1 l;
+        RG_valid := _
+    |}.
+    RG_valid_prover_with rg.
+Defined.
+
 
 (* Connectedness *)
 Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
