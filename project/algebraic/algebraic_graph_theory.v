@@ -171,6 +171,28 @@ Qed.
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 (* Here, I start proving things about BFS *)
 
 Require Import List.
@@ -275,25 +297,39 @@ Qed.
 (* Tactic Notation "skip" := admit. *)
 
 
-(* TODO: continue here *)
+Lemma _upToNStepsCap_returns_only_nodes : forall (ag : AG nat) (from s: NatSet.t) (n : nat) x y,
+    NatSet.Subset from (AG_nodeSet ag) ->
+    In x (_upToNStepsCap ag from s n) -> NatSet.In y x -> (AG_to_RG_unlE ag).(RG_nodes) y.
+Proof.
+    intros. generalize dependent from. generalize dependent s. induction n.
+    - intros. simpl in H. contradiction.
+    - intros. simpl in H0. destruct H0.
+        + subst. apply In_AG_nodeSet_is_In_RG. unfold NatSet.Subset in H. apply H. assumption.
+        + destruct (NatSet.equal s (NatSet.union s (_singleStep ag from))).  
+            -- simpl in H0. contradiction.
+            -- specialize (IHn (NatSet.union s (_singleStep ag from))  (_singleStep ag from) ).
+               apply IHn.
+               ++ unfold NatSet.Subset. intros.
+               apply _singleStep_returns_only_nodes in H2. apply In_AG_nodeSet_is_In_RG. assumption.
+               ++ assumption.
+Qed.
+
+
+            
+            
 Lemma _upToNStepsCapCaller_returns_only_nodes : forall (ag : AG nat) (from : NatSet.t) (n : nat) x y,
     In x (_upToNStepsCapCaller ag from n) -> NatSet.In y x -> (AG_to_RG_unlE ag).(RG_nodes) y.
 Proof.
-    intros. generalize dependent from. 
-     induction n.
-    - intros. simpl in H. destruct H.
-        + admit.
-        + rewrite if_result_same in H. simpl in H. destruct H.
-    - intros. simpl in H. simpl in IHn. destruct (NatSet.equal (NatSet.inter from (AG_nodeSet ag))
-(NatSet.union (NatSet.inter from (AG_nodeSet ag)) (_singleStep ag (NatSet.inter from (AG_nodeSet ag))))) eqn:split.
-        + destruct H.
-            -- admit.
-            -- simpl in H. destruct H.
-        + simpl in H.
+    intros.
+    pose proof _upToNStepsCap_returns_only_nodes.
+    specialize (H1 ag (NatSet.inter from (AG_nodeSet ag)) (NatSet.inter from (AG_nodeSet ag)) (S n) x).
+    apply H1.
+    - unfold NatSet.Subset. intros. apply NatSet.inter_2 in H2. assumption.
+    - unfold _upToNStepsCapCaller in H. apply H.
+    - assumption.
+Qed.
 
-Admitted.
-            
-          
+
 
 
 
@@ -301,29 +337,14 @@ Admitted.
 Theorem AG_BFS_returns_only_nodes : forall (nodes : list nat) (ag : AG nat),
   forall x, In x (AG_BFS ag nodes) -> (AG_to_RG_unlE ag).(RG_nodes) x. 
 Proof.
-    intros.
-    (* unfold AG_BFS in H.
-    unfold RG_nodes.
-    unfold AG_to_RG_unlE. *)
-    induction ag.
-    - simpl. unfold AG_BFS in H. simpl in H. apply in_app_or in H. destruct H.
-        + admit.
-        + rewrite if_result_same in H. simpl in H. apply H.
-    - simpl in *. apply in_app_or in H. destruct H.
-        + admit.
-        + simpl in H. rewrite if_result_same in H. rewrite NatSet_intersection_singleton in H.
-            -- admit.
-            -- admit.
-    - unfold AG_BFS in H. apply consolidation_fold_right_preserves_nodes in H.
-        destruct H.
-        apply _upToNStepsCapCaller_returns_only_nodes in H.
-        assumption.
-    
-    - unfold AG_BFS in H. apply consolidation_fold_right_preserves_nodes in H.
-        destruct H.
-        apply _upToNStepsCapCaller_returns_only_nodes in H.
-        assumption.
-Admitted.
+    intros. unfold AG_BFS in H. apply consolidation_fold_right_preserves_nodes in H.
+        destruct H. destruct H.
+        apply (_upToNStepsCapCaller_returns_only_nodes _ _ _ _ x) in H.
+        + assumption.
+        + assumption.
+Qed.
+
+
 
 
 
