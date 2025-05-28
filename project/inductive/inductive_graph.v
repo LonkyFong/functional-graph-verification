@@ -130,6 +130,8 @@ Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
 (* Here start the helper functions for "mkGraph" *)
 
 (* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
+(* Does nothing, if node already exists *)
+(* In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
 Definition add {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
   match context with
   | (froms, node, label, tos) => if NatMap.mem node ig then ig else

@@ -783,6 +783,17 @@ Proof.
 Qed.
 
 
+Theorem _IG_matchAny_decreases_nodeAmount : forall (A B : Type) (c : Context A B) (ig rest : IG A B),
+  IG_matchAny ig = (Some c, rest) -> _nodeAmount rest < _nodeAmount ig.
+Proof.
+  intros. unfold IG_matchAny in H. destruct (IG_labNodes ig) eqn:labNodes.
+  - inversion H.
+  - apply _IG_match_decreases_nodeAmount in H. assumption.
+Qed.
+
+
+
+
 
 (* Alternative way to prove _IG_match_decreases_nodeAmount *)
 Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),
@@ -1058,13 +1069,52 @@ Qed.
 
 
 
+Definition RG_union {A B : Type} (rg1 rg2 : RG A B) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := fun a => rg1.(RG_nodes) a \/ rg2.(RG_nodes) a;
+        RG_edges := fun a1 a2 l => rg1.(RG_edges) a1 a2 l \/ rg2.(RG_edges) a1 a2 l;
+        RG_valid := _
+    |}.
+    RG_valid_prover_withs rg1 rg2.
+Defined.
+
+(* THis could eb neatened up *)
+Lemma RG_union_equiv_if_both_equiv : forall {A B : Type} (rg1 rg2 rg3 rg4 : RG A B),
+  (rg1 === rg2) -> (rg3 === rg4) -> (RG_union rg1 rg3 === RG_union rg2 rg4).
+Proof.
+  intros.
+  firstorder.
+Qed.
 
 
 
 
+Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
+  RG_transpose (_extendByContext c rg) === RG_union (RG_transpose (_extendByContext c RG_empty)) (RG_transpose rg).
+Proof.
+  intros.
+  firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
+  - destruct c as [[[froms node] label] tos]. unfold RG_transpose in H. simpl in H. unfold _extendByContext in H. simpl in H. firstorder.
+  - destruct c as [[[froms node] label] tos]. unfold RG_transpose in H. simpl in H. unfold _extendByContext in H. simpl in H. firstorder.
+Qed.
 
 
+Definition _add_c_is_safe {A B : Type} (c : Context A B) (ig : IG A B) :=
+  IG_matchAny ig = (Some c, ig).
 
+  
+
+
+Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
+  (* _add_c_is_safe c ig -> *)
+  IG_to_RG (add c ig) === RG_union ((_extendByContext c RG_empty)) (IG_to_RG ig).
+Proof.
+Admitted.
 
 
 
@@ -1077,20 +1127,26 @@ Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
 Proof.
   intros A B.
       apply (well_founded_induction
-           (well_founded_ltof _ (@NatMap.cardinal _))).
+           (well_founded_ltof _ _nodeAmount)).
     intros ig IH.
-    unfold IG_grev. unfold IG_gmap. rewrite IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    unfold IG_grev. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
     destruct m eqn:mm.
-    - specialize (IH i). assert (ltof (NatMap.t (Context' A B)) (NatMap.cardinal (elt:=Context' A B)) i ig). {
-      admit.
-    }
-    specialize (IH H). clear H.
-    unfold IG_grev in IH.
-(* TODO: continue here but first think about how IG_to_RG could be defined differently to work better with this *)
-    
-Admitted.
-    
-    
+    - specialize (IH i). assert (ltof (IG A B) _nodeAmount i ig). {
+      unfold ltof.
+      apply _IG_matchAny_decreases_nodeAmount in mat.
+      assumption.
+      }
+      specialize (IH H). clear H.
+      rewrite RG_transpose_distributes_over_extendByContext.
+      (* RHS is now "ready" for IH *)
+      
+      destruct c as [[[froms node] label] tos].
+      
+      rewrite IG_to_RG_distributes_over_add.
+      apply RG_union_equiv_if_both_equiv.
+        + clear mat mm IH. firstorder.
+        + apply IH.
+    - clear mat mm IH. unfold IG_to_RG. rewrite IG_ufold_equation. simpl. unfold RG_transpose. firstorder. 
 
 Qed.
 

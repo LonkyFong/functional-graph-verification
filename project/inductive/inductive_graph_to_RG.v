@@ -15,7 +15,7 @@ Require Import MyProject.project.util.NatSet.
 Require Import MyProject.project.util.util.
 
 (* Defining Conversion from Inductive Graph to Relational Graph *)
-
+(* 
 
 (* Adds a node and its in- and out- going edges (= its IG context) to an RG.
     Adds the neighbouring nodes, in case they do not exists *)
@@ -55,7 +55,32 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
     match fold_right _accTo_RG_unlE (RG_empty, ig) (IG_labNodes ig) with
     | (rg, acc) => rg
     end
-.
+. *)
+
+
+Definition _extendByContext {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
+Proof.
+    destruct context as [[[froms node] label] tos].
+    refine {|
+        RG_nodes := fun (n : nat) => In n (map snd froms) \/ In n (map snd tos) \/ (cEnsembleAdd node rg.(RG_nodes)) n; 
+        RG_edges := fun (n1 n2 : nat) l =>
+                                (In n1 (map snd froms) /\ n2 = node)
+                                \/ (n1 = node /\ In n2 (map snd tos))
+                                \/ rg.(RG_edges) n1 n2 l
+                                ;
+                     
+        RG_valid := _
+    |}.
+    RG_valid_prover_with rg.
+Defined.
+
+
+Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
+    IG_ufold _ _ _ _extendByContext RG_empty ig.
+
+
+
+
 
 
 (* Coercion IG_basic_to_RG : IG_basic >-> RG. *)
