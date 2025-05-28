@@ -54,4 +54,29 @@ Ltac G_derived_equivalence_prover A B f :=
     ]
   ].
 
-Print and.
+
+(* This demonstrated the utility of the model :) *)
+Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) === rg.
+Proof.
+  firstorder.
+Qed.
+
+Theorem RG_transpose_same_nodes {A B : Type}: forall (rg : RG A B) n,
+  (RG_transpose rg).(RG_nodes) n <-> rg.(RG_nodes) n.
+Proof.
+  firstorder.
+Qed.
+
+Theorem RG_transpose_flips_edges {A B : Type}: forall (rg : RG A B) n1 n2 l,
+  (RG_transpose rg).(RG_edges) n1 n2 l <-> rg.(RG_edges) n2 n1 l.
+Proof.
+  firstorder.
+Qed.
+
+Theorem RG_transpose_flips_paths {A B : Type}: forall (rg : RG A B) n1 n2,
+  RG_existsPath n1 n2 rg <-> RG_existsPath n2 n1 (RG_transpose rg).
+Proof.
+  intros.
+  apply Operators_Properties.clos_trans_transp_permute.
+Qed.
+
