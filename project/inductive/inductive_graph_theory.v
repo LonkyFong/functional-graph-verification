@@ -1111,17 +1111,70 @@ Proof.
 Qed.
 
 
-Definition _add_c_is_safe {A B : Type} (c : Context A B) (ig : IG A B) :=
-  IG_matchAny ig = (Some c, ig).
 
-  
+
+
+(* (IG_ufold _ _ _ add IG_empty ig) = ig. *)
+
+Lemma IG_ufold_add : forall (A B : Type)  (c : Context A B) (ig : IG A B),
+  IG_ufold _ _ _ add IG_empty (add c ig) = add c (IG_ufold _ _ _ add IG_empty ig).
+Proof.
+
+
+
+Lemma IG_matchAny_add : forall (A B : Type) (c : Context A B) (ig : IG A B) (i : IG A B),
+  IG_matchAny ig = (Some c, i) -> ig = add c i. 
+Proof.
+Admitted. 
+
+Lemma _matchAny_add_split : forall (A B : Type) (c hit : Context A B) (ig i : IG A B),
+  (* hit would actually be a subcontext of c, as stuff may get discarded *)
+  IG_matchAny (add c ig) = (Some hit, i)
+  -> (c = hit /\ ig I== i) \/ (add c (snd (IG_match (let '(_, n, _, _) := hit in n) ig)) I== i).
+Proof.
+Admitted.
+
+
+
 
 
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
   IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
 Proof.
-  intros.
+  intros A B c.
+        apply (well_founded_induction
+           (well_founded_ltof _ _nodeAmount)).
+  intros ig IH.
+  unfold IG_to_RG at 2.
+  rewrite IG_ufold_equation.
+  unfold IG_matchAny.
+  destruct (IG_labNodes ig) eqn:labNodes.
+  - admit.
+  - 
+
+  (* rewrite _match_add_magic. *)
+
+  destruct c as [[[froms node] label] tos].
+    destruct (IG_matchAny ig) eqn:mat.
+
+  specialize (IH i).
+  destruct m eqn:mm.
+  + assert (ltof (IG A B) _nodeAmount i ig). {
+
+    unfold ltof.
+    apply _IG_matchAny_decreases_nodeAmount in mat.
+    assumption.
+    }
+    specialize (IH H). clear H.
+    apply IG_matchAny_add in mat. subst.
+    unfold IG_to_RG.
+
+
 Admitted.
+
+
+
+
 
 
 
