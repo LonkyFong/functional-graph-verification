@@ -465,6 +465,15 @@ Qed.
 
 
 
+Lemma IG_match_returns_valid_neighbours : forall (A B : Type) (query : Node) (ig i : IG A B) (c : Context A B) (n : Node),
+    let '(froms, hit, label, tos) := c in
+    IG_match query ig = (Some (froms, hit, label, tos), i) ->
+    (In n (map snd froms) \/ In n (map snd tos)) ->
+    In n (map fst (IG_labNodes i)).
+Proof.
+Admitted.
+
+
 
   
   
@@ -1091,16 +1100,14 @@ Qed.
 
 
 Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
-  RG_transpose (_extendByContext c rg) === RG_union (RG_transpose (_extendByContext c RG_empty)) (RG_transpose rg).
+  RG_transpose (RG_add c rg) === RG_add (_transposeContext c) (RG_transpose rg).
 Proof.
   intros.
   firstorder.
-  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
-  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
-  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
-  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold _extendByContext in H. simpl in H. firstorder.
-  - destruct c as [[[froms node] label] tos]. unfold RG_transpose in H. simpl in H. unfold _extendByContext in H. simpl in H. firstorder.
-  - destruct c as [[[froms node] label] tos]. unfold RG_transpose in H. simpl in H. unfold _extendByContext in H. simpl in H. firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
 Qed.
 
 
@@ -1111,12 +1118,27 @@ Definition _add_c_is_safe {A B : Type} (c : Context A B) (ig : IG A B) :=
 
 
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
-  (* _add_c_is_safe c ig -> *)
-  IG_to_RG (add c ig) === RG_union ((_extendByContext c RG_empty)) (IG_to_RG ig).
+  IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
 Proof.
+  intros.
 Admitted.
 
 
+
+
+
+Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
+    c1 = c2.
+
+
+Require Import Setoid Morphisms.
+
+Instance Proper_add {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_add. 
+Proof.
+    split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
+    - firstorder.
+    - firstorder.
+Qed.
 
 
 
@@ -1143,9 +1165,13 @@ Proof.
       destruct c as [[[froms node] label] tos].
       
       rewrite IG_to_RG_distributes_over_add.
-      apply RG_union_equiv_if_both_equiv.
-        + clear mat mm IH. firstorder.
-        + apply IH.
+      assert (IG_ufold A B (IG A B) (fun (c : Context A B) (acc : IG A B) => add (_transposeContext c) acc) IG_empty i = IG_grev i). {
+        reflexivity.
+      }
+      rewrite H.
+      rewrite IH.
+      reflexivity.
+
     - clear mat mm IH. unfold IG_to_RG. rewrite IG_ufold_equation. simpl. unfold RG_transpose. firstorder. 
 
 Qed.

@@ -58,7 +58,7 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
 . *)
 
 
-Definition _extendByContext {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
+(* Definition _extendByContext {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
     destruct context as [[[froms node] label] tos].
     refine {|
@@ -72,11 +72,31 @@ Proof.
         RG_valid := _
     |}.
     RG_valid_prover_with rg.
+Defined. *)
+
+
+Definition RG_add {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
+Proof.
+    destruct context as [[[froms node] label] tos].
+    refine {|
+        RG_nodes := fun (n : nat) => (cEnsembleAdd node rg.(RG_nodes)) n;
+        RG_edges := fun (n1 n2 : nat) l => rg.(RG_edges) n1 n2 l \/
+                                           (not (rg.(RG_nodes) node) /\ rg.(RG_nodes) n1 /\ rg.(RG_nodes) n2 /\
+                                            ((In n1 (map snd froms) /\ n2 = node)
+                                            \/ (n1 = node /\ In n2 (map snd tos))
+                                           )
+                                           );
+         RG_valid := _
+    |}.
+    RG_valid_prover_with rg.
 Defined.
 
 
+
+
+
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
-    IG_ufold _ _ _ _extendByContext RG_empty ig.
+    IG_ufold _ _ _ RG_add RG_empty ig.
 
 
 

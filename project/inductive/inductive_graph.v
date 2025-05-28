@@ -662,9 +662,11 @@ Admitted.
 Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
   IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => add (f c) acc) IG_empty ig.
 
+Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
+  let '(froms, node, l, tos) := c in (tos, node, l, froms). 
 
 Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
-  IG_gmap (fun '((froms, node, l, tos) : Context A B) => (tos, node, l, froms)) ig
+  IG_gmap _transposeContext ig
 .
 
 

@@ -24,7 +24,7 @@
 
 ./project/inductive/inductive_graph.v
 ./project/inductive/inductive_graph_to_RG.v
-./project/inductive/inductive_graph_theory.v
+# ./project/inductive/inductive_graph_theory.v
 
 # ./project/inductive/basic/inductive_graph_basic.v
 # ./project/inductive/basic/inductive_graph_basic_to_RG.v
