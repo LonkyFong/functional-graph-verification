@@ -402,6 +402,54 @@ Proof.
     apply NoDup_fold_right_filterOutOf.
 Qed.
 
+Theorem AG_BFS_path : forall (nodes : list nat) (ag : AG nat) x y,
+  In x nodes -> (In y (AG_BFS ag nodes) <-> RG_existsPath x y (AG_to_RG_unlE ag)).
+Proof.
+  intros.
+Admitted.
+
+Import ListNotations.
+
+(* 
+Inductive Is_BFS_ordered {A : Type} : list A -> Prop :=
+  | Is_BFS_ordered_nil : Is_BFS_ordered []
+  | Is_BFS_ordered_cons : forall (a : A) (l : list A), Is_BFS_ordered l -> Is_BFS_ordered (a :: l). *)
+
+Fixpoint Is_Search_ordered_helper {A B : Type} (l passed : list A) (rg : RG A B) : Prop :=
+  match l with
+  | [] => True
+  | x :: xs => RG_reachableInOneStep (fun x => In x passed) x rg /\ Is_Search_ordered_helper xs (x :: passed) rg
+  end.
+
+Fixpoint trim {A : Type} (l passed : list A) : list A :=
+  match l, passed with
+  | le::ls, pe::ps => trim ls ps
+  | ls, [] => ls
+  | _, _ => nil
+  end.
+
+Fixpoint doesMatch {A : Type} (l passed : list A) : Prop :=
+  match l, passed with
+  | le::ls, pe::ps => le = pe /\ doesMatch ls ps
+  | _, [] => True
+  | _, _ => False
+  end.
+
+Definition Is_Search_ordered {A B : Type} (l passed : list A) (rg : RG A B) : Prop :=
+   let trimmedL := trim l passed in
+   let didMatch := doesMatch l passed in
+   didMatch /\ Is_Search_ordered_helper trimmedL passed rg. 
+
+
+Theorem AG_BFS_search_order : forall (nodes : list nat) (ag : AG nat),
+    Is_Search_ordered (AG_BFS ag nodes) nodes (AG_to_RG_unlE ag).
+
+
+
+
+
+
+
 
 
 

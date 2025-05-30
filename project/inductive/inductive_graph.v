@@ -639,7 +639,7 @@ Qed. *)
 
 (* Transpose: *)
 
-
+(* TODO: this proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
 Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
   match IG_matchAny ig with
     | (Some c, rest) => f c (IG_ufold f acc rest)
@@ -665,6 +665,7 @@ Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A 
 Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
   let '(froms, node, l, tos) := c in (tos, node, l, froms). 
 
+  
 Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
   IG_gmap _transposeContext ig
 .

@@ -151,6 +151,10 @@ Defined.
 Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
     clos_trans A (_unlabelEdgeRelation rg.(RG_edges)) node1 node2.
 
+
+Definition RG_reachableInOneStep {A B : Type} (froms : Ensemble A) (node : A) (rg : RG A B) : Prop :=
+    exists from l, froms from /\ rg.(RG_edges) from node l.
+
 (* Start implementing search *)
 
 

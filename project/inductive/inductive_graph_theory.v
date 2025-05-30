@@ -1066,35 +1066,21 @@ Qed.
 (* I nned to show that the remainder of the graph , does not have a anymore *) 
 
 
+(* For all in the list, there is a path from the starting nodes *)
 
-
-
-
-
-
-
-
-
-
-
-
-Definition RG_union {A B : Type} (rg1 rg2 : RG A B) : RG A B.
+Theorem IG_dfs'path : forall (A B : Type) (nodesIg : list NatSet.Node * IG A B) x y,
+  let '(nodes, ig) := nodesIg in
+  In x nodes -> In y (IG_dfs'caller nodes ig) -> RG_existsPath x y (IG_to_RG ig).
 Proof.
-    refine {|
-        RG_nodes := fun a => rg1.(RG_nodes) a \/ rg2.(RG_nodes) a;
-        RG_edges := fun a1 a2 l => rg1.(RG_edges) a1 a2 l \/ rg2.(RG_edges) a1 a2 l;
-        RG_valid := _
-    |}.
-    RG_valid_prover_withs rg1 rg2.
-Defined.
+  intros. destruct nodesIg as [nodes ig].
+Admitted.
 
-(* THis could eb neatened up *)
-Lemma RG_union_equiv_if_both_equiv : forall {A B : Type} (rg1 rg2 rg3 rg4 : RG A B),
-  (rg1 === rg2) -> (rg3 === rg4) -> (RG_union rg1 rg3 === RG_union rg2 rg4).
-Proof.
-  intros.
-  firstorder.
-Qed.
+
+
+
+
+
+
 
 
 
@@ -1110,6 +1096,49 @@ Proof.
   - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
 Qed.
 
+Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
+    c1 = c2.
+
+
+Require Import Setoid Morphisms.
+
+Instance Proper_add {A B : Type} : Proper ((@contextEquiv A B) ==> (@IG_equiv A B) ==> (@IG_equiv A B)) add. 
+Proof.
+Admitted.
+
+Lemma IG_matchAny_add : forall (A B : Type) (c : Context A B) (ig : IG A B) (i : IG A B),
+  IG_matchAny ig = (Some c, i) -> ig I== add c i. 
+Proof.
+
+Admitted. 
+
+
+
+
+Lemma IG_ufold_nothing : forall (A B : Type) (ig : IG A B),
+  IG_ufold _ _ _ add IG_empty ig I== ig.
+Proof.
+  intros A B.
+        apply (well_founded_induction
+           (well_founded_ltof _ _nodeAmount)).
+
+  intros ig IH.
+   (* unfold IG_equiv. *)
+  rewrite IG_ufold_equation.
+  destruct (IG_matchAny ig) eqn:mat.
+  destruct m eqn:mm.
+  - specialize (IH i). assert (ltof (IG A B) _nodeAmount i ig). {
+    unfold ltof.
+    apply _IG_matchAny_decreases_nodeAmount in mat.
+    assumption.
+    }
+    specialize (IH H). clear H.
+    rewrite IH.
+    apply IG_matchAny_add in mat. rewrite <- mat. reflexivity.
+
+  - admit. (*easy*)
+Admitted.
+
 
 
 
@@ -1122,10 +1151,7 @@ Proof.
 
 
 
-Lemma IG_matchAny_add : forall (A B : Type) (c : Context A B) (ig : IG A B) (i : IG A B),
-  IG_matchAny ig = (Some c, i) -> ig = add c i. 
-Proof.
-Admitted. 
+
 
 Lemma _matchAny_add_split : forall (A B : Type) (c hit : Context A B) (ig i : IG A B),
   (* hit would actually be a subcontext of c, as stuff may get discarded *)
@@ -1135,10 +1161,31 @@ Proof.
 Admitted.
 
 
-
-
-
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
+  IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
+Proof.
+  intros.
+
+
+  unfold IG_to_RG.
+  rewrite IG_ufold_equation.
+  destruct (IG_matchAny (add c ig)) eqn:mat.
+  destruct m eqn:mm.
+  - apply _matchAny_add_split in mat. destruct mat.
+    + admit.
+    +
+Admitted. 
+
+
+
+
+
+Search NatMap.fold.
+
+
+
+
+Lemma IG_to_RG_distributes_over_add' : forall {A B : Type} (c : Context A B) (ig : IG A B),
   IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
 Proof.
   intros A B c.
@@ -1180,13 +1227,9 @@ Admitted.
 
 
 
-Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
-    c1 = c2.
 
 
-Require Import Setoid Morphisms.
-
-Instance Proper_add {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_add. 
+Instance Proper_RG_add {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_add. 
 Proof.
     split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
     - firstorder.
