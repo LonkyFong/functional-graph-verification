@@ -415,11 +415,14 @@ Inductive Is_BFS_ordered {A : Type} : list A -> Prop :=
   | Is_BFS_ordered_nil : Is_BFS_ordered []
   | Is_BFS_ordered_cons : forall (a : A) (l : list A), Is_BFS_ordered l -> Is_BFS_ordered (a :: l). *)
 
+
+(* Is, in general the search ordered in some single step manner? *)
 Fixpoint Is_Search_ordered_helper {A B : Type} (l passed : list A) (rg : RG A B) : Prop :=
   match l with
   | [] => True
   | x :: xs => RG_reachableInOneStep (fun x => In x passed) x rg /\ Is_Search_ordered_helper xs (x :: passed) rg
   end.
+
 
 Fixpoint trim {A : Type} (l passed : list A) : list A :=
   match l, passed with
@@ -443,16 +446,74 @@ Definition Is_Search_ordered {A B : Type} (l passed : list A) (rg : RG A B) : Pr
 
 Theorem AG_BFS_search_order : forall (nodes : list nat) (ag : AG nat),
     Is_Search_ordered (AG_BFS ag nodes) nodes (AG_to_RG_unlE ag).
+Proof.
+Admitted.
+
+
+
+
+Require Import Coq.Sorting.Permutation.
+
+
+(* Now, the specification of a BFS search order: *)
+
+
+
+Require Import Coq.Sets.Ensembles.
+
+
+Inductive sameDistance {A B : Type} (rg : RG A B) : Ensemble A -> Ensemble A -> A -> A -> Prop :=
+    | bothInStart (start1 start2 : Ensemble A) : forall (a1 a2 : A), start1 a1 -> start2 a2 -> sameDistance rg start1 start2 a1 a2
+    | bothOneStep (start1 start2 : Ensemble A) : forall (a1 a2 : A),
+        sameDistance rg (fun x => RG_reachableInOneStep start1 x rg) (fun x => RG_reachableInOneStep start2 x rg) a1 a2
+        -> sameDistance rg start1 start2 a1 a2 
+. 
+
+Definition sameDistanceCaller {A B : Type} (rg : RG A B) (start : Ensemble A) (a1 a2 : A) : Prop :=
+    sameDistance rg start start a1 a2.
+
+Lemma sameDistance_caller_test1 : sameDistanceCaller (AG_to_RG_unlE (1 *** 2 +++ 1 *** 3)) (fun x => NatSet.In x (NatSet.singleton 1)) 2 3.
+Proof.
+    unfold sameDistanceCaller.
+    apply bothOneStep.
+    apply bothInStart.
+    - simpl. compute. exists 1, tt. firstorder.
+    - simpl. compute. exists 1, tt. firstorder.
+Qed.
+
+
+(* Returns true, if the distance from a1 to start is one plus the distance from a2 to start *)
+Definition distanceSecondOneLower {A B : Type} (rg : RG A B) (start : Ensemble A) (a1 a2 : A) : Prop :=
+    sameDistance rg (fun x => RG_reachableInOneStep start x rg) start a1 a2.
+
+    
+Lemma distanceSecondOneLower_test1 : distanceSecondOneLower (AG_to_RG_unlE (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)) (fun x => NatSet.In x (NatSet.singleton 1)) 4 2.
+Proof.
+    unfold distanceSecondOneLower.
+    apply bothOneStep.
+    apply bothInStart.
+    - simpl. compute. exists 3, tt. firstorder.
+        + exists 1, tt. firstorder.
+    - simpl. compute. exists 1, tt. firstorder.
+Qed.
 
 
 
 
 
+Inductive revBFSOrder (start : NatSet.t) (ag : AG nat) : list nat -> Prop :=
+  | revBFSOrder_start (l : list nat) : Permutation (NatSet.elements start) l -> revBFSOrder start ag l
+
+  | revBFSOrder_same (noww next : nat) (l : list nat) :
+    sameDistanceCaller (AG_to_RG_unlE ag) (fun x => NatSet.In x start) noww next -> revBFSOrder start ag (next :: l) -> revBFSOrder start ag (noww :: next :: l)   
+
+  | revBFSOrder_next (noww next : nat) (l : list nat) :
+    distanceSecondOneLower (AG_to_RG_unlE ag) (fun x => NatSet.In x start) noww next 
+    -> revBFSOrder start ag (next :: l) -> revBFSOrder start ag (noww :: next :: l).
 
 
 
-
-
+Lemma revBFSOrder_test1 : revBFSOrder (NatSet.singleton 1) (1 *** 2 +++ 3 *** 4) [1; 2; 3; 4].
 
 
 

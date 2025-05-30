@@ -631,6 +631,39 @@ Qed.
 Qed. *)
 
 
+(* Now, some queue implementation stuff, such that I can try implementing a quick BFS*)
+
+Definition Queue (A : Type) : Type :=
+  (list A) * (list A).
+
+
+Definition emptyQueue {A : Type} : Queue A := ([], []).
+
+Definition enqueue {A : Type} (a : A) (q : Queue A) : Queue A :=
+  match q with
+  | (q1, q2) => (a :: q1, q2)
+  end.
+
+Definition removeFirst {A : Type} (l : list A) : list A :=
+  match l with
+  | [] => []
+  | a::l => l
+  end.
+
+Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
+  match q with
+  | ([], []) => (None, q)
+  | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
+  | (q1, a2::q2) => (Some a2, (q1, q2))
+  end.
+
+
+(* Test the implementation *)
+Compute dequeue (enqueue 1 (enqueue 2 (enqueue 3 (emptyQueue)))).
+Compute dequeue (emptyQueue).
+Compute dequeue (enqueue 1 (emptyQueue)).
+Compute dequeue (enqueue 1 (enqueue 2 (emptyQueue))).
+
 
 
 
@@ -639,7 +672,7 @@ Qed. *)
 
 (* Transpose: *)
 
-(* TODO: this proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
+(* TODO: this remination proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
 Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
   match IG_matchAny ig with
     | (Some c, rest) => f c (IG_ufold f acc rest)

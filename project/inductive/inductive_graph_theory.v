@@ -221,6 +221,8 @@ Proof.
 Qed.
 
 
+
+(* This could be written in terms of match eb: match x (add x ig) = (Some x, i) *)
 Lemma IG_add_adds_node : forall (A B : Type) (context : Context A B) (ig : IG A B) (x : LNode A),
   In x (IG_labNodes (add context ig)) <-> let '(_, node, label, _) := context in In x ((if NatMap.mem node ig then [] else [(node, label)]) ++ IG_labNodes ig).
 Proof.
@@ -248,7 +250,6 @@ Qed.
 
 
 
-
 Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
   In x (IG_labNodes (_insNode node ig)) <-> In x ((if NatMap.mem (fst node) ig then [] else [node]) ++ IG_labNodes ig).
 Proof.
@@ -260,8 +261,6 @@ Proof.
   simpl.
   reflexivity.
 Qed.
-
-
 
 
 
@@ -583,10 +582,10 @@ Proof.
   - firstorder. congruence.
 Qed.
 
-(* Think about enforcing non-emptiness of the list with (x::xs) *)
+
 Theorem  IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
   NoDupA (fun x y => fst x = fst y) nodes ->
-  length nodes <> 0 <-> IG_isEmpty ((IG_mkGraph nodes edges)) = false.
+  length nodes <> 0 <-> IG_isEmpty (IG_mkGraph nodes edges) = false.
 Proof.
   intros. unfold IG_isEmpty. rewrite <- _not_NatMap_Empty_is_empty_false. unfold not.
   destruct nodes; simpl; unfold IG_mkGraph.
@@ -848,7 +847,7 @@ Qed.
 
 
 
-
+(* This is just a demo of wf induction *)
 Function remove_nodes (nodes : list nat) {wf (fun (x y : list nat) => lt (length x) (length y)) nodes} : list nat :=
   match nodes with
   | [] => []
@@ -911,10 +910,7 @@ Check well_founded.
 Check ltof.
 
 
-(* (nodesIg : list Node * IG A B) {wf (lex_prodDfs A B) nodesIg} *)
 
-(* TODO: define that IG equivalence yields the same resulsts on most operations,
-such that it is possible to rewrite using them *)
 
 Require Import Coq.Relations.Relation_Operators.
 
