@@ -7,6 +7,9 @@ Require Import Bool.
 Import ListNotations.
 
 Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.inductive_graph_measure.
+Require Import GraphVerification.src.inductive.inductive_graph_measured_algorithms.
+
 Require Import GraphVerification.src.relational_graph.
 Require Import GraphVerification.src.relational_graph_theory.
 

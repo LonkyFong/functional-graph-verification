@@ -315,21 +315,7 @@ Qed.
 
 
 
-Lemma IG_match_returns_node : forall (A B : Type) (query hit : Node) (ig i : IG A B) (froms tos : Adj B) (l : A),
-  IG_match query ig = (Some (froms, hit, l, tos), i) -> query = hit.
-Proof.
-  intros. unfold IG_match in H. destruct (NatMap.find query ig).
-  - unfold _cleanSplit in H. destruct c as [[fromss label] toss]. inversion H. reflexivity. 
-  - inversion H.
-Qed.
 
-Lemma IG_match_none_returns_graph : forall (A B : Type) (query : Node) (ig i : IG A B),
-  IG_match query ig = (None, i) -> ig = i.
-Proof.
-  intros. unfold IG_match in H. destruct (NatMap.find query ig).
-  - destruct (_cleanSplit query c (NatMap.remove query ig)). inversion H.
-  - inversion H. reflexivity.
-Qed.
 
 
 
@@ -680,142 +666,11 @@ Qed.
 
 
 
-Definition _nodeAmount {A B : Type} (ig : IG A B) : nat :=
-  NatMap.cardinal ig.
-
-
 
 (* here start the theorems on match decreasing the cardinality: *)
 
-(* Copy from inductive graph *)
-Lemma _IG_updateEntry_does_not_change_cardinality : forall {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B), 
-    NatMap.cardinal (_updateEntry node f ig) = NatMap.cardinal ig.
-Proof.
-  intros. unfold _updateEntry.
-
-  destruct (NatMap.find node ig) eqn:split.
-  - 
-
-  assert (NatMap.Equal ig (NatMap.add node c ig)). { 
-      apply MFacts.find_mapsto_iff in split.
-
-    apply MFacts.Equal_mapsto_iff.
-    split; intros.
-    - apply MFacts.add_mapsto_iff.
-       bdestruct (node =? k).
-      + subst. left. split.
-      -- reflexivity.
-      -- apply MFacts.find_mapsto_iff in split. apply MFacts.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
-      + right. split.
-      -- assumption.
-      -- assumption.
-    - apply MFacts.add_mapsto_iff in H. destruct H.
-      + destruct H. subst. assumption.
-      + destruct H. assumption.
-  }
-  rewrite H at 2.
-  apply _add_value_does_not_matter_for_cardinality.
-  - reflexivity.
-
-Qed.
 
 
-(* Copy from inductive graph *)
-Lemma _IG_updAdj_does_not_change_cardinality : forall {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B), 
-    NatMap.cardinal (_updAdj adj f ig) = NatMap.cardinal ig.
-Proof.
-  intros.
-  unfold _updAdj.
-  induction adj.
-  - simpl. reflexivity.
-  - simpl. rewrite <- IHadj.
-    pose proof (@_IG_updateEntry_does_not_change_cardinality A B).
-    destruct a.
-    rewrite H. reflexivity.
-Qed.
-
-(* Copy from inductive graph *)
-Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
-  (exists x, NatMap.find key map = Some x) -> (NatMap.cardinal map = S (NatMap.cardinal (NatMap.remove key map))).
-Proof.
-  
-  intros.
-  pose proof MProps.cardinal_2.
-  destruct H eqn:hu.
-  assert (~ NatMap.In key (NatMap.remove key map)). {
-    unfold not. intros.
-    apply MFacts.remove_in_iff in H1.
-    destruct H1.
-    destruct H1.
-    reflexivity.
-
-  }
-  apply (H0 _ _ map _ x) in H1.
-  - rewrite <- H1. reflexivity.
-  - unfold MProps.Add. 
-  
-  
-  
-  unfold MProps.Add. intros. bdestruct (y =? key).
-  + rewrite H2. rewrite e. assert (key = key). {
-    reflexivity.
-  }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-  + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-    pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
-  
-Defined.
-
-(* Copy of IG_dft'terminates1 *)
-Theorem _IG_match_decreases_nodeAmount : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
-  IG_match n ig = (Some c, rest) -> _nodeAmount rest < _nodeAmount ig.
-Proof.
-  intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
-  assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
-
-  unfold IG_match in H.
-  destruct (NatMap.find node ig) eqn:split.
-  - destruct (_cleanSplit node c (NatMap.remove node ig)) eqn:split0.
-    inversion H. subst.
-    unfold _cleanSplit in split0.
-    destruct c as [[fromss labell] toss].
-    inversion split0.
-    clear split0 H1.
-    
-
-  
-      rewrite _IG_updAdj_does_not_change_cardinality.
-      rewrite _IG_updAdj_does_not_change_cardinality.
-      apply _map_find_some_remove_lowers_cardinality.
-      exists (fromss, labell, toss).
-      apply split.
-      - inversion H.
-      
-
-    }
-    unfold _nodeAmount.
-    lia.
-Qed.
-
-
-Theorem _IG_matchAny_decreases_nodeAmount : forall (A B : Type) (c : Context A B) (ig rest : IG A B),
-  IG_matchAny ig = (Some c, rest) -> _nodeAmount rest < _nodeAmount ig.
-Proof.
-  intros. unfold IG_matchAny in H. destruct (IG_labNodes ig) eqn:labNodes.
-  - inversion H.
-  - apply _IG_match_decreases_nodeAmount in H. assumption.
-Qed.
-
-
-
-
-
-(* Alternative way to prove _IG_match_decreases_nodeAmount *)
-Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),
-  NatMap.cardinal ig = length (IG_labNodes ig).
-Proof.
-  intros. unfold IG_labNodes. rewrite map_length.
-  rewrite NatMap.cardinal_1. reflexivity. 
-Qed.
 
 Require Import Coq.Sorting.Permutation.
 
@@ -898,22 +753,6 @@ Qed.
 
 
   
-
-Lemma always_empty_is_empty : forall (A : Type) (l : list A),
-  match l with
-  | [] | _ => (@nil A)
-  end = [].
-Proof.
-  intros. destruct l; reflexivity.
-Qed.
-
-Check well_founded_induction.
-Print well_founded.
-Print Acc.
-
-Check well_founded_ltof.
-Check well_founded.
-Check ltof.
 
 
 

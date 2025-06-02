@@ -1,5 +1,3 @@
-
-
 Require Import Recdef.
 Require Import Lia.
 
@@ -15,67 +13,36 @@ Import ListNotations.
 Require Import Coq.Wellfounded.Inverse_Image.
 Require Import Coq.Relations.Relation_Operators.
 
+
 Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.inductive.inductive_graph.
 
 
 
-
-(* This proof is adapted from the link below. It blows my mind, that this is not in stdlib *)
-(* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
-(* TODO: this kills coq, omg *)
-Lemma cardinal_Add_In:
-    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
-  Proof.
-  assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add.
-  { intros. unfold MProps.Add.
-    intros.
-    rewrite MFacts.add_o.
-    destruct (MFacts.eq_dec k y).
-    - apply NatMap.find_1. rewrite <- MFacts.MapsTo_m; [exact H|assumption|reflexivity|reflexivity].
-    - rewrite MFacts.remove_neq_o by assumption. reflexivity.
-  }
-  intros.
-  assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')).
-  { intros y. rewrite 2!MFacts.remove_o.
-    destruct (MFacts.eq_dec x y).
-    - reflexivity.
-    - unfold MProps.Add in H0. rewrite H0.
-      rewrite MFacts.add_neq_o by assumption. reflexivity.
-  }
-  Admitted.
-  (* apply MProps.Equal_cardinal in H1.
-  rewrite 2!MProps.cardinal_fold.
-  destruct H as (e' & H).
-  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
-  try now (compute; auto).
-  2:apply NatMap.remove_1; reflexivity.
-  2:apply remove_In_Add; assumption.
-  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m') (m2:=m') (k:=x) (e:=e);
-  try now (compute; auto).
-  - rewrite <- 2!MProps.cardinal_fold. congruence.
-  - apply NatMap.remove_1. reflexivity.
-  - apply remove_In_Add.
-    apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
-    rewrite MFacts.add_eq_o; reflexivity.
-  Qed. *)
-
-
-
-Lemma _add_value_does_not_matter_for_cardinality : forall {A : Type} (node : Node) (c c' : A) (m : NatMap.t A),
-  NatMap.cardinal (NatMap.add node c m) = NatMap.cardinal (NatMap.add node c' m).
+Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),
+    NatMap.cardinal ig = IG_noNodes ig.
 Proof.
-  intros.
-  pose proof cardinal_Add_In.
-  apply (H _ _ _ node c).
-  - apply MFacts.add_in_iff. left. reflexivity.
-  - unfold MProps.Add. intros. rewrite MFacts.add_o. rewrite MFacts.add_o. rewrite MFacts.add_o. destruct (MProps.F.eq_dec node y).
-    + reflexivity.
-    + reflexivity.
+    intros. unfold IG_noNodes. unfold IG_labNodes. rewrite map_length.
+    rewrite NatMap.cardinal_1. reflexivity. 
+Qed.
+
+Lemma IG_match_returns_node : forall (A B : Type) (query hit : Node) (ig i : IG A B) (froms tos : Adj B) (l : A),
+    IG_match query ig = (Some (froms, hit, l, tos), i) -> query = hit.
+Proof.
+    intros. unfold IG_match in H. destruct (NatMap.find query ig).
+    - unfold _cleanSplit in H. destruct c as [[fromss label] toss]. inversion H. reflexivity. 
+    - inversion H.
 Qed.
 
 
+Lemma IG_match_none_returns_graph : forall (A B : Type) (query : Node) (ig i : IG A B),
+  IG_match query ig = (None, i) -> ig = i.
+Proof.
+  intros. unfold IG_match in H. destruct (NatMap.find query ig).
+  - destruct (_cleanSplit query c (NatMap.remove query ig)). inversion H.
+  - inversion H. reflexivity.
+Qed.
 
 
 
@@ -106,9 +73,8 @@ Proof.
       + destruct H. assumption.
   }
   rewrite H at 2.
-  apply _add_value_does_not_matter_for_cardinality.
+  apply NatMap_add_value_does_not_matter_for_cardinality.
   - reflexivity.
-
 Qed.
 
 
@@ -127,38 +93,46 @@ Proof.
 Qed.
 
 
-Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
-  (exists x, NatMap.find key map = Some x) -> (S (NatMap.cardinal (NatMap.remove key map)) = NatMap.cardinal map).
+
+
+
+
+Theorem _IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+    IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.
-  
-  intros.
-  pose proof MProps.cardinal_2.
-  destruct H eqn:hu.
-  assert (~ NatMap.In key (NatMap.remove key map)). {
-    unfold not. intros.
-    apply MFacts.remove_in_iff in H1.
-    destruct H1.
-    destruct H1.
-    reflexivity.
+    intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
+    assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
 
-  }
-  apply (H0 _ _ map _ x) in H1.
-  - rewrite <- H1. reflexivity.
-  - unfold MProps.Add. 
-  
-  
-  
-  unfold MProps.Add. intros. bdestruct (y =? key).
-  + rewrite H2. rewrite e. assert (key = key). {
-    reflexivity.
-  }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-  + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-    pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
-  
-Defined.
+        unfold IG_match in H.
+        destruct (NatMap.find node ig) eqn:split.
+        - destruct (_cleanSplit node c (NatMap.remove node ig)) eqn:split0.
+            inversion H. subst.
+            unfold _cleanSplit in split0.
+            destruct c as [[fromss labell] toss].
+            inversion split0.
+            clear split0 H1.
+            
 
 
+            rewrite _IG_updAdj_does_not_change_cardinality.
+            rewrite _IG_updAdj_does_not_change_cardinality.
+            apply symmetry.
+            apply NatMap_map_find_some_remove_lowers_cardinality.
+
+            exists (fromss, labell, toss).
+            apply split.
+        - inversion H.
+    }
+    rewrite <- !IG_labNodes_len_cardinal.
+    lia.
+Qed.
 
 
 
-
+Theorem _IG_matchAny_decreases_IG_noNodes : forall (A B : Type) (c : Context A B) (ig rest : IG A B),
+    IG_matchAny ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
+Proof.
+    intros. unfold IG_matchAny in H. destruct (IG_labNodes ig) eqn:labNodes.
+    - inversion H.
+    - apply _IG_match_decreases_IG_noNodes in H. assumption.
+Qed.
