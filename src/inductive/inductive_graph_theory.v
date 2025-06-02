@@ -15,15 +15,15 @@ Require Import OrderedTypeEx.
 Require Import Setoid Morphisms.
 
 
-Require Import MyProject.src.util.NatSet.
+Require Import GraphVerification.src.util.NatSet.
 
-Require Import MyProject.src.inductive.inductive_graph.
-Require Import MyProject.src.inductive.inductive_graph_to_RG.
+Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.inductive_graph_to_RG.
 
-Require Import MyProject.src.relational_graph.
-Require Import MyProject.src.relational_graph_theory.
+Require Import GraphVerification.src.relational_graph.
+Require Import GraphVerification.src.relational_graph_theory.
 
-Require Import MyProject.src.util.NatMap.
+Require Import GraphVerification.src.util.NatMap.
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG s  *)
 
@@ -153,7 +153,7 @@ Qed.
 
 
 (* util *)
-Require Import MyProject.src.util.util.
+Require Import GraphVerification.src.util.util.
 
 Check _addSucc.
 Check _addSucc 3.

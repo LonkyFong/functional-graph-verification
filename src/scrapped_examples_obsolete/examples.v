@@ -6,14 +6,14 @@ Import ListNotations.
 Require Import String.
 Open Scope string_scope.
 
-Require Import MyProject.src.relational_graph.
+Require Import GraphVerification.src.relational_graph.
 
-Require Import MyProject.src.algebraic.algebraic_graph.
-Require Import MyProject.src.algebraic.algebraic_graph_to_RG.
-Require Import MyProject.src.algebraic.algebraic_graph_theory.
+Require Import GraphVerification.src.algebraic.algebraic_graph.
+Require Import GraphVerification.src.algebraic.algebraic_graph_to_RG.
+Require Import GraphVerification.src.algebraic.algebraic_graph_theory.
 
-Require Import MyProject.src.inductive.inductive_graph.
-Require Import MyProject.src.inductive.basic.inductive_graph_basic.
+Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.basic.inductive_graph_basic.
 
 
 

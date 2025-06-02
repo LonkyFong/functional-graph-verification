@@ -1,4 +1,5 @@
--Q . MyProject
+-Q . GraphVerification
+
 ./src/util/NatSet.v
 ./src/util/NatMap.v
 ./src/util/util.v
@@ -13,6 +14,16 @@
 ./src/inductive/inductive_graph.v
 ./src/inductive/inductive_graph_to_RG.v
 ./src/inductive/inductive_graph_theory.v
+
+
+
+
+
+
+
+
+
+
 
 
 

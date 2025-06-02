@@ -28,7 +28,7 @@ Print Module MProps.
 Check Nat_as_OT.lt. (*   : positive -> positive -> Prop *)
 
 
-Require Import MyProject.src.util.NatSet.
+Require Import GraphVerification.src.util.NatSet.
 
 Print FSetEqProperties.
 

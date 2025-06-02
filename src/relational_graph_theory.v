@@ -1,6 +1,6 @@
 Require Import Setoid Morphisms.
 
-Require Import MyProject.src.relational_graph.
+Require Import GraphVerification.src.relational_graph.
 
 (* Stating and proving Lemmas and Theorems about RGs *)
 

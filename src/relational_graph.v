@@ -2,8 +2,8 @@ Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
-Require Import MyProject.src.util.NatSet.
-Require Import MyProject.src.util.util.
+Require Import GraphVerification.src.util.NatSet.
+Require Import GraphVerification.src.util.util.
 
 Require Import List.
 Import ListNotations.

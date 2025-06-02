@@ -6,10 +6,10 @@ Require Import Bool.
 Require Import List.
 Import ListNotations.
 
-Require Import MyProject.src.util.NatMap.
-Require Import MyProject.src.util.NatSet.
+Require Import GraphVerification.src.util.NatMap.
+Require Import GraphVerification.src.util.NatSet.
 (* util *)
-Require Import MyProject.src.util.util.
+Require Import GraphVerification.src.util.util.
 Open Scope nat_scope.
 
 (* This file defines an inductive graph using maps like Erwig *)

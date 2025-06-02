@@ -10,9 +10,9 @@ Require Import Bool.
 Require Import Coq.Sorting.Permutation.
 
 
-Require Import MyProject.src.relational_graph_decidable.
-Require Import MyProject.src.util.util.
-Require Import MyProject.src.util.NatMap.
+Require Import GraphVerification.src.relational_graph_decidable.
+Require Import GraphVerification.src.util.util.
+Require Import GraphVerification.src.util.NatMap.
 
 Require Import Coq.Arith.Arith.
 

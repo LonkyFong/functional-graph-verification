@@ -1,5 +1,5 @@
-Require Import MyProject.src.algebraic.algebraic_graph.
-Require Import MyProject.src.relational_graph.
+Require Import GraphVerification.src.algebraic.algebraic_graph.
+Require Import GraphVerification.src.relational_graph.
 
 (* Defining how an AG converts to an RG *)
 

@@ -1,4 +1,4 @@
-Require Import MyProject.src.algebraic.algebraic_graph.
+Require Import GraphVerification.src.algebraic.algebraic_graph.
 
 Require Import Recdef.
 

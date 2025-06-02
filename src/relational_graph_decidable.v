@@ -1,13 +1,13 @@
 
 
-(* Require Import MyProject.src.util.NatSet.
-Require Import MyProject.src.util.util. *)
+(* Require Import GraphVerification.src.util.NatSet.
+Require Import GraphVerification.src.util.util. *)
 
 
 Require Import List.
 Import ListNotations.
 
-Require Import MyProject.src.util.NatMap.
+Require Import GraphVerification.src.util.NatMap.
 
 Print NatMap.
 

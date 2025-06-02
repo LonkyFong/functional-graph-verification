@@ -6,19 +6,19 @@ Require Import List.
 Require Import Bool.
 Import ListNotations.
 
-Require Import MyProject.src.util.util.
+Require Import GraphVerification.src.util.util.
 
-(* Require Import MyProject.src.relational_graph.
+(* Require Import GraphVerification.src.relational_graph.
  *)
 
 Require Import Coq.Sets.Ensembles.
 Require Import Setoid Morphisms.
 
 
-Require Import MyProject.src.util.NatSet.
-Require Import MyProject.src.relational_graph.
-Require Import MyProject.src.relational_graph_theory.
-Require Import MyProject.src.relational_graph_IG_operations.
+Require Import GraphVerification.src.util.NatSet.
+Require Import GraphVerification.src.relational_graph.
+Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.relational_graph_IG_operations.
 
 
 Open Scope nat_scope.

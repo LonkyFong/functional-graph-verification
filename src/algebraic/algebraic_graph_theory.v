@@ -4,13 +4,13 @@ Require Import Coq.Sets.Ensembles.
 Require Import List.
 Require Import Coq.Sorting.Permutation.
 
-Require Import MyProject.src.util.NatSet.
+Require Import GraphVerification.src.util.NatSet.
 
-Require Import MyProject.src.relational_graph.
-Require Import MyProject.src.relational_graph_theory.
+Require Import GraphVerification.src.relational_graph.
+Require Import GraphVerification.src.relational_graph_theory.
 
-Require Import MyProject.src.algebraic.algebraic_graph.
-Require Import MyProject.src.algebraic.algebraic_graph_to_RG.
+Require Import GraphVerification.src.algebraic.algebraic_graph.
+Require Import GraphVerification.src.algebraic.algebraic_graph_to_RG.
 
 
 
