@@ -514,6 +514,8 @@ Inductive revBFSOrder (start : NatSet.t) (ag : AG nat) : list nat -> Prop :=
 
 
 Lemma revBFSOrder_test1 : revBFSOrder (NatSet.singleton 1) (1 *** 2 +++ 3 *** 4) [1; 2; 3; 4].
+Proof.
+Admitted.
 
 
 

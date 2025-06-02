@@ -104,7 +104,7 @@ Definition _updAdj {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context'
 Definition _cleanSplit {A B : Type} (node : Node) (context' : Context' A B) (ig : IG A B) : Context A B * IG A B :=
   match context' with
   | (froms, label, tos) =>
-                          let rmLoops :=  filter (fun '(_, n) => negb (n =? node)) in
+                          let rmLoops := filter (fun '(_, n) => negb (n =? node)) in
 
                           let froms' := rmLoops froms in
                           let tos' := rmLoops tos in
@@ -593,9 +593,11 @@ Defined.
 Example IG_dfs'_test' : exists n, IG_dfs'caller [1] (@IG_mkGraph string string [(1, "one"); (2, "two")] [ 
   (1,2, "link")
   ]) = n.
+  simpl.
   IG_dfs'_computer.
 
   exists [1; 2].
+
   reflexivity.
 Qed.
 
@@ -826,84 +828,6 @@ Qed.
 
 (* 
 (* Here starts stuff from the paper, that I did not bother to implement *)
-Require Import Recdef. (* Must import this to use the Function feature *)
-
-Function IG_gmap {A B C D : Type} (f : IG_Context A B -> IG_Context C D) (ig : IG A B) {measure IG_measure ig} : IG C D :=
-  match IG_matchAny ig with
-    | ((True, c), rest) => _add (f c) (IG_gmap f rest)
-    (* | ((False, c), rest) => _add (f c) (IG_gmap f rest) *)
-  end
-.
-Proof. Admitted.
-
-
-
-Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
-  IG_gmap _ _ _ _ (fun '((froms, node, tos) : IG_Context A B) => (tos, node, froms)) ig
-.
-
-Function IG_ufold {A B C : Type} (f : IG_Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_measure ig} : C :=
-  match IG_matchAny ig with
-    | ((True, c), rest) => f c (IG_ufold f acc rest)
-    (* | ((False, c), rest) => _add (f c) (IG_gmap f rest) *)
-  end
-.
-Proof. Admitted.
-
-
-Definition IG_gmap' {A B C D : Type} (f : IG_Context A B -> IG_Context C D) (ig : IG A B) : IG C D :=
-  IG_ufold _ _ (IG C D) (fun (c : IG_Context A B) (acc : IG C D) => _add (f c) acc) IG_empty ig.
-
-
-Definition IG_nodes' {A B : Type} (ig : IG A B) : list A :=
-  IG_ufold _ _ _ (fun '(froms, node, tos) acc => node :: acc ) [] ig.
-  
-Definition IG_undir {A B : Type} (ig : IG A B) : IG A B :=
-  IG_gmap _ _ _ _ (fun '(froms, node, tos) =>
-    let fromsTos := (fun (b : B) (a : A) => froms b a \/ tos b a) in
-    (fromsTos, node, fromsTos)) ig
-.
-
-Definition IG_gsuc {A B : Type} (node : A) (ig : IG A B) : Ensemble A :=
-  match IG_match node ig with
-    | ((True, (_, _, tos)), rest) => fun (a : A) => exists l, tos l a 
-  end
-.
-
-(* IG_deg is hard to implement, as is is hard to count *)
-Definition IG_deg {A B : Type} (node : A) (ig : IG A B) : nat.
-Proof. Admitted.
-(* :=
-  match IG_match node ig with
-    | ((True, (froms, nodeAgain, tos)), rest) => fun (a : A) => CARDINALITY froms tos 
-  end
-. *)
-
-Definition IG_del {A B : Type} (node : A) (ig : IG A B) : IG A B :=
-  match IG_match node ig with
-    | ((True, _), rest) => rest
-  end
-.
-
-Definition IG_suc {A B : Type} (node : A) (c : IG_Context A B) : Ensemble A :=
-  match c with | (_, _, tos) =>
-    fun (a : A) => exists l, tos l a 
-  end
-.
-
-
-
-(* More advanced stuff *)
-
-dfs :: [Node] → Graph a b → [Node]
-dfs [ ]
-g
-= []
-v
-dfs (v :vs) (c & g) = v :dfs (suc c++vs) g
-dfs (v :vs) g
-= dfs vs g
-
 (* Possible extensions: *)
 dfs vs Empty = [ ]
 dfs vs g | null vs || isEmpty g = [ ]
@@ -977,81 +901,6 @@ esp :: Node → Node → Graph a b → Path
 esp s t = reverse . first (\(v : ) → v t) . bft s
 
 
-(* Shortest path: *)
-
-type LNode a = (Node, a)
-type LPath a = [LNode a]
-type LRTree a = [LPath a]
-instance Eq a ⇒ Eq (LPath a) where
-(( , x ): ) (( , y): ) = x y
-instance Ord a ⇒ Ord (LPath a) where
-(( , x ): ) < (( , y): ) = x < y
-getPath :: Node → LRTree a → Path
-getPath v = reverse . map fst . first (\((w , ): ) → w == v)
 
 
-
-expand :: Real b ⇒ b → LPath b → Context a b → [Heap (LPath b)]
-expand d p ( , , , s) = map (\(l , v ) → unitHeap ((v , l + d ):p)) s
-dijkstra :: Real b ⇒ Heap (LPath b) → Graph a b → LRTree b
-dijkstra h g | isEmptyHeap h || isEmpty g = [ ]
-v
-dijkstra (p@((v , d ): )≺h) (c & g) = p:dijkstra (meigeAll (h:expand d p c)) g
-dijkstra ( ≺h) g
-= dijkstra h g
-
-
-
-
-spt :: Real b ⇒ Node → Graph a b → LRTree b
-spt v = spt (unitHeap [(v , 0)])
-sp :: Real b ⇒ Node → Node → Graph a b → Path
-sp s t = getPath t . spt s
-
-
-
-(* Minimum spanning tree *)
-addEdges :: Real b ⇒ LPath b → Context a b → [Heap (LPath b)]
-addEdges p ( , , , s) = map (\(l , v ) → unitHeap ((v , l ):p)) s
-
-mst :: Real b ⇒ Node → Graph a b → LRTree b
-mst v g = prim (unitHeap [(v , 0)]) g
-prim :: Real b ⇒ Heap (LPath b) → Graph a b → LRTree b
-prim h g | isEmptyHeap h || isEmpty g = [ ]
-v
-prim (p@((v , ): )≺h) (c & g) = p:prim (meigeAll (h:addEdges p c)) g
-prim ( ≺h) g
-= prim h g
-
-mstp :: Real b ⇒ LRTree b → Node → Node → Path
-mstp t a b = joinPaths (getPath a t) (getPath b t)
-joinPaths :: Path → Path → Path
-joinPaths p q = joinAt (head p) (tail p) (tail q)
-joinAt :: Node → Path → Path → Path
-joinAt x (v :vs) (w :ws) | v w = joinAt v vs ws
-joinAt x p
-q
-= reverse p++(x :q)
-
-
-
-(* Maximum independent node set: *)
-
-
-indep :: Graph a b → [Node]
-indep Empty = [ ]
-indep g
-= if length i1 > length i2 then i1 else i2
-where vs
-= nodes g
-m
-= maximum (map (flip deg g) vs)
-v
-= first (\v → deg v g m) vs
-v
-c & g0 = g
-i1
-= indep g 0
-i2
-= v :indep (foldr del g 0 (pre c++suc c))
- *)
+*)

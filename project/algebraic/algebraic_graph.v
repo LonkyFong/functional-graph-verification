@@ -412,3 +412,4 @@ Compute AG_BFS (Vertex 1) [1].
 Compute AG_BFS ((1 *** 2 +++ 3 *** 4) +++ (2 *** 3)) [1].
 Compute AG_BFS ((3 *** 4) +++ (1 *** 2 +++ 2 *** 3)) [1].   
 Compute AG_BFS ((1 *** 2) +++ (3 *** 4)) [1; 3].
+

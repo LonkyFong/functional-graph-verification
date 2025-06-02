@@ -98,7 +98,9 @@ Defined.
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
     IG_ufold _ _ _ RG_add RG_empty ig.
 
-
+Check NatMap.fold.
+Definition IG_to_RG' {A B : Type} (ig : IG A B) : RG_unlE nat :=
+    NatMap.fold (fun n '(from, l, to) acc => RG_add (from, n, l, to) acc) ig RG_empty.  
 
 
 
