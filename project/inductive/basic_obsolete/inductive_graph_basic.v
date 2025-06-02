@@ -23,8 +23,8 @@ Module NatMap := FMapList.Make(Nat_as_OT).
 
 Module WF := WFacts_fun Nat_as_OT NatMap. (* Library of useful lemmas about maps *)
 Module WP := WProperties_fun Nat_as_OT NatMap. (* More useful stuff about maps *)
-Print Module WF.
-Print Module WP.
+Print Module MFacts.
+Print Module MProps.
 Check Nat_as_OT.lt. (*   : positive -> positive -> Prop *)
 
 

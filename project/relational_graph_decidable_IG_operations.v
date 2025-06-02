@@ -85,6 +85,13 @@ Print RG_dec_isEmpty.
   RG_isEmpty rg. *)
 
 
+Definition filter_map {A : Type} (pred : PairNatMap.key -> A -> bool) (m : PairNatMap.t A) : PairNatMap.t A :=
+  PairNatMap.fold (fun k v acc =>
+            if pred k v then PairNatMap.add k v acc else acc)
+         m
+         (PairNatMap.empty A)
+.
+
 
 (* Helper for match *)
 (* Removes a node from the nodeset and any edges *)
@@ -145,7 +152,7 @@ Proof.
   refine {|
       RG_dec_nodes := fun (n : A) =>  (exists l, froms l n) \/
                                   (exists l, tos l n) \/
-                                  cEnsembleAdd node rg.(RG_dec_nodes) n;
+                                  Ensemble_add node rg.(RG_dec_nodes) n;
       RG_dec_edges := fun (n1 n2 : A) (l : B) =>  (froms l n1 /\ n2 = node) \/
                                               (n1 = node /\ tos l n2) \/ 
                                               rg.(RG_dec_edges) n1 n2 l;

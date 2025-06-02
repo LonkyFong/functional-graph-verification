@@ -22,7 +22,7 @@ Require Import MyProject.project.util.util.
 Definition _extendByContext {B : Type} (node : Node) (froms tos : Adj B) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
     refine {|
-        RG_nodes := fun (n : nat) => In n (map snd froms) \/ In n (map snd tos) \/ (cEnsembleAdd node rg.(RG_nodes)) n; 
+        RG_nodes := fun (n : nat) => In n (map snd froms) \/ In n (map snd tos) \/ (Ensemble_add node rg.(RG_nodes)) n; 
         RG_edges := fun (n1 n2 : nat) l =>
                                 (In n1 (map snd froms) /\ n2 = node)
                                 \/ (n1 = node /\ In n2 (map snd tos))
@@ -62,7 +62,7 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
 Proof.
     destruct context as [[[froms node] label] tos].
     refine {|
-        RG_nodes := fun (n : nat) => In n (map snd froms) \/ In n (map snd tos) \/ (cEnsembleAdd node rg.(RG_nodes)) n; 
+        RG_nodes := fun (n : nat) => In n (map snd froms) \/ In n (map snd tos) \/ (Ensemble_add node rg.(RG_nodes)) n; 
         RG_edges := fun (n1 n2 : nat) l =>
                                 (In n1 (map snd froms) /\ n2 = node)
                                 \/ (n1 = node /\ In n2 (map snd tos))
@@ -79,7 +79,7 @@ Definition RG_add {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_u
 Proof.
     destruct context as [[[froms node] label] tos].
     refine {|
-        RG_nodes := fun (n : nat) => (cEnsembleAdd node rg.(RG_nodes)) n;
+        RG_nodes := fun (n : nat) => (Ensemble_add node rg.(RG_nodes)) n;
         RG_edges := fun (n1 n2 : nat) l => rg.(RG_edges) n1 n2 l \/
                                            (not (rg.(RG_nodes) node) /\ rg.(RG_nodes) n1 /\ rg.(RG_nodes) n2 /\
                                             ((In n1 (map snd froms) /\ n2 = node)

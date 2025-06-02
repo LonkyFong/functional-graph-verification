@@ -103,14 +103,14 @@ Ltac breakup_Ensemble_equality :=
   apply functional_extensionality; intros; apply propositional_extensionality; intros; split. *)
 
 Lemma RG_insNode_any_ins_node : forall (A B : Type) (node : A) (rg : RG A B),
-  RG_labNodes (_insNode node rg) S== cEnsembleAdd node (RG_labNodes rg).
+  RG_labNodes (_insNode node rg) S== Ensemble_add node (RG_labNodes rg).
 Proof.
   firstorder.
 Qed.
 
 
 Lemma RG_insNodes_any_ins_all_nodes : forall (A B : Type) (nodes : list A) (rg : RG A B),
-  RG_labNodes (_insNodes nodes rg) S== cEnsembleUnion (cListToEnsemble nodes) (RG_labNodes rg).
+  RG_labNodes (_insNodes nodes rg) S== Ensemble_union (cListToEnsemble nodes) (RG_labNodes rg).
 Proof.
   intros. induction nodes; simpl.
   - firstorder.
@@ -139,6 +139,9 @@ Qed.
 
 
 
+Definition cListToEnsemble {A : Type} (az : list A) : Ensemble A :=
+  fold_right Ensemble_add (Empty_set A) az
+.
 
 (* "big" statement: *)
 Theorem RG_mkGraph_any_ins_all_nodes : forall (A B : Type) (nodes : list A) (edges : list (RG_Edge A B)),

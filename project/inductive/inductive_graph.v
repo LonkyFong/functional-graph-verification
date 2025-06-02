@@ -304,7 +304,6 @@ Require Import Coq.Arith.Arith.
 Require Import Coq.Arith.Wf_nat.
 (* Require Import Coq.Init.Nat. *)
 Require Import Coq.Lists.List.
-Require Import Coq.Program.Wf.
 Require Import Coq.Wellfounded.Wellfounded.
 Require Import Coq.Wellfounded.Lexicographic_Product.
 Require Import Coq.Structures.OrderedType.
@@ -366,38 +365,38 @@ Qed.
 (* This proof is adapted from the link below. It blows my mind, that this is not in stdlib *)
 (* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
 Lemma cardinal_Add_In:
-    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> WP.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
+    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
   Proof.
-  assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> WP.Add k e (NatMap.remove k m) m) as remove_In_Add.
-  { intros. unfold WP.Add.
+  assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add.
+  { intros. unfold MProps.Add.
     intros.
-    rewrite WF.add_o.
-    destruct (WF.eq_dec k y).
-    - apply NatMap.find_1. rewrite <- WF.MapsTo_m; [exact H|assumption|reflexivity|reflexivity].
-    - rewrite WF.remove_neq_o by assumption. reflexivity.
+    rewrite MFacts.add_o.
+    destruct (MFacts.eq_dec k y).
+    - apply NatMap.find_1. rewrite <- MFacts.MapsTo_m; [exact H|assumption|reflexivity|reflexivity].
+    - rewrite MFacts.remove_neq_o by assumption. reflexivity.
   }
   intros.
   assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')).
-  { intros y. rewrite 2!WF.remove_o.
-    destruct (WF.eq_dec x y).
+  { intros y. rewrite 2!MFacts.remove_o.
+    destruct (MFacts.eq_dec x y).
     - reflexivity.
-    - unfold WP.Add in H0. rewrite H0.
-      rewrite WF.add_neq_o by assumption. reflexivity.
+    - unfold MProps.Add in H0. rewrite H0.
+      rewrite MFacts.add_neq_o by assumption. reflexivity.
   }
-  apply WP.Equal_cardinal in H1.
-  rewrite 2!WP.cardinal_fold.
+  apply MProps.Equal_cardinal in H1.
+  rewrite 2!MProps.cardinal_fold.
   destruct H as (e' & H).
-  rewrite WP.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
+  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
   try now (compute; auto).
   2:apply NatMap.remove_1; reflexivity.
   2:apply remove_In_Add; assumption.
-  rewrite WP.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m') (m2:=m') (k:=x) (e:=e);
+  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m') (m2:=m') (k:=x) (e:=e);
   try now (compute; auto).
-  - rewrite <- 2!WP.cardinal_fold. congruence.
+  - rewrite <- 2!MProps.cardinal_fold. congruence.
   - apply NatMap.remove_1. reflexivity.
   - apply remove_In_Add.
-    apply NatMap.find_2. unfold WP.Add in H0. rewrite H0.
-    rewrite WF.add_eq_o; reflexivity.
+    apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
+    rewrite MFacts.add_eq_o; reflexivity.
   Qed.
 
 
@@ -408,8 +407,8 @@ Proof.
   intros.
   pose proof cardinal_Add_In.
   apply (H _ _ _ node c).
-  - apply WF.add_in_iff. left. reflexivity.
-  - unfold WP.Add. intros. rewrite WF.add_o. rewrite WF.add_o. rewrite WF.add_o. destruct (NatSetProperties.MP.FM.eq_dec node y).
+  - apply MFacts.add_in_iff. left. reflexivity.
+  - unfold MProps.Add. intros. rewrite MFacts.add_o. rewrite MFacts.add_o. rewrite MFacts.add_o. destruct (MProps.F.eq_dec node y).
     + reflexivity.
     + reflexivity.
 Qed.
@@ -429,19 +428,19 @@ Proof.
   - 
 
   assert (NatMap.Equal ig (NatMap.add node c ig)). { 
-      apply WF.find_mapsto_iff in split.
+      apply MFacts.find_mapsto_iff in split.
 
-    apply WF.Equal_mapsto_iff.
+    apply MFacts.Equal_mapsto_iff.
     split; intros.
-    - apply WF.add_mapsto_iff.
+    - apply MFacts.add_mapsto_iff.
        bdestruct (node =? k).
       + subst. left. split.
       -- reflexivity.
-      -- apply WF.find_mapsto_iff in split. apply WF.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
+      -- apply MFacts.find_mapsto_iff in split. apply MFacts.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
       + right. split.
       -- assumption.
       -- assumption.
-    - apply WF.add_mapsto_iff in H. destruct H.
+    - apply MFacts.add_mapsto_iff in H. destruct H.
       + destruct H. subst. assumption.
       + destruct H. assumption.
   }
@@ -472,11 +471,11 @@ Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) 
 Proof.
   
   intros.
-  pose proof WP.cardinal_2.
+  pose proof MProps.cardinal_2.
   destruct H eqn:hu.
   assert (~ NatMap.In key (NatMap.remove key map)). {
     unfold not. intros.
-    apply WF.remove_in_iff in H1.
+    apply MFacts.remove_in_iff in H1.
     destruct H1.
     destruct H1.
     reflexivity.
@@ -484,16 +483,16 @@ Proof.
   }
   apply (H0 _ _ map _ x) in H1.
   - rewrite <- H1. reflexivity.
-  - unfold WP.Add. 
+  - unfold MProps.Add. 
   
   
   
-  unfold WP.Add. intros. bdestruct (y =? key).
+  unfold MProps.Add. intros. bdestruct (y =? key).
   + rewrite H2. rewrite e. assert (key = key). {
     reflexivity.
-  }  pose proof WF.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-  + pose proof WF.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-    pose proof WF.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
+  }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
+  + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
+    pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
   
 Defined.
 
@@ -734,87 +733,6 @@ Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
 
 
 
-(* Messing around wiht sets and induction over them *)
-
-Function set_counts (set : NatSet.t) {measure NatSet.cardinal set} : nat :=
-  match NatSet.choose set with
-  | None => 0
-  | Some n => n + set_counts (NatSet.remove n set)
-  end.
-Proof.
-  intros.
-  unfold lt.
-  assert (S (NatSet.cardinal (NatSet.remove n set)) = NatSet.cardinal set). {
-    apply NatSetProperties.remove_cardinal_1.
-    apply NatSetProperties.choose_mem_1.
-    assumption.
-  }
-  lia.
-Defined.
-
-Compute set_counts (NatSet.add 1 (NatSet.add 2 (NatSet.add 3 NatSet.empty))).
-
-Definition set_counts' (set : NatSet.t) : nat :=
-  NatSet.fold (fun n acc => n + acc) set 0.
-
-
-
-Theorem set_counts_is_set_counts' : forall (set : NatSet.t),
-  set_counts set = set_counts' set.
-Proof.
-  apply (well_founded_induction
-           (well_founded_ltof _ NatSet.cardinal)).
-  intros set IH.
-
-  destruct (NatSet.choose set) eqn:Hchoose.
-  - (* Some n *)
-    assert (Hmem : NatSet.In e set).
-    { apply NatSet.choose_1. easy. }
-
-    assert (Hrem : NatSet.cardinal (NatSet.remove e set) < NatSet.cardinal set).
-    {   assert (S (NatSet.cardinal (NatSet.remove e set)) = NatSet.cardinal set). {
-    apply NatSetProperties.remove_cardinal_1.
-    apply NatSetProperties.choose_mem_1.
-    assumption.
-  }
-  lia. }
-  specialize (IH (NatSet.remove e set)).
-  unfold ltof in IH.
-  apply IH in Hrem.
-
-  rewrite set_counts_equation. rewrite Hchoose. 
-  unfold set_counts'. simpl.
-
-    (* Use NatSet.fold_add *)
-    assert (Hadd : NatSet.Equal set (NatSet.add e (NatSet.remove e set))).
-    { Search NatSet.add. rewrite NatSetProperties.MP.add_remove; firstorder.
-    }
-
-    rewrite NatSetProperties.fold_equal.
-
-
-    + rewrite NatSetProperties.fold_add.
-      -- apply Nat.add_cancel_l. apply Hrem.
-      -- auto.
-      -- firstorder.
-      -- unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
-      -- apply NatSetProperties.remove_mem_1.
-    + auto.
-    + firstorder.
-    + unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
-    + apply NatSet.equal_1. assumption.
-  - rewrite set_counts_equation. rewrite Hchoose. 
-  
-  (* None *)
-    apply NatSet.choose_2 in Hchoose.
-    unfold set_counts'.
-    rewrite NatSetProperties.fold_equal.
-    + rewrite NatSetProperties.fold_empty. reflexivity.
-    + auto.
-    + firstorder.
-    + unfold transpose. auto. firstorder. rewrite Nat.add_comm. rewrite <- Nat.add_assoc. apply Nat.add_cancel_l. rewrite Nat.add_comm. reflexivity.
-    + apply NatSet.equal_1. apply NatSetProperties.MP.empty_is_empty_1. assumption.    
-Qed.
 
 
 

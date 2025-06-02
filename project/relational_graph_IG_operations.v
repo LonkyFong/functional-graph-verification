@@ -127,7 +127,7 @@ Proof.
   refine {|
       RG_nodes := fun (n : A) =>  (exists l, froms l n) \/
                                   (exists l, tos l n) \/
-                                  cEnsembleAdd node rg.(RG_nodes) n;
+                                  Ensemble_add node rg.(RG_nodes) n;
       RG_edges := fun (n1 n2 : A) (l : B) =>  (froms l n1 /\ n2 = node) \/
                                               (n1 = node /\ tos l n2) \/ 
                                               rg.(RG_edges) n1 n2 l;

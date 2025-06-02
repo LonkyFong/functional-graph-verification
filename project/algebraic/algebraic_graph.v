@@ -9,22 +9,24 @@ Require Import Coq.Lists.ListSet.
 Require Import Coq.Arith.EqNat.
 
 Require Import Coq.Arith.Peano_dec.
-Definition eq_nat := eq_nat_dec.
+Require Import Recdef.
 
-(* Defining an algebraic graph *)
+Require Import MyProject.project.util.NatSet.
 
+(* Defining an algebraic_graph (AG) and its operations. There are only single edges.
+It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
 Inductive AG (A : Type) : Type :=
-  | Empty
-  | Vertex (x : A)
-  | Overlay (top bottom : AG A)
-  | Connect (left right : AG A).
+    | Empty : AG A
+    | Vertex : A -> AG A
+    | Overlay : AG A -> AG A -> AG A
+    | Connect : AG A -> AG A -> AG A.
 
 Arguments Empty {A}.
 Arguments Vertex {A}.
 Arguments Overlay {A}.
 Arguments Connect {A}.
 
-(* Doing the same thing as implementing fromInteger from Haskell *)
+(* For user-friendly input of AGs with numeric labels *)
 Definition from_nat (n:nat) : AG nat :=
     Vertex n.
 Coercion from_nat : nat >-> AG.
@@ -32,7 +34,8 @@ Coercion from_nat : nat >-> AG.
 
 (* *** has more priority than +++ *)
 Notation "ag1 +++ ag2" := (Overlay ag1 ag2) (at level 60, right associativity).
-Notation "ag1 *** ag2" := (Connect ag1 ag2) (at level 59, right associativity).
+Notation "ag1 --> ag2" := (Connect ag1 ag2) (at level 59, right associativity).
+
 
 
 
@@ -234,12 +237,12 @@ Fixpoint countEdges {A : Type} (ag : AG A) : nat :=
 Fixpoint searchGraphUnique (ag : AG nat) (s : set nat) : (list nat) :=
     match ag with
     | Empty => []
-    | Vertex x => if set_mem eq_nat x s then [] else [x]
+    | Vertex x => if set_mem eq_nat_dec x s then [] else [x]
     | Overlay ag1 ag2 => match searchGraphUnique ag1 s with
-                        | ret => ret ++ searchGraphUnique ag2 (set_union eq_nat s ret)
+                        | ret => ret ++ searchGraphUnique ag2 (set_union eq_nat_dec s ret)
                         end
     | Connect ag1 ag2 => match searchGraphUnique ag1 s with
-                        | ret => ret ++ searchGraphUnique ag2 (set_union eq_nat s ret)
+                        | ret => ret ++ searchGraphUnique ag2 (set_union eq_nat_dec s ret)
                         end
     end.
 
@@ -253,7 +256,6 @@ Compute searchGraphUnique (1 *** 2 +++ 2 *** 3 +++ 1 *** 3) [].
 
 
 
-Require Import Recdef.
 
 
 
@@ -305,8 +307,6 @@ Compute canReachFrom_fuled ((1 *** 2) +++ (3 *** 4)) [1; 3] 7.
 
 
 
-(* util *)
-Require Import MyProject.project.util.NatSet.
 
 Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t := 
 let leftAndRight := fun (ag1 ag2 : AG nat) => NatSet.union (AG_nodeSet ag1) (AG_nodeSet ag2) in

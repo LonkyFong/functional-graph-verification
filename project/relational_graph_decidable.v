@@ -11,6 +11,19 @@ Require Import MyProject.project.util.NatMap.
 
 Print NatMap.
 
+Require Import FMaps.
+
+
+Module PairNat_as_OT := PairOrderedType(Nat_as_OT)(Nat_as_OT).
+Definition NodePair := PairNat_as_OT.t.
+
+Module PairNatMap := FMapList.Make(PairNat_as_OT).
+
+Module PWF := WFacts_fun PairNat_as_OT PairNatMap. (* Library of useful lemmas about maps *)
+Module PWP := WProperties_fun PairNat_as_OT PairNatMap. (* More useful stuff about maps *)
+
+
+
 (* SO far, this lives a little bit isolated from the rest, since code for it is not much simpler than for the representations from the paper *)
 
 (* Define decidable RG: *)
@@ -65,7 +78,7 @@ Proof.
     |}.
     unfold _valid_cond.
     intros.
-    apply PWF.empty_in_iff in H.
+    apply PMFacts.empty_in_iff in H.
     destruct H.
 Defined.
 

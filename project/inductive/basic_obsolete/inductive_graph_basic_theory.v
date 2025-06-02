@@ -83,7 +83,7 @@ Lemma _In_labNodes_is_InMap : forall (x : Node) (ig : IG_basic),
 Proof.
   intros. unfold IG_basic_labNodes.
   rewrite _In_map_fst_InA.
-  pose proof (WF.elements_in_iff ig).
+  pose proof (MFacts.elements_in_iff ig).
   rewrite _In_conditions_same in H.
   specialize H with x.
   symmetry.
@@ -100,8 +100,8 @@ Lemma _updateEntry_does_not_change_key_set : forall (node : Node) (f : NatSet.t 
 Proof.
   intros. unfold _updateEntry.
   destruct (NatMap.find (elt:=NatSet.t * NatSet.t) node ig) eqn:isIn.
-  - rewrite _In_labNodes_is_InMap. rewrite _In_labNodes_is_InMap. rewrite WF.add_in_iff.
-    rewrite WF.in_find_iff. split.
+  - rewrite _In_labNodes_is_InMap. rewrite _In_labNodes_is_InMap. rewrite MFacts.add_in_iff.
+    rewrite MFacts.in_find_iff. split.
     + intros. destruct H.
       -- rewrite <- H. rewrite isIn. unfold not. intros. discriminate H0.
       -- assumption.
@@ -135,7 +135,7 @@ Lemma _insNode_any_ins_node : forall (node : Node) (ig : IG_basic) (x : Node),
   In x (IG_basic_labNodes (_insNode node ig)) <-> In x (node :: IG_basic_labNodes ig).
 Proof.
   intros. simpl. unfold _insNode.
-  rewrite _In_labNodes_is_InMap. rewrite WF.add_in_iff.
+  rewrite _In_labNodes_is_InMap. rewrite MFacts.add_in_iff.
   rewrite _In_labNodes_is_InMap.
   reflexivity.
 Qed.  
@@ -193,7 +193,7 @@ Qed.
 
 Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A), not (NatMap.Empty m) <-> NatMap.is_empty m = false.
 Proof.
-  intros. unfold not. rewrite WF.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
+  intros. unfold not. rewrite MFacts.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
   - firstorder. congruence.
   - firstorder. congruence.
 Qed.
@@ -206,11 +206,11 @@ Proof.
   destruct nodes; simpl; unfold IG_basic_mkGraph.
   - firstorder.
     apply H.
-    apply WP.elements_Empty.
+    apply MProps.elements_Empty.
 
     rewrite _insEdges_on_empty_is_empty. compute. reflexivity.
   - firstorder.
-    + apply WP.elements_Empty in H0.
+    + apply MProps.elements_Empty in H0.
       assert (HH : not (exists e, InA (fun x el : Node * (NatSet.t * NatSet.t) => x = el) (n, e) [])). {
         unfold not. intros. destruct H1. inversion H1.
       }
@@ -218,7 +218,7 @@ Proof.
 
       unfold not in HH. apply HH.
       
-      pose proof WF.elements_in_iff.
+      pose proof MFacts.elements_in_iff.
       edestruct H1.
       rewrite H0 in H2.
       apply H2.

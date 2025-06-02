@@ -68,7 +68,7 @@ Lemma _In_labNodes_is_InMap : forall (A B : Type) (x : LNode A) (ig : IG A B),
   In x (IG_labNodes ig) <-> exists froms tos, NatMap.MapsTo (fst x) (froms, snd x, tos) ig.     
 Proof.
   intros. unfold IG_labNodes.
-  pose proof (WF.elements_mapsto_iff ig).
+  pose proof (MFacts.elements_mapsto_iff ig).
   symmetry.
   rewrite _In_map_fst_InA.
 
@@ -103,6 +103,9 @@ Proof.
   apply functional_extensionality. intros. destruct x as [n [[froms l] tos]]. simpl. reflexivity.
 Qed. 
 
+(* Lemma _InA_is_In : 
+  (exists a0 InA (fun x0 el => NatMap.eq_key_elt x0 el) (x, a0) (NatMap.elements ig)) <->
+    NatMap.In x ig *)
 
 Lemma _In_labNodes_is_InMap' : forall (A B : Type) (x : Node) (ig : IG A B),
   In x (map fst (IG_labNodes ig)) <-> NatMap.In x ig. 
@@ -110,7 +113,11 @@ Proof.
   intros. unfold IG_labNodes. rewrite map_map.
   rewrite _complicated_fst_is_fst.
 
-  apply _In_map_fst_InA'.
+  rewrite _In_map_fst_InA'.
+  unfold NatMap.In. unfold NatMap.Raw.In0.
+  split.
+  - intros. destruct H. exists x0. apply MFacts.elements_mapsto_iff in H. assumption.
+  - intros. destruct H. exists x0. apply MFacts.elements_mapsto_iff in H. assumption.
 Qed.
 
 
@@ -126,8 +133,8 @@ Lemma _updateEntry_does_not_change_key_set : forall (A B : Type) (node : Node) (
 Proof.
   intros. unfold _updateEntry.
   destruct (NatMap.find node ig) eqn:isIn.
-  - rewrite !_In_labNodes_is_InMap'. rewrite WF.add_in_iff.
-    rewrite WF.in_find_iff. split.
+  - rewrite !_In_labNodes_is_InMap'. rewrite MFacts.add_in_iff.
+    rewrite MFacts.in_find_iff. split.
     + intros. destruct H.
       -- rewrite <- H. rewrite isIn. unfold not. intros. discriminate H0.
       -- assumption.
@@ -159,18 +166,18 @@ Proof.
   intros. unfold _updateEntry. unfold _addSucc. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
-    + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
-      -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
+    + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
+      -- exists froms, tos. destruct H. inversion H0. subst. apply MFacts.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists froms, ((l, whose) :: tos). apply WF.add_mapsto_iff. left. split.
+      -- subst. exists froms, ((l, whose) :: tos). apply MFacts.add_mapsto_iff. left. split.
         ++ reflexivity.
-        ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
-          apply (WF.MapsTo_fun isIn).
+        ++ destruct x. simpl in *. apply MFacts.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
+          apply (MFacts.MapsTo_fun isIn).
           assumption.
         }
         inversion H0. firstorder.
-      -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
+      -- exists x0, x1. apply MFacts.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
   - reflexivity.
@@ -194,18 +201,18 @@ Proof.
   intros. unfold _updateEntry. unfold _addPred. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
-    + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
-      -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
+    + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
+      -- exists froms, tos. destruct H. inversion H0. subst. apply MFacts.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists ((l, whose) :: froms), tos. apply WF.add_mapsto_iff. left. split. 
+      -- subst. exists ((l, whose) :: froms), tos. apply MFacts.add_mapsto_iff. left. split. 
         ++ reflexivity.
-        ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
-          apply (WF.MapsTo_fun isIn).
+        ++ destruct x. simpl in *. apply MFacts.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
+          apply (MFacts.MapsTo_fun isIn).
           assumption.
         }
         inversion H0. firstorder.
-      -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
+      -- exists x0, x1. apply MFacts.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
   - reflexivity.
@@ -234,12 +241,12 @@ Proof.
     rewrite !_In_labNodes_is_InMap. 
   
   split; intros.
-    + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
+    + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
       -- left. destruct x. destruct H. inversion H0. simpl in *. subst. reflexivity.
       -- right. destruct H. firstorder.
     + destruct H.
-      -- exists froms, tos. apply WF.add_mapsto_iff. left. destruct x. inversion H. simpl in *. subst. auto.
-      -- destruct H as [fromss [toss H]]. exists fromss, toss. apply WF.add_mapsto_iff. right. split.
+      -- exists froms, tos. apply MFacts.add_mapsto_iff. left. destruct x. inversion H. simpl in *. subst. auto.
+      -- destruct H as [fromss [toss H]]. exists fromss, toss. apply MFacts.add_mapsto_iff. right. split.
         ++ unfold not. intros. destruct x. simpl in *. subst. assert (NatMap.In n ig). {
             firstorder.          
         } apply NatMap.mem_1 in H0. rewrite H0 in cond. discriminate cond.
@@ -279,12 +286,12 @@ Proof.
     }
     
     destruct (NatMap.mem n ig) eqn:HH.
-    + apply WF.mem_in_iff. apply WF.mem_in_iff in H0. simpl. destruct (NatMap.mem n0 (_insNodes nodes ig)).
+    + apply MFacts.mem_in_iff. apply MFacts.mem_in_iff in H0. simpl. destruct (NatMap.mem n0 (_insNodes nodes ig)).
       -- assumption.
-      -- apply WF.add_in_iff. right. assumption.
-    + apply WF.not_mem_in_iff. apply WF.not_mem_in_iff in H0. simpl. unfold not. intros. destruct (NatMap.mem n0 (_insNodes nodes ig)).
+      -- apply MFacts.add_in_iff. right. assumption.
+    + apply MFacts.not_mem_in_iff. apply MFacts.not_mem_in_iff in H0. simpl. unfold not. intros. destruct (NatMap.mem n0 (_insNodes nodes ig)).
       -- firstorder.
-      -- apply WF.add_in_iff in H2. destruct H2.
+      -- apply MFacts.add_in_iff in H2. destruct H2.
         ++ auto.
         ++ firstorder.
 Qed.
@@ -336,18 +343,18 @@ Proof.
   intros. unfold _updateEntry. unfold _clearSucc. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
-    + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
-      -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
+    + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
+      -- exists froms, tos. destruct H. inversion H0. subst. apply MFacts.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists froms, (filter (fun '(_, n) => negb (n =? whose)) tos). apply WF.add_mapsto_iff. left. split. 
+      -- subst. exists froms, (filter (fun '(_, n) => negb (n =? whose)) tos). apply MFacts.add_mapsto_iff. left. split. 
         ++ reflexivity.
-        ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
-          apply (WF.MapsTo_fun isIn).
+        ++ destruct x. simpl in *. apply MFacts.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
+          apply (MFacts.MapsTo_fun isIn).
           assumption.
         }
         inversion H0. subst. reflexivity.
-      -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
+      -- exists x0, x1. apply MFacts.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
   - reflexivity.
@@ -375,18 +382,18 @@ Proof.
   intros. unfold _updateEntry. unfold _clearPred. 
   destruct (NatMap.find node ig) eqn:isIn.
   - destruct c as [[froms label] tos]. rewrite !_In_labNodes_is_InMap. split; intros.
-    + destruct H as [fromss [toss H]]. apply WF.add_mapsto_iff in H. destruct H.
-      -- exists froms, tos. destruct H. inversion H0. subst. apply WF.find_mapsto_iff. assumption.
+    + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
+      -- exists froms, tos. destruct H. inversion H0. subst. apply MFacts.find_mapsto_iff. assumption.
       -- firstorder.
     + firstorder. bdestruct ((fst x) =? node).
-      -- subst. exists  (filter (fun '(_, n) => negb (n =? whose)) froms), tos. apply WF.add_mapsto_iff. left. split. 
+      -- subst. exists  (filter (fun '(_, n) => negb (n =? whose)) froms), tos. apply MFacts.add_mapsto_iff. left. split. 
         ++ reflexivity.
-        ++ destruct x. simpl in *. apply WF.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
-          apply (WF.MapsTo_fun isIn).
+        ++ destruct x. simpl in *. apply MFacts.find_mapsto_iff in isIn. assert ((froms, label, tos) = (x0, a, x1)). {
+          apply (MFacts.MapsTo_fun isIn).
           assumption.
         }
         inversion H0. subst. reflexivity.
-      -- exists x0, x1. apply WF.add_mapsto_iff. right. split.
+      -- exists x0, x1. apply MFacts.add_mapsto_iff. right. split.
         ++ lia.
         ++ assumption.
   - reflexivity.
@@ -421,10 +428,10 @@ Proof.
     apply _updAdj_filter_clearSucc_does_not_change_lab_nodes in H0.
 
     apply _In_labNodes_is_InMap in H0. destruct H0 as [fromsss [tosss H0]]. simpl in H0.
-    apply WF.remove_mapsto_iff in H0. destruct H0.
+    apply MFacts.remove_mapsto_iff in H0. destruct H0.
     destruct H. reflexivity.
   
-  - inversion H. subst. apply WF.not_find_in_iff in HH. apply _In_labNodes_is_InMap in H0.
+  - inversion H. subst. apply MFacts.not_find_in_iff in HH. apply _In_labNodes_is_InMap in H0.
     assert (NatMap.In query rest). {
       firstorder.
     }
@@ -442,20 +449,20 @@ Proof.
   - unfold _cleanSplit in H. destruct c as [[fromss l] toss]. inversion H. subst.
     split; intros.
     + bdestruct (hit =? fst x).
-      -- destruct x.  subst. left. f_equal. apply _In_labNodes_is_InMap in H0. simpl in H0. firstorder. apply WF.find_mapsto_iff in HH.
+      -- destruct x.  subst. left. f_equal. apply _In_labNodes_is_InMap in H0. simpl in H0. firstorder. apply MFacts.find_mapsto_iff in HH.
         assert ((fromss, label, tos) = (x, a, x0)). {
-          apply (WF.MapsTo_fun HH H0).
+          apply (MFacts.MapsTo_fun HH H0).
         }
         inversion H1. reflexivity.
       -- right. apply _updAdj_filter_clearPred_does_not_change_lab_nodes. apply _updAdj_filter_clearSucc_does_not_change_lab_nodes.
         apply _In_labNodes_is_InMap. apply _In_labNodes_is_InMap in H0. firstorder. exists x0, x1.
-        apply WF.remove_mapsto_iff. split.
+        apply MFacts.remove_mapsto_iff. split.
         ++ assumption.
         ++ assumption.
     + destruct H0.
-      -- subst. apply WF.find_mapsto_iff in HH. apply _In_labNodes_is_InMap. exists fromss, tos. assumption.
+      -- subst. apply MFacts.find_mapsto_iff in HH. apply _In_labNodes_is_InMap. exists fromss, tos. assumption.
       -- apply _updAdj_filter_clearPred_does_not_change_lab_nodes in H0. apply _updAdj_filter_clearSucc_does_not_change_lab_nodes in H0.
-        apply _In_labNodes_is_InMap in H0. apply _In_labNodes_is_InMap. firstorder. exists x0, x1. apply WF.remove_mapsto_iff in H0.
+        apply _In_labNodes_is_InMap in H0. apply _In_labNodes_is_InMap. firstorder. exists x0, x1. apply MFacts.remove_mapsto_iff in H0.
         destruct H0. assumption.
  
 
@@ -487,7 +494,7 @@ Proof.
   destruct m as [[[[froms n] l] tos] | ].
   - rewrite IG_add_adds_node. destruct (NatMap.mem from i) eqn:HHH.
     + exfalso. apply IG_match_returns_node in HH as HHHH. subst.
-      apply  WF.mem_in_iff in HHH.
+      apply  MFacts.mem_in_iff in HHH.
       
       assert (exists c, NatMap.MapsTo n c i). {
         firstorder.
@@ -577,7 +584,7 @@ Qed.
 Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
   not (NatMap.Empty m) <-> NatMap.is_empty m = false.
 Proof.
-  intros. unfold not. rewrite WF.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
+  intros. unfold not. rewrite MFacts.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
   - firstorder. congruence.
   - firstorder. congruence.
 Qed.
@@ -589,13 +596,11 @@ Theorem  IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A
 Proof.
   intros. unfold IG_isEmpty. rewrite <- _not_NatMap_Empty_is_empty_false. unfold not.
   destruct nodes; simpl; unfold IG_mkGraph.
-  - firstorder.
-    apply H0.
-    apply WP.elements_Empty.
+  - simpl. rewrite _insEdges_on_empty_is_empty.
+    rewrite MProps.elements_Empty. compute. firstorder.
 
-    rewrite _insEdges_on_empty_is_empty. compute. reflexivity.
-  - firstorder.
-    + apply WP.elements_Empty in H1.
+  - simpl. split; intros.
+    + apply MProps.elements_Empty in H1.
       assert (HH : not (exists (froms tos : Adj B), InA (fun (e1 e2 : (Node * (Context' A B))) => NatMap.eq_key_elt e1 e2) (fst l, (froms, snd l, tos)) [])). {
         unfold not. intros. destruct H2 as [froms [tos H2]]. inversion H2.
       }
@@ -604,7 +609,8 @@ Proof.
 
       apply (IG_mkGraph_any_ins_all_nodes _ B _ edges l) in H.
       assert (In l (l :: nodes)). {
-        firstorder.
+
+        simpl. auto.
       }
       apply H in H2. clear H.
 
@@ -614,7 +620,7 @@ Proof.
       exists fromss, toss.
 
       
-      apply -> WF.elements_mapsto_iff in H2.
+      apply -> MFacts.elements_mapsto_iff in H2.
       unfold IG_mkGraph in H2.
       assert (NatMap.elements (elt:=Adj B * A * Adj B) (_insEdges edges (_insNodes (l :: nodes) IG_empty)) = []). {
         assumption.
@@ -691,19 +697,19 @@ Proof.
   - 
 
   assert (NatMap.Equal ig (NatMap.add node c ig)). { 
-      apply WF.find_mapsto_iff in split.
+      apply MFacts.find_mapsto_iff in split.
 
-    apply WF.Equal_mapsto_iff.
+    apply MFacts.Equal_mapsto_iff.
     split; intros.
-    - apply WF.add_mapsto_iff.
+    - apply MFacts.add_mapsto_iff.
        bdestruct (node =? k).
       + subst. left. split.
       -- reflexivity.
-      -- apply WF.find_mapsto_iff in split. apply WF.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
+      -- apply MFacts.find_mapsto_iff in split. apply MFacts.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
       + right. split.
       -- assumption.
       -- assumption.
-    - apply WF.add_mapsto_iff in H. destruct H.
+    - apply MFacts.add_mapsto_iff in H. destruct H.
       + destruct H. subst. assumption.
       + destruct H. assumption.
   }
@@ -734,11 +740,11 @@ Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) 
 Proof.
   
   intros.
-  pose proof WP.cardinal_2.
+  pose proof MProps.cardinal_2.
   destruct H eqn:hu.
   assert (~ NatMap.In key (NatMap.remove key map)). {
     unfold not. intros.
-    apply WF.remove_in_iff in H1.
+    apply MFacts.remove_in_iff in H1.
     destruct H1.
     destruct H1.
     reflexivity.
@@ -746,16 +752,16 @@ Proof.
   }
   apply (H0 _ _ map _ x) in H1.
   - rewrite <- H1. reflexivity.
-  - unfold WP.Add. 
+  - unfold MProps.Add. 
   
   
   
-  unfold WP.Add. intros. bdestruct (y =? key).
+  unfold MProps.Add. intros. bdestruct (y =? key).
   + rewrite H2. rewrite e. assert (key = key). {
     reflexivity.
-  }  pose proof WF.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-  + pose proof WF.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-    pose proof WF.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
+  }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
+  + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
+    pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
   
 Defined.
 
@@ -985,8 +991,8 @@ Proof.
               simpl.
               apply right_lex.
               auto.
-            } specialize (IH H0). firstorder.
-
+            } specialize (IH H0).
+            apply IH. apply H.
 Qed.
 
 
@@ -1132,9 +1138,9 @@ Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
 
 Require Import Setoid Morphisms.
 
-(* Instance Proper_add {A B : Type} : Proper ((@contextEquiv A B) ==> (@IG_equiv A B) ==> (@IG_equiv A B)) add. 
+Instance Proper_add {A B : Type} : Proper ((@contextEquiv A B) ==> (@IG_equiv A B) ==> (@IG_equiv A B)) add. 
 Proof.
-Admitted. *)
+Admitted.
 
 
 
@@ -1443,22 +1449,19 @@ Proof.
     - unfold IG_matchAny in mat. destruct (IG_labNodes x) eqn:labNodes.
     + inversion mat. subst. unfold IG_labNodes in labNodes.
       apply map_eq_nil in labNodes.
-      apply WP.elements_Empty in labNodes.
+      apply MProps.elements_Empty in labNodes.
       assert (NatMap.Equal i IG_empty). {
         unfold IG_empty.
         unfold NatMap.Equal.
         intros.
         Search NatMap.find.
-        rewrite WF.empty_o.
-        apply WF.not_find_in_iff.
+        rewrite MFacts.empty_o.
+        apply MFacts.not_find_in_iff.
         unfold not. intros.
         Search NatMap.In.
         unfold NatMap.Empty in labNodes.
-        unfold NatMap.Raw.Empty in labNodes.
         unfold NatMap.In in H0.
-        unfold NatMap.Raw.PX.In in H0.
-        firstorder.
-
+        admit.
       }
       destruct (rewriteP i IG_empty). 
       -- admit.
@@ -1492,21 +1495,9 @@ Proof.
   unfold IG_to_RG at 2.
   apply (IG_ufold_rec A B). 
   - admit. (* Here, I need some thinking *)
-  - unfold IG_to_RG. rewrite !IG_ufold_equation. destruct (IG_matchAny IG_empty) eqn:mat.
-    destruct m eqn:mm.
-    + admit. (* Easy contradiction*)
-    + destruct (IG_matchAny (add c IG_empty)) eqn:mat0. destruct m0 eqn:mm0.
-      -- apply _matchAny_add_IG_empty in mat0. 
-         destruct c as [[[froms node] label] tos].
-         destruct mat0.
-         subst.
-         assert ((IG_ufold A B (RG_unlE nat) RG_add RG_empty i0) = RG_empty). {
-           admit.
-         }
-         rewrite H0.
-         firstorder.
-      -- admit. (* Easy contradiction *)
-  - intros. unfold IG_to_RG. 
+  - intros. unfold IG_to_RG.
+   rewrite !IG_ufold_equation.
+
   
 
 Admitted.

@@ -231,7 +231,7 @@ Proof.
     - simpl in H. destruct H.
         + subst. simpl. destruct (negb (NatSet.mem x s)) eqn:mem.
             -- right. firstorder.
-            -- left. apply Bool.negb_false_iff in mem. apply NatSet.mem_2 in mem. apply NatSet.elements_1 in mem.
+            -- left. apply Bool.negb_false_iff in mem. apply NatSet.mem_spec in mem. apply NatSet.elements_spec1 in mem.
                 apply SetoidList.InA_alt in mem. destruct mem. destruct H. subst. assumption.
         + specialize (IHl H). destruct IHl.
             -- left.  assumption.
@@ -253,7 +253,7 @@ Proof.
     - simpl. firstorder.
     - split; intros.
         + destruct H. simpl in H. destruct H. destruct H.
-            -- subst. simpl. apply in_or_app. left. apply NatSet.elements_1 in H0.
+            -- subst. simpl. apply in_or_app. left. apply NatSet.elements_spec1 in H0.
                 apply SetoidList.InA_alt in H0. destruct H0. destruct H. subst. assumption.
             -- assert (exists x : NatSet.t, In x l /\ NatSet.In y x). { firstorder.
             } destruct IHl. specialize (H2 H1).
@@ -261,7 +261,7 @@ Proof.
         + simpl in H.  apply in_app_or in H.  destruct H.
             -- exists a. split.
                 ++ simpl. auto.
-                ++ apply NatSet.elements_2. apply SetoidList.InA_alt. exists y. auto.
+                ++ apply NatSet.elements_spec1. apply SetoidList.InA_alt. exists y. auto.
             -- destruct IHl. apply NatList_filterOutOf_makes_subset in H. apply H1 in H. firstorder.
 Qed.
 
@@ -269,8 +269,8 @@ Lemma NatSet_In_is_In_elements : forall (s : NatSet.t) (x : nat),
     NatSet.In x s <-> In x (NatSet.elements s).
 Proof.
     intros. split; intros.
-    - apply NatSet.elements_1 in H. apply SetoidList.InA_alt in H. destruct H. destruct H. subst. assumption.
-    - apply NatSet.elements_2. apply SetoidList.InA_alt. exists x. auto.
+    - apply NatSet.elements_spec1 in H. apply SetoidList.InA_alt in H. destruct H. destruct H. subst. assumption.
+    - apply NatSet.elements_spec1. apply SetoidList.InA_alt. exists x. auto.
 Qed.
 
 
@@ -284,13 +284,18 @@ Lemma _singleStep_returns_only_nodes : forall (ag : AG nat) (from : NatSet.t),
     forall x, NatSet.In x (_singleStep ag from) -> (AG_to_RG_unlE ag).(RG_nodes) x.
 Proof.
     intros. induction ag.
-    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
-    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
-    - simpl. simpl in H. apply NatSet.union_1 in H. firstorder.
-    - simpl. simpl in H. apply NatSet.union_1 in H. destruct H.
-        + apply NatSet.union_1 in H. firstorder.
+    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. destruct H.
+    - simpl in H. apply NatSet_In_is_In_elements in H. simpl in H. destruct H.
+    - simpl. simpl in H. apply NatSet.union_spec in H. destruct H.
+     + left. apply IHag1. assumption.
+     + right. apply IHag2. assumption.
+     
+    - simpl. simpl in H. apply NatSet.union_spec in H. destruct H. 
+        + apply NatSet.union_spec in H. destruct H.
+            -- left. apply IHag1. assumption.
+            -- right. apply IHag2. assumption.
         + destruct (NatSet.is_empty (NatSet.inter (AG_nodeSet ag1) from)) eqn:split.
-            -- apply NatSet_In_is_In_elements in H. simpl in H. firstorder.
+            -- apply NatSet_In_is_In_elements in H. simpl in H. destruct H.
             -- right. apply In_AG_nodeSet_is_In_RG. assumption.
 Qed.
 
@@ -324,7 +329,7 @@ Proof.
     pose proof _upToNStepsCap_returns_only_nodes.
     specialize (H1 ag (NatSet.inter from (AG_nodeSet ag)) (NatSet.inter from (AG_nodeSet ag)) (S n) x).
     apply H1.
-    - unfold NatSet.Subset. intros. apply NatSet.inter_2 in H2. assumption.
+    - unfold NatSet.Subset. intros. apply NatSet.inter_spec in H2. destruct H2. assumption.
     - unfold _upToNStepsCapCaller in H. apply H.
     - assumption.
 Qed.
@@ -369,7 +374,7 @@ Admitted.
 Lemma NoDup_NatSet_elements : forall (s : NatSet.t),
     NoDup (NatSet.elements s).
 Proof.
-    intros. pose proof (NatSet.elements_3w s). induction (NatSet.elements s).
+    intros. pose proof (NatSet.elements_spec2w s). induction (NatSet.elements s).
     - apply NoDup_nil.
     - inversion H. apply NoDup_cons.
         + unfold not in *. intros. apply H2. apply SetoidList.InA_alt. exists a. auto.
@@ -477,8 +482,9 @@ Proof.
     unfold sameDistanceCaller.
     apply bothOneStep.
     apply bothInStart.
-    - simpl. compute. exists 1, tt. firstorder.
-    - simpl. compute. exists 1, tt. firstorder.
+    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder. apply SProps.MP.FM.singleton_iff. reflexivity.
+ 
+    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder. apply SProps.MP.FM.singleton_iff. reflexivity.
 Qed.
 
 
@@ -492,9 +498,8 @@ Proof.
     unfold distanceSecondOneLower.
     apply bothOneStep.
     apply bothInStart.
-    - simpl. compute. exists 3, tt. firstorder.
-        + exists 1, tt. firstorder.
-    - simpl. compute. exists 1, tt. firstorder.
+    - simpl. unfold RG_reachableInOneStep. exists 3, tt. firstorder. exists 1, tt. firstorder. apply SProps.MP.FM.singleton_iff. reflexivity. 
+    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder. apply SProps.MP.FM.singleton_iff. reflexivity.
 Qed.
 
 
