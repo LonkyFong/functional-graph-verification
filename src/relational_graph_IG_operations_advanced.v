@@ -12,22 +12,22 @@ Require Import Coq.Arith.Arith.
 Require Import Bool.
 
 
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.util.
 
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.relational_graph_theory.
 
 
 Require Import Coq.Sets.Ensembles.
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.NatSet.
 *)
 
 Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
-Require Import MyProject.project.util.util.
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_IG_operations.
+Require Import MyProject.src.util.util.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_IG_operations.
 
 
 (* Auxiliary graph class functions: *)

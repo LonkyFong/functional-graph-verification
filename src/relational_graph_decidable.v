@@ -1,13 +1,13 @@
 
 
-(* Require Import MyProject.project.util.NatSet.
-Require Import MyProject.project.util.util. *)
+(* Require Import MyProject.src.util.NatSet.
+Require Import MyProject.src.util.util. *)
 
 
 Require Import List.
 Import ListNotations.
 
-Require Import MyProject.project.util.NatMap.
+Require Import MyProject.src.util.NatMap.
 
 Print NatMap.
 
@@ -56,7 +56,7 @@ Definition RG_dec_equiv {A B : Type} (rg1 rg2 : RG_dec A B) : Prop :=
     (NatMap.Equal rg1.(RG_dec_nodes) rg2.(RG_dec_nodes)) 
     /\ (PairNatMap.Equal rg1.(RG_dec_edges) rg2.(RG_dec_edges)) 
 .
-Notation "g1 === g2" := (RG_dec_equiv g1 g2) (at level 79, right associativity).
+Notation "g1 R== g2" := (RG_dec_equiv g1 g2) (at level 79, right associativity).
 
 
 Definition RG_dec_unlE (A : Type) := RG_dec A unit.

@@ -6,19 +6,19 @@ Require Import List.
 Require Import Bool.
 Import ListNotations.
 
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.util.
 
-(* Require Import MyProject.project.relational_graph.
+(* Require Import MyProject.src.relational_graph.
  *)
 
 Require Import Coq.Sets.Ensembles.
 Require Import Setoid Morphisms.
 
 
-Require Import MyProject.project.util.NatSet.
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_theory.
-Require Import MyProject.project.relational_graph_IG_operations.
+Require Import MyProject.src.util.NatSet.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
+Require Import MyProject.src.relational_graph_IG_operations.
 
 
 Open Scope nat_scope.
@@ -120,7 +120,7 @@ Qed.
 
 
 Lemma RG_insEdge_on_empty_is_empty : forall (A B : Type) (edge : (RG_Edge A B)),
-  _insEdge edge RG_empty === RG_empty.
+  _insEdge edge RG_empty R== RG_empty.
 Proof.
   intros. unfold RG_equiv. destruct edge as [[from to] lab]. split.
   - firstorder.
@@ -130,7 +130,7 @@ Qed.
 
 
 Lemma RG_insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (RG_Edge A B)),
-  _insEdges edges RG_empty === RG_empty.
+  _insEdges edges RG_empty R== RG_empty.
 Proof.
   intros. pose proof RG_insEdge_on_empty_is_empty. induction edges.
   - firstorder.
@@ -171,7 +171,7 @@ Proof.
 Qed.
 
 (* Lemma RG_ins_only_edge_isEmpty : forall (A B : Type) (edge : (RG_Edge A B)),
-  _insEdge edge RG_empty === RG_empty.
+  _insEdge edge RG_empty R== RG_empty.
 Proof.
   intros. unfold RG_equiv. destruct edge as [[from to] lab]. split.
   - firstorder.

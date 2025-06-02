@@ -10,22 +10,22 @@ Require Import Coq.Arith.Arith.
 Require Import Bool.
 
 
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.util.
 
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.relational_graph_theory.
 
 
 Require Import Coq.Sets.Ensembles.
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.NatSet.
 *)
 
 Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
-Require Import MyProject.project.relational_graph.
+Require Import MyProject.src.relational_graph.
 
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.util.
 
 
 
@@ -72,7 +72,7 @@ Notation "c1 C== c2" := (RG_Context_equiv c1 c2) (at level 79, right associativi
 
 Definition RG_Decomp_equiv {A B : Type} (d1 d2 : RG_Decomp A B) : Prop :=
   match d1, d2 with | ((opt1, context1), rg1), ((opt2, context2), rg2) =>
-    (opt1 <-> opt2) /\ context1 C== context2 /\ (rg1 === rg2)
+    (opt1 <-> opt2) /\ context1 C== context2 /\ (rg1 R== rg2)
   end
 .
 

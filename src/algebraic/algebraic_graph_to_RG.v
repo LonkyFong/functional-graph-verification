@@ -1,10 +1,9 @@
-Require Import MyProject.project.algebraic.algebraic_graph.
-Require Import MyProject.project.relational_graph.
-(* Notice how this file does not need relational_graph_theory  *)
-(* Require Import MyProject.project.relational_graph_theory. *)
+Require Import MyProject.src.algebraic.algebraic_graph.
+Require Import MyProject.src.relational_graph.
 
+(* Defining how an AG converts to an RG *)
 
-(* Defining Conversion from Algebraic Graph to Record Graph *)
+(* Conversion for each constructor *)
 Definition RG_unlE_empty {A : Type} : RG_unlE A.
 Proof.
     exact RG_empty.
@@ -45,19 +44,16 @@ Proof.
     RG_valid_prover_withs rg1 rg2.
 Defined.
 
-
-
-
+(* Putting it all together *)
 Fixpoint AG_to_RG_unlE {A : Type} (ag : AG A) : RG_unlE A :=
     match ag with
     | Empty => RG_unlE_empty
     | Vertex x => RG_unlE_singleton x
     | Overlay ag1 ag2 => RG_unlE_overlay (AG_to_RG_unlE ag1) (AG_to_RG_unlE ag2)
     | Connect ag1 ag2 => RG_unlE_connect (AG_to_RG_unlE ag1) (AG_to_RG_unlE ag2)
-    end
-.
+    end.
 
-(* TODO: this coercion may or may not be good to have *)
+(* Coercion to be able to "apply" RG functions to AGs directly *)
 Coercion AG_to_RG_unlE : AG >-> RG_unlE.
 
 

@@ -15,21 +15,21 @@ Require Import OrderedTypeEx.
 Require Import Setoid Morphisms.
 
 
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.NatSet.
 
-Require Import MyProject.project.inductive.basic.inductive_graph_basic.
+Require Import MyProject.src.inductive.basic.inductive_graph_basic.
 
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
 
-Require Import MyProject.project.inductive.basic.inductive_graph_basic_to_RG.
+Require Import MyProject.src.inductive.basic.inductive_graph_basic_to_RG.
 
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG_basic s  *)
 
 
 (* Section to make rewrite work with IG_equiv *)
-(* This proof is based on === being an equivalence relation *)
+(* This proof is based on R== being an equivalence relation *)
 Instance IG_basic_Equivalence : Equivalence IG_basic_equiv.
 Proof.
   G_derived_equivalence_prover nat unit IG_basic_to_RG_unlE.

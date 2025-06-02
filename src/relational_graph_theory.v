@@ -1,6 +1,6 @@
 Require Import Setoid Morphisms.
 
-Require Import MyProject.project.relational_graph.
+Require Import MyProject.src.relational_graph.
 
 (* Stating and proving Lemmas and Theorems about RGs *)
 
@@ -35,7 +35,7 @@ Ltac G_derived_equivalence_prover A B f :=
 
 
 (* Some theorems about RG_transpose: *)
-Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) === rg.
+Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) R== rg.
 Proof.
     firstorder.   
 Qed.

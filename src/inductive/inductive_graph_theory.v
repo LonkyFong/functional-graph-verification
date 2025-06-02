@@ -15,21 +15,21 @@ Require Import OrderedTypeEx.
 Require Import Setoid Morphisms.
 
 
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.NatSet.
 
-Require Import MyProject.project.inductive.inductive_graph.
-Require Import MyProject.project.inductive.inductive_graph_to_RG.
+Require Import MyProject.src.inductive.inductive_graph.
+Require Import MyProject.src.inductive.inductive_graph_to_RG.
 
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
 
-Require Import MyProject.project.util.NatMap.
+Require Import MyProject.src.util.NatMap.
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG s  *)
 
 
 (* Section to make rewrite work with IG_equiv *)
-(* This proof is based on === being an equivalence relation *)
+(* This proof is based on R== being an equivalence relation *)
 Instance IG_Equivalence {A B : Type} : Equivalence (@IG_equiv A B).
 Proof.
   G_derived_equivalence_prover nat unit (@ IG_to_RG A B).  
@@ -153,7 +153,7 @@ Qed.
 
 
 (* util *)
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.util.
 
 Check _addSucc.
 Check _addSucc 3.
@@ -1122,7 +1122,7 @@ Admitted.
 
 
 Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
-  RG_transpose (RG_add c rg) === RG_add (_transposeContext c) (RG_transpose rg).
+  RG_transpose (RG_add c rg) R== RG_add (_transposeContext c) (RG_transpose rg).
 Proof.
   intros.
   firstorder.
@@ -1277,7 +1277,7 @@ Admitted.
 
 
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
-  IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
+  IG_to_RG (add c ig) R== RG_add c (IG_to_RG ig). 
 Proof.
   intros.
 
@@ -1292,7 +1292,7 @@ Qed.
 
 Lemma IG_to_RG_distributes_over_add' : forall {A B : Type} (cIG : Context A B * IG A B),
   let '(c, ig) := cIG in
-  IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
+  IG_to_RG (add c ig) R== RG_add c (IG_to_RG ig). 
 Proof.
   intros A B.
         apply (well_founded_induction
@@ -1366,7 +1366,7 @@ Admitted.
 (* Showing properties about transpose: *)
 
 Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
-    IG_to_RG (IG_grev ig) === RG_transpose (IG_to_RG ig).
+    IG_to_RG (IG_grev ig) R== RG_transpose (IG_to_RG ig).
 Proof.
   intros A B.
   apply (well_founded_induction
@@ -1489,7 +1489,7 @@ Admitted.
 
 
 Lemma IG_to_RG_distributes_over_add_using_IG_induction : forall {A B : Type} (c : Context A B) (ig : IG A B),
-  IG_to_RG (add c ig) === RG_add c (IG_to_RG ig). 
+  IG_to_RG (add c ig) R== RG_add c (IG_to_RG ig). 
 Proof.
   intros.
   unfold IG_to_RG at 2.

@@ -8,13 +8,13 @@ Import ListNotations.
 Require Import Coq.Sets.Ensembles.
 
 
-Require Import MyProject.project.util.util.
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.util.
+Require Import MyProject.src.util.NatSet.
 
-Require Import MyProject.project.inductive.basic.inductive_graph_basic.
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_theory.
-Require Import MyProject.project.relational_graph_IG_operations.
+Require Import MyProject.src.inductive.basic.inductive_graph_basic.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
+Require Import MyProject.src.relational_graph_IG_operations.
 
 
 (* Defining Conversion function from IG_basic to RG_unlE (going towards a model-based approach) *)
@@ -88,7 +88,7 @@ Definition IG_basic_Propify_labNodes (result : list Node) : Ensemble Node :=
 
 (*   {-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-} *)
 Theorem IG_basic_empty_relate :
-  IG_basic_to_RG_unlE IG_basic_empty === RG_empty.
+  IG_basic_to_RG_unlE IG_basic_empty R== RG_empty.
 Proof.
   firstorder.
 Qed.
@@ -108,7 +108,7 @@ Proof.
 Admitted.
 
 Theorem IG_basic_mkGraph_relate : forall (nodes : list Node) (edges : list (Node * Node)),
-  IG_basic_to_RG_unlE (IG_basic_mkGraph nodes edges) === RG_mkGraph nodes (map (fun '(n1, n2) => (n1, n2, tt)) edges).
+  IG_basic_to_RG_unlE (IG_basic_mkGraph nodes edges) R== RG_mkGraph nodes (map (fun '(n1, n2) => (n1, n2, tt)) edges).
 Proof.
 Admitted.
 

@@ -10,9 +10,9 @@ Require Import Bool.
 Require Import Coq.Sorting.Permutation.
 
 
-Require Import MyProject.project.relational_graph_decidable.
-Require Import MyProject.project.util.util.
-Require Import MyProject.project.util.NatMap.
+Require Import MyProject.src.relational_graph_decidable.
+Require Import MyProject.src.util.util.
+Require Import MyProject.src.util.NatMap.
 
 Require Import Coq.Arith.Arith.
 
@@ -65,9 +65,9 @@ Notation "c1 C== c2" := (Context_equiv c1 c2) (at level 79, right associativity)
 Definition Decomp_equiv {A B : Type} (d1 d2 : Decomp A B) : Prop :=
   match d1, d2 with
     | (Some (context1), rg1), (Some (context2), rg2) =>
-      context1 C== context2 /\ (rg1 === rg2)
+      context1 C== context2 /\ (rg1 R== rg2)
     | (None, rg1), (None, rg2) =>
-      rg1 === rg2
+      rg1 R== rg2
     | _, _ => False
   end
 .

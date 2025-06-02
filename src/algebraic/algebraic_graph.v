@@ -11,7 +11,7 @@ Require Import Coq.Arith.EqNat.
 Require Import Coq.Arith.Peano_dec.
 Require Import Recdef.
 
-Require Import MyProject.project.util.NatSet.
+Require Import MyProject.src.util.NatSet.
 
 (* Defining an algebraic_graph (AG) and its operations. There are only single edges.
 It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
@@ -30,7 +30,6 @@ Arguments Connect {A}.
 Definition from_nat (n:nat) : AG nat :=
     Vertex n.
 Coercion from_nat : nat >-> AG.
-
 
 
 

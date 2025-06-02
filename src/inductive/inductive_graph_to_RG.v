@@ -6,13 +6,13 @@ Require Import List.
 Require Import Bool.
 Import ListNotations.
 
-Require Import MyProject.project.inductive.inductive_graph.
-Require Import MyProject.project.relational_graph.
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.inductive.inductive_graph.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
 
-Require Import MyProject.project.util.NatMap.
-Require Import MyProject.project.util.NatSet.
-Require Import MyProject.project.util.util.
+Require Import MyProject.src.util.NatMap.
+Require Import MyProject.src.util.NatSet.
+Require Import MyProject.src.util.util.
 
 (* Defining Conversion from Inductive Graph to Relational Graph *)
 (* 

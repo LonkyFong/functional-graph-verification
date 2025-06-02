@@ -1,27 +1,30 @@
 Require Import Setoid Morphisms.
+Require Import Coq.Sets.Ensembles.
 
+Require Import List.
+Require Import Coq.Sorting.Permutation.
 
-Require Import MyProject.project.algebraic.algebraic_graph.
+Require Import MyProject.src.util.NatSet.
 
-Require Import MyProject.project.algebraic.algebraic_graph_to_RG.
+Require Import MyProject.src.relational_graph.
+Require Import MyProject.src.relational_graph_theory.
 
-Require Import MyProject.project.relational_graph.
-(* Notice how this file "does"  need relational_graph_theory  *)
-Require Import MyProject.project.relational_graph_theory.
+Require Import MyProject.src.algebraic.algebraic_graph.
+Require Import MyProject.src.algebraic.algebraic_graph_to_RG.
+
 
 
 
 
 Ltac AG_axiom_proof_automation_via_RG H H0 :=
-    unfold AG_equiv; intros; split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto
-.
+    unfold AG_equiv; intros; split; split; intros; simpl; simpl in H; repeat (destruct H || destruct H0); auto.
 
 (* These are the "8 axioms" originally proposed by  functional graphs with class *)
 
 (* +++ is commutative and associative *)
 Theorem AG_Overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
 Proof.
-        AG_axiom_proof_automation_via_RG H H0.
+    AG_axiom_proof_automation_via_RG H H0.
 Qed.
 
 Theorem AG_Overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
@@ -75,7 +78,7 @@ Qed.
 
 
 (* Section to make rewrite work with equiv_AG *)
-(* This proof is based on === being an equivalence relation *)
+(* This proof is based on R== being an equivalence relation *)
 Instance AG_Equivalence {A : Type} : Equivalence (@AG_equiv A).
 Proof.
     G_derived_equivalence_prover A unit (@AG_to_RG_unlE A).
@@ -197,9 +200,7 @@ Qed.
 
 (* Here, I start proving things about BFS *)
 
-Require Import List.
 
-Require Import MyProject.project.util.NatSet.
 
 Lemma if_result_same : forall (A : Type) (b : bool) (x : A), 
     (if b then x else x) = x.
@@ -459,14 +460,12 @@ Admitted.
 
 
 
-Require Import Coq.Sorting.Permutation.
 
 
 (* Now, the specification of a BFS search order: *)
 
 
 
-Require Import Coq.Sets.Ensembles.
 
 
 Inductive sameDistance {A B : Type} (rg : RG A B) : Ensemble A -> Ensemble A -> A -> A -> Prop :=
@@ -532,7 +531,7 @@ Admitted.
 (* Here some things about "Transpose:" *)
 
 Theorem AG_transpose_is_RG : forall (ag : AG nat),
-    AG_to_RG_unlE (transpose ag) === RG_transpose (AG_to_RG_unlE ag). 
+    AG_to_RG_unlE (transpose ag) R== RG_transpose (AG_to_RG_unlE ag). 
 Proof.
     intros. induction ag; simpl; firstorder.
 Qed.
