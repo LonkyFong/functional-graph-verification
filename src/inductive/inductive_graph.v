@@ -8,9 +8,10 @@ Import ListNotations.
 
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.NatSet.
-(* util *)
 Require Import GraphVerification.src.util.util.
+
 Open Scope nat_scope.
+
 
 (* This file defines an inductive graph using maps like Erwig *)
 (* Note that A is the node label type and B is the edge label type *)
