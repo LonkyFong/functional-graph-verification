@@ -1,0 +1,282 @@
+Require Import Recdef.
+Require Import Lia.
+
+Require Import Coq.Arith.Arith.
+Require Import Coq.Arith.Wf_nat.
+Require Import Coq.Lists.List.
+Require Import Coq.Wellfounded.Wellfounded.
+Require Import Coq.Wellfounded.Lexicographic_Product.
+Require Import Coq.Structures.OrderedType.
+Require Import Coq.Structures.OrderedTypeEx.
+
+Import ListNotations.
+Require Import Coq.Wellfounded.Inverse_Image.
+Require Import Coq.Relations.Relation_Operators.
+
+
+Require Import GraphVerification.src.util.NatMap.
+Require Import GraphVerification.src.inductive.inductive_graph.
+
+Require Import GraphVerification.src.util.NatMap.
+Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.inductive_graph_measure.
+
+
+Definition suc {A B : Type} (c : Context A B) : list Node :=
+    let '(_, _, _, tos) := c in map snd tos.
+
+
+
+
+Definition dep_arg_pair_s (A B : Type) := {_ : IG A B & list Node}. 
+
+Definition lexord_dep_arg_pair_s (A B : Type) :=
+    lexprod (IG A B)
+            (fun a => list Node)
+            (fun ig1 ig2 => Peano.lt (NatMap.cardinal ig1) (NatMap.cardinal ig2))
+            (fun a => fun l1 l2 => Peano.lt (length l1) (length l2)).
+
+
+(* Prove lexicographic order is well-founded *)
+Lemma wf_lexord_dep_arg_pair_s (A B : Type) : well_founded (lexord_dep_arg_pair_s A B).
+Proof.
+    apply wf_lexprod.
+    - apply well_founded_ltof. 
+    - intros. apply well_founded_ltof.
+Qed.
+
+
+
+
+
+Definition prodTo_dep_arg_pair_s {A B : Type} (p : IG A B * list Node) : dep_arg_pair_s A B := 
+    existT _ (fst p) (snd p).
+
+Definition lexord_arg_pair_s (A B : Type) (igNodes1 igNodes2 : IG A B * list Node) : Prop :=  
+    lexord_dep_arg_pair_s _ _ (prodTo_dep_arg_pair_s igNodes1) (prodTo_dep_arg_pair_s igNodes2).
+
+
+(* Prove lexicographic order is well-founded *)
+Lemma wf_lexord_arg_pair_s (A B : Type) : well_founded (lexord_arg_pair_s A B).
+Proof.
+  unfold lexord_arg_pair_s.
+  pose proof (wf_lexord_dep_arg_pair_s A B).
+  pose proof (wf_inverse_image (IG A B * list Node) _ (lexord_dep_arg_pair_s A B)).
+
+  apply (H0 (@prodTo_dep_arg_pair_s A B)) in H.
+  assumption.
+Qed.
+
+(* Lemma IG_dft'terminates1 : forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B)(n : Node) (ns : list Node),
+  nodes = n :: ns ->
+  nodesIg = (n :: ns, ig) ->
+  IG_isEmpty ig = false ->
+  forall (m : MContext A B) (same : IG A B) (cntxt : Context A B),
+  m = Some cntxt -> IG_match n ig = (Some cntxt, same) -> lex_prodDfs A B (suc cntxt ++ ns, same) (n :: ns, ig).
+Proof.
+  intros. unfold lex_prodDfs. unfold order_dep_arg_pair_search. 
+  unfold prodTodPairDfs.
+  simpl.
+  apply left_lex.
+
+  unfold IG_match in H3.
+  destruct (NatMap.find n ig) eqn:split.
+  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+    unfold _cleanSplit in split0. 
+    assert (S (NatMap.cardinal i) = NatMap.cardinal (ig)). {
+      destruct c.
+      destruct p.
+      inversion split0.
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      rewrite _IG_updAdj_does_not_change_cardinality.
+      apply _map_find_some_remove_lowers_cardinality.
+      exists (a0, a1, a).
+      apply split.
+
+    }
+    assert (same = i). {
+      inversion H3.
+      reflexivity.
+    } 
+    rewrite H5. rewrite <- H4. lia.
+
+  + inversion H3.
+Qed.
+
+Lemma IG_dft'terminates2 :
+  forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B) (n : Node) (ns : list Node),
+  nodes = n :: ns ->
+  nodesIg = (n :: ns, ig) ->
+  IG_isEmpty ig = false ->
+  forall (m : MContext A B) (same : IG A B),
+  m = None -> IG_match n ig = (None, same) -> lex_prodDfs A B (ns, same) (n :: ns, ig).
+Proof.
+  intros. unfold lex_prodDfs. unfold order_dep_arg_pair_search.
+  unfold prodTodPairDfs. simpl.
+
+  unfold IG_match in H3.
+  destruct (NatMap.find n ig) eqn:split.
+  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
+    inversion H3.
+  
+  + inversion H3. apply right_lex. auto.
+Qed.
+  
+Lemma IG_dft'terminates3 : forall A B : Type, well_founded (lex_prodDfs A B).
+Proof.
+  apply wf_lex_prodDfs.
+Qed. *)
+
+
+
+
+
+
+Function IG_dfs' {A B : Type} (igNodes : IG A B * list Node) {wf (wf_lexord_arg_pair_s A B) igNodes} : list Node := 
+  match igNodes with
+  | (ig, nodes) =>
+    match nodes with
+    | [] => []
+    | n :: ns => if IG_isEmpty ig then [] else
+                  match IG_match n ig with
+                  | (Some cntxt, rest) => n :: IG_dfs' (rest, (suc cntxt ++ ns))
+                  | (None, same) => IG_dfs' (same, ns)
+                  end
+    end
+  end.
+Proof.
+  - exact IG_dft'terminates1.
+  - exact IG_dft'terminates2.
+  - exact IG_dft'terminates3.
+Defined.
+
+
+Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
+  IG_dfs' A B (nodes, ig).
+
+Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation; simpl).
+
+
+
+Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
+  IG_dfs'_computer.
+  exists [].
+  reflexivity.
+Defined.
+
+Require Import String.
+
+Example IG_dfs'_test' : exists n, IG_dfs'caller [1] (@IG_mkGraph string string [(1, "one"); (2, "two")] [ 
+  (1,2, "link")
+  ]) = n.
+  simpl.
+  IG_dfs'_computer.
+
+  exists [1; 2].
+
+  reflexivity.
+Qed.
+
+
+
+
+Example IG_dfs'_test'' : exists n, IG_dfs'caller [1] (IG_mkGraph [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five")
+] [ 
+  (1,2, "link");
+  (2,3, "link")
+  ]) = n.
+  IG_dfs'_computer.
+
+  exists [1; 2; 3].
+  reflexivity.
+Qed.
+
+Compute 1 + 2.
+
+Lemma always_exists : forall l : list Node, exists n : list Node, l = n.
+Proof.
+  intros. exists l. reflexivity.
+Qed.
+
+
+(* This should be able to compile, but is just way too slow *)
+(* Example IG_dfs'_test''' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
+  unfold IG_dfs'caller.
+
+  IG_dfs'_computer.
+  apply always_exists.
+
+Qed. *)
+
+
+(* Now, some queue implementation stuff, such that I can try implementing a quick BFS*)
+
+Definition Queue (A : Type) : Type :=
+  (list A) * (list A).
+
+
+Definition emptyQueue {A : Type} : Queue A := ([], []).
+
+Definition enqueue {A : Type} (a : A) (q : Queue A) : Queue A :=
+  match q with
+  | (q1, q2) => (a :: q1, q2)
+  end.
+
+Definition removeFirst {A : Type} (l : list A) : list A :=
+  match l with
+  | [] => []
+  | a::l => l
+  end.
+
+Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
+  match q with
+  | ([], []) => (None, q)
+  | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
+  | (q1, a2::q2) => (Some a2, (q1, q2))
+  end.
+
+
+(* Test the implementation *)
+Compute dequeue (enqueue 1 (enqueue 2 (enqueue 3 (emptyQueue)))).
+Compute dequeue (emptyQueue).
+Compute dequeue (enqueue 1 (emptyQueue)).
+Compute dequeue (enqueue 1 (enqueue 2 (emptyQueue))).
+
+
+
+
+(* Transpose: *)
+
+(* TODO: this remination proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
+Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
+  match IG_matchAny ig with
+    | (Some c, rest) => f c (IG_ufold f acc rest)
+    | (None, rest) => acc
+  end
+.
+Proof.
+Admitted.
+
+Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure NatMap.cardinal ig} : IG C D :=
+  match IG_matchAny ig with
+    | (Some c, rest) => IG_and (f c) (IG_gmap_diy f rest)
+    | (None, rest) => IG_gmap_diy f rest
+  end
+.
+Proof.
+Admitted.
+
+
+Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
+  IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
+
+Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
+  let '(froms, node, l, tos) := c in (tos, node, l, froms). 
+
+  
+Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
+  IG_gmap _transposeContext ig
+.
+
+
+

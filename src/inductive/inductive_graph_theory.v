@@ -1175,7 +1175,7 @@ Admitted.
 
 (* This is a useful, and hopefully true lemma *)
 Lemma matchIsAdd : forall (A B : Type) (n : Node) (ig i : IG A B) (c : Context A B),
-  IG_match n ig = (Some c,  i) -> ig I== add c i.
+  IG_match n ig = (Some c,  i) -> ig I== IG_and c i.
 Proof.
   intros. unfold IG_equiv.
   unfold IG_match in H. destruct (NatMap.find n ig) eqn:HH.
@@ -1190,7 +1190,7 @@ Proof.
     rewrite H4 in *. clear H4.
     clear H.
 
-    (* Now, it's down to showing that if you add a contexrt into an ig, that has just been cleared of it, you get the same ig *)
+    (* Now, it's down to showing that if you IG_and a contexrt into an ig, that has just been cleared of it, you get the same ig *)
     unfold add.
     destruct (NatMap.mem node (_updAdj (filter (fun '(_, n0) => negb (n0 =? node)) tos)
     (fun (_ : B) (y : Context' A B) => _clearPred node y)
@@ -1211,13 +1211,13 @@ Admitted.
 
 
 Lemma matchAnyIsAdd : forall (A B : Type) (ig i : IG A B) (c : Context A B),
-  IG_matchAny ig = (Some c,  i) -> ig = add c i.
+  IG_matchAny ig = (Some c,  i) -> ig = IG_and c i.
 Proof.
   intros.
 Admitted.
 
 Lemma matchAnyIsAdd' : forall (A B : Type) (ig i : IG A B) (c : Context A B),
-  IG_matchAny ig = (Some c,  i) -> ig I== add c i.
+  IG_matchAny ig = (Some c,  i) -> ig I== IG_and c i.
 Proof.
   intros. unfold IG_equiv.
   unfold IG_matchAny in H.
@@ -1227,7 +1227,7 @@ Admitted.
 
 
 Lemma IG_ufold_nothing : forall (A B : Type) (ig : IG A B),
-  IG_ufold _ _ _ add IG_empty ig I== ig.
+  IG_ufold _ _ _ IG_and IG_empty ig I== ig.
 Proof.
   intros A B.
         apply (well_founded_induction
@@ -1253,7 +1253,7 @@ Admitted.
 
 
 Lemma IG_ufold_add : forall (A B : Type)  (c : Context A B) (ig : IG A B),
-  IG_ufold _ _ _ add IG_empty (add c ig) I== add c (IG_ufold _ _ _ add IG_empty ig).
+  IG_ufold _ _ _ IG_and IG_empty (add c ig) I== IG_and c (IG_ufold _ _ _ IG_and IG_empty ig).
 Proof.
   intros.
   rewrite IG_ufold_nothing.
@@ -1387,7 +1387,7 @@ Proof.
       destruct c as [[[froms node] label] tos].
       
       rewrite IG_to_RG_distributes_over_add.
-      assert (IG_ufold A B (IG A B) (fun (c : Context A B) (acc : IG A B) => add (_transposeContext c) acc) IG_empty i = IG_grev i). {
+      assert (IG_ufold A B (IG A B) (fun (c : Context A B) (acc : IG A B) => IG_and (_transposeContext c) acc) IG_empty i = IG_grev i). {
         reflexivity.
       }
       rewrite H.

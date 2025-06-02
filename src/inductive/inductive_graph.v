@@ -12,13 +12,17 @@ Require Import GraphVerification.src.util.util.
 
 Open Scope nat_scope.
 
+(* Defining an inductive_graph (IG) and its operations.
+It is based off of "Inductive graphs and functional graph algorithms" by Martin Erwig.
+It tries to mirror the FGL (functional graph library) whenever possible,
+but most importantly only treats one of the multiple implementations of the inductive graph class.
 
-(* This file defines an inductive graph using maps like Erwig *)
-(* Note that A is the node label type and B is the edge label type *)
-(* At the moment, there are only the "MINIMAL" implementations  *)
+Minimal operations are:
+  empty, isEmpty, match, mkGraph, labNodes
+Further down, further derived operations are defined:
+  matchAny, noNodes, nodeRange, labEdges
+*) 
 
-(*{-# MINIMAL empty, isEmpty, match, mkGraph, labNodes #-}
-  *)
 
 Definition Adj (B : Type) := list (B * Node). 
 
@@ -29,16 +33,14 @@ Definition MContext (A B : Type) : Type :=
     option (Context A B).
 
 
-(* Definition Adj' (B : Type) := NatMap.t (list B). *)
-
 (* No node needed, since the node is the key *)
 Definition Context' (A B : Type) : Type :=
-  (Adj B * A * Adj B).  
+    (Adj B * A * Adj B).  
 
 Definition IG (A B : Type) := NatMap.t (Context' A B).
 
 Definition Decomp (A B : Type) : Type :=
-  (MContext A B * IG A B). 
+    (MContext A B * IG A B). 
 
 
 Definition LNode (A : Type) : Type := (Node * A).
@@ -46,780 +48,154 @@ Definition LEdge (B : Type) : Type := (Node * Node * B).
 
 
 
-
-
 (* Start defining functionality: *)
 Definition IG_empty {A B : Type} : IG A B :=
-  NatMap.empty (Context' A B).
+    NatMap.empty (Context' A B).
 
 
 Definition IG_isEmpty {A B : Type} (ig : IG A B) : bool :=
-  NatMap.is_empty ig.
-
-Compute IG_isEmpty IG_empty.
+    NatMap.is_empty ig.
 
 
 
-(* Here start the helper functions for "match" *)
-
-
+(* Here start the helper functions for IG_match *)
 
 
 (* Applies a function to a map entry if it exists quickly *)
 Definition _updateEntry {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) : IG A B := 
-  match NatMap.find node ig with
+    match NatMap.find node ig with
     | Some v => NatMap.add node (f v) ig
     | None => ig
-  end.
+    end.
 
-(* Definition _updateEntry {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) : IG A B := 
-  NatMap.mapi (fun (n : Node) (c : Context' A B) => if n =? node then f c else c) ig. *)
+
 
 Definition _addSucc {A B : Type} (node : Node) (label : B) (context' : Context' A B) : Context' A B :=
-  match context' with
-  | (froms, l, tos) => (froms, l, (label, node) :: tos)
-  end.
+    let '(froms, l, tos) := context' in (froms, l, (label, node) :: tos).
+
   
 Definition _addPred {A B : Type} (node : Node) (label : B) (context' : Context' A B) : Context' A B :=
-  match context' with
-  | (froms, l, tos) => ((label, node) :: froms, l, tos)
-  end.
+    let '(froms, l, tos) := context' in ((label, node) :: froms, l, tos).
 
 
 Definition _clearSucc {A B : Type} (node : Node) (context' : Context' A B) : Context' A B :=
-  match context' with
-  | (froms, label, tos) => (froms, label, filter (fun '(_, n) => negb (n =? node)) tos)
-  end.
-
+    let '(froms, label, tos) := context' in (froms, label, filter (fun '(_, n) => negb (n =? node)) tos).
 
 Definition _clearPred {A B : Type} (node : Node) (context' : Context' A B) : Context' A B :=
-  match context' with
-  | (froms, label, tos) => (filter (fun '(_, n) => negb (n =? node)) froms, label, tos)
-  end.
+    let '(froms, label, tos) := context' in (filter (fun '(_, n) => negb (n =? node)) froms, label, tos).
 
 
-Definition _updAdj {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (gr : IG A B) : IG A B :=
-  fold_right (fun '(l, n) (acc : IG A B) => _updateEntry n (f l) acc) gr adj.  
+
+Definition _updAdj {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B) : IG A B :=
+    fold_right (fun '(l, n) (acc : IG A B) => _updateEntry n (f l) acc) ig adj.  
 
 
 Definition _cleanSplit {A B : Type} (node : Node) (context' : Context' A B) (ig : IG A B) : Context A B * IG A B :=
-  match context' with
-  | (froms, label, tos) =>
-                          let rmLoops := filter (fun '(_, n) => negb (n =? node)) in
+    let '(froms, label, tos) := context' in
+    let rmLoops := filter (fun '(_, n) => negb (n =? node)) in
 
-                          let froms' := rmLoops froms in
-                          let tos' := rmLoops tos in
-                          let context := (froms', node, label, tos (*no '*)) in
-                          
-                          let ig' := _updAdj froms' (fun x y => _clearSucc node y) ig in 
-                          let ig'' := _updAdj tos' (fun x y => _clearPred node y) ig' in
-                          (context, ig'')
-  end.
+    let froms' := rmLoops froms in
+    let tos' := rmLoops tos in
+    let context := (froms', node, label, tos (*no '*)) in
+    
+    let ig' := _updAdj froms' (fun x y => _clearSucc node y) ig in 
+    let ig'' := _updAdj tos' (fun x y => _clearPred node y) ig' in
+    (context, ig'')
+    .
 
 
 Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
-  match NatMap.find node ig with
-  | None => (None, ig)
-  | Some context' => match _cleanSplit node context' (NatMap.remove node ig) with
-                    | (context, ig') => (Some context, ig')
-                    end
-  end.
+    match NatMap.find node ig with
+    | None => (None, ig)
+    | Some context' => match _cleanSplit node context' (NatMap.remove node ig) with
+                        | (context, ig') => (Some context, ig')
+                        end
+    end.
 
 
 
 
-(* Here start the helper functions for "mkGraph" *)
+(* Here start the helper functions for IG_mkGraph *)
 
-(* This is the "&" constructor, but it has to be defined as a function, since it is too advanced *)
-(* Does nothing, if node already exists *)
+
+(* This is the "&" constructor from the paper, defined here as a function, as it does more than mere pattern matching *)
+(* Does nothing, if the node already exists *)
 (* In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
-Definition add {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
-  match context with
-  | (froms, node, label, tos) => if NatMap.mem node ig then ig else
-                                let ig' := NatMap.add node (froms, label, tos) ig in
-                                let ig'' := _updAdj tos (_addPred node) ig' in
-                                _updAdj froms (_addSucc node) ig''
-  end.
+Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
+    let '(froms, node, label, tos) := context in
+
+    if NatMap.mem node ig then ig else
+    let ig' := NatMap.add node (froms, label, tos) ig in
+    let ig'' := _updAdj tos (_addPred node) ig' in
+    _updAdj froms (_addSucc node) ig''.
 
 
 Definition _insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B :=
-  match node with
-  | (n, l) => add ([], n, l, []) ig
-  end.
+    let '(n, l) := node in
+    IG_and ([], n, l, []) ig.
 
 Definition _insNodes {A B : Type} (nodes : list (LNode A)) (ig : IG A B) : IG A B :=
-  fold_right _insNode ig nodes.
+    fold_right _insNode ig nodes.
 
 
 
 Definition _insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B :=
-  match edge with
-  | (from, to, l) =>
-                    let (mcxt, ig') := IG_match from ig in
-                    match mcxt with
-                    | (Some (froms, _, label, tos)) => add (froms, from, label, (l, to) :: tos) ig'
-                    | None => ig
-                    end
-  end.
+    let '(from, to, l) := edge in
+    let (mcxt, ig') := IG_match from ig in
+
+    match mcxt with
+    | (Some (froms, _, label, tos)) => IG_and (froms, from, label, (l, to) :: tos) ig'
+    | None => ig
+    end.
 
 
 Definition _insEdges {A B : Type} (edges : list (LEdge B)) (ig : IG A B) : IG A B :=
-  fold_right _insEdge ig edges.
-
+    fold_right _insEdge ig edges.
 
 
 Definition IG_mkGraph {A B : Type} (nodes : list (LNode A)) (edges : list (LEdge B)) : IG A B :=
-  _insEdges edges (_insNodes nodes IG_empty).
+    _insEdges edges (_insNodes nodes IG_empty).
 
  
 Definition IG_labNodes {A B : Type} (ig : IG A B) : list (LNode A) :=
-  map (fun '(v, (_, l, _)) => (v,l)) (NatMap.elements ig).
+    map (fun '(v, (_, l, _)) => (v,l)) (NatMap.elements ig).
 
 
 
-(* Make IGs visible  *)
 
-Definition IG_show {A B : Type} (ig : IG A B) :=
-  NatMap.elements ig. 
+(* Now come some derived operations, which are also part of the graph class in FGL *)
 
-Definition Decomp_show {A B : Type} (d : Decomp A B) := 
-  match d with
-  | (mContext, x) => (mContext, IG_show x)
-  end
-.
-
-
-
-(* Now come some more advanced operations *)
-
-(* Auxiliary graph class functions: *)
 Definition IG_matchAny {A B : Type} (ig : IG A B) : Decomp A B :=
-  match IG_labNodes ig with
-  | [] => (None, ig)
-  | node :: nodes => IG_match (fst node)  ig
-  end.
+    match IG_labNodes ig with
+    | [] => (None, ig)
+    | node :: nodes => IG_match (fst node)  ig
+    end.
   
 
 
 Definition IG_noNodes {A B : Type} (ig : IG A B) : nat :=
-  length (IG_labNodes ig).
+    length (IG_labNodes ig).
 
-Definition _minimum (l : list nat) : nat :=
-  fold_right min 0 l.
+(* Gets the first item of the list passed in directly, to avoid the need for a default value *)
+Definition _minimum (n : nat) (l : list nat) : nat :=
+    fold_right min n l.
 
-(* This is a hack *)
-Definition _maximum (l : list nat) : nat :=
-  fold_right max 1000 l.
+(* Gets the first item of the list passed in directly, to avoid the need for a default value *)
+Definition _maximum (n : nat) (l : list nat) : nat :=
+    fold_right max n l.
 
+(* This is a little different from FGL *)
 Definition IG_nodeRange {A B : Type} (ig : IG A B) : Node * Node :=
-  match IG_isEmpty ig with
-  | true => (0, 0)
-  | false =>
-    let nodes := map fst (IG_labNodes ig) in
-    (_minimum nodes, _maximum nodes)
-  end.
-    
+    match map fst (IG_labNodes ig) with
+    | [] => (0, 0)
+    | node :: nodes => (_minimum node nodes, _maximum node nodes)
+    end.
+
+
 
 
 Definition IG_labEdges {A B : Type} (ig : IG A B) : list (LEdge B) :=
-  fold_right (fun '(node, (_, _, tos)) acc => map (fun '(l, to) => (node, to, l)) tos ++ acc) [] (NatMap.elements ig). 
+    fold_right (fun '(node, (_, _, tos)) acc => map (fun '(l, to) => (node, to, l)) tos ++ acc) [] (NatMap.elements ig). 
 
 
 
-
-
-
-
-
-Require Import Recdef.
-Require Import Lia.
-
-
-
-
-(* Here stars DFS stuff *)
-
-
-
-Definition suc {A B : Type} (c : Context A B) : list Node :=
-  match c with
-  | (_, _, _, tos) => map snd tos
-  end.
-
-(* Vanilla version of dfs: *)
-Fail Fixpoint IG_dfs {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-  match nodes with
-  | [] => []
-  | n :: ns => if IG_isEmpty ig then [] else
-                match IG_match n ig with
-                | (Some cntxt, rest) => n :: IG_dfs (suc cntxt ++ ns) rest
-                | (None, same) => IG_dfs ns same
-               end
-  end.
-
-
-Fixpoint IG_dfs_fuled {A B : Type} (nodes : list Node) (ig : IG A B) (fuel : nat) : list Node :=
-  match fuel with
-  | 0 => []
-  | S fuel' =>
-    match nodes with
-    | [] => []
-    | n :: ns => if IG_isEmpty ig then [] else
-                  match IG_match n ig with
-                  | (Some cntxt, rest) => n :: IG_dfs_fuled (suc cntxt ++ ns) rest fuel'
-                  | (None, same) => IG_dfs_fuled ns same fuel'
-                  end
-    end
-  end.
-
-Definition my_complicated_graph :=
-  IG_mkGraph
-    [(1, "a"); (2, "b"); (3, "c"); (4, "d"); (5, "e"); (6, "f")]
-    [ (1, 2, "edge1");
-      (2, 3, "edge2");
-      (3, 1, "edge3");
-      (2, 4, "edge4");
-      (4, 5, "edge5");
-      (5, 6, "edge6");
-      (6, 3, "edge7");
-      (1, 5, "edge8");
-      (6, 1, "edge9")]
-.
-
-Compute IG_dfs_fuled [1] my_complicated_graph 50.
-
-
-
-
-
-
-
-
-(* Now comes the version of termination proof *)
-
-(* https://fzn.fr/teaching/coq/ecole10/summer/lectures/lec10.pdf *)
-
-  
-
-Require Import Coq.Arith.Arith.
-Require Import Coq.Arith.Wf_nat.
-(* Require Import Coq.Init.Nat. *)
-Require Import Coq.Lists.List.
-Require Import Coq.Wellfounded.Wellfounded.
-Require Import Coq.Wellfounded.Lexicographic_Product.
-Require Import Coq.Structures.OrderedType.
-Require Import Coq.Structures.OrderedTypeEx.
-Require Import Recdef. (* Must import this to use the Function feature *)
-
-Import ListNotations.
-Require Import Coq.Wellfounded.Inverse_Image.
-Require Import Coq.Relations.Relation_Operators.
-
-
-
-
-Definition dProdDfs (A B : Type) := {_ : IG A B & list Node}.
-
-(* Lexicographic order on (nat * nat) *)
-Definition lex_dProdDfs (A B : Type) := lexprod (IG A B)
-                                                (fun a => list Node)
-                                                (fun ig1 ig2 => Peano.lt (NatMap.cardinal ig1) (NatMap.cardinal ig2))
-                                                (fun a => fun l1 l2 => Peano.lt (length l1) (length l2)).
-
-
-(* Prove lexicographic order is well-founded *)
-Lemma wf_lex_dProdDfs (A B : Type) : well_founded (lex_dProdDfs A B).
-Proof.
-  apply wf_lexprod.
-  - apply well_founded_ltof. 
-  - intros. apply well_founded_ltof.
-Qed.
-
-
-
-
-
-Definition prodTodPairDfs {A B : Type} (p : list Node * IG A B) : dProdDfs A B :=
-  existT _ (snd p) (fst p). (*It flips the order of the arguments *)
-
-Definition lex_prodDfs (A B : Type) (nodesIg1 nodesIg2 : list Node * IG A B) : Prop := 
-  lex_dProdDfs _ _ (prodTodPairDfs nodesIg1) (prodTodPairDfs nodesIg2).
-
-
-(* Prove lexicographic order is well-founded *)
-Lemma wf_lex_prodDfs (A B : Type) : well_founded (lex_prodDfs A B).
-Proof.
-  unfold lex_prodDfs.
-  pose proof (wf_lex_dProdDfs A B).
-  pose proof (wf_inverse_image (list Node * IG A B) _ (lex_dProdDfs A B)).
-
-  apply (H0 (@prodTodPairDfs A B)) in H.
-  assumption.
-Qed.
-
-
-
-
-
-
-
-(* This proof is adapted from the link below. It blows my mind, that this is not in stdlib *)
-(* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
-Lemma cardinal_Add_In:
-    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
-  Proof.
-  assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add.
-  { intros. unfold MProps.Add.
-    intros.
-    rewrite MFacts.add_o.
-    destruct (MFacts.eq_dec k y).
-    - apply NatMap.find_1. rewrite <- MFacts.MapsTo_m; [exact H|assumption|reflexivity|reflexivity].
-    - rewrite MFacts.remove_neq_o by assumption. reflexivity.
-  }
-  intros.
-  assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')).
-  { intros y. rewrite 2!MFacts.remove_o.
-    destruct (MFacts.eq_dec x y).
-    - reflexivity.
-    - unfold MProps.Add in H0. rewrite H0.
-      rewrite MFacts.add_neq_o by assumption. reflexivity.
-  }
-  apply MProps.Equal_cardinal in H1.
-  rewrite 2!MProps.cardinal_fold.
-  destruct H as (e' & H).
-  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
-  try now (compute; auto).
-  2:apply NatMap.remove_1; reflexivity.
-  2:apply remove_In_Add; assumption.
-  rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m') (m2:=m') (k:=x) (e:=e);
-  try now (compute; auto).
-  - rewrite <- 2!MProps.cardinal_fold. congruence.
-  - apply NatMap.remove_1. reflexivity.
-  - apply remove_In_Add.
-    apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
-    rewrite MFacts.add_eq_o; reflexivity.
-  Qed.
-
-
-
-Lemma _add_value_does_not_matter_for_cardinality : forall {A : Type} (node : Node) (c c' : A) (m : NatMap.t A),
-  NatMap.cardinal (NatMap.add node c m) = NatMap.cardinal (NatMap.add node c' m).
-Proof.
-  intros.
-  pose proof cardinal_Add_In.
-  apply (H _ _ _ node c).
-  - apply MFacts.add_in_iff. left. reflexivity.
-  - unfold MProps.Add. intros. rewrite MFacts.add_o. rewrite MFacts.add_o. rewrite MFacts.add_o. destruct (MProps.F.eq_dec node y).
-    + reflexivity.
-    + reflexivity.
-Qed.
-
-
-
-
-
-
-
-Lemma _IG_updateEntry_does_not_change_cardinality : forall {A B : Type} (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B), 
-    NatMap.cardinal (_updateEntry node f ig) = NatMap.cardinal ig.
-Proof.
-  intros. unfold _updateEntry.
-
-  destruct (NatMap.find node ig) eqn:split.
-  - 
-
-  assert (NatMap.Equal ig (NatMap.add node c ig)). { 
-      apply MFacts.find_mapsto_iff in split.
-
-    apply MFacts.Equal_mapsto_iff.
-    split; intros.
-    - apply MFacts.add_mapsto_iff.
-       bdestruct (node =? k).
-      + subst. left. split.
-      -- reflexivity.
-      -- apply MFacts.find_mapsto_iff in split. apply MFacts.find_mapsto_iff in H. rewrite H in split. inversion split. reflexivity.
-      + right. split.
-      -- assumption.
-      -- assumption.
-    - apply MFacts.add_mapsto_iff in H. destruct H.
-      + destruct H. subst. assumption.
-      + destruct H. assumption.
-  }
-  rewrite H at 2.
-  apply _add_value_does_not_matter_for_cardinality.
-  - reflexivity.
-
-Qed.
-
-
-
-Lemma _IG_updAdj_does_not_change_cardinality : forall {A B : Type} (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B), 
-    NatMap.cardinal (_updAdj adj f ig) = NatMap.cardinal ig.
-Proof.
-  intros.
-  unfold _updAdj.
-  induction adj.
-  - simpl. reflexivity.
-  - simpl. rewrite <- IHadj.
-    pose proof (@_IG_updateEntry_does_not_change_cardinality A B).
-    destruct a.
-    rewrite H. reflexivity.
-Qed.
-
-
-Lemma _map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
-  (exists x, NatMap.find key map = Some x) -> (S (NatMap.cardinal (NatMap.remove key map)) = NatMap.cardinal map).
-Proof.
-  
-  intros.
-  pose proof MProps.cardinal_2.
-  destruct H eqn:hu.
-  assert (~ NatMap.In key (NatMap.remove key map)). {
-    unfold not. intros.
-    apply MFacts.remove_in_iff in H1.
-    destruct H1.
-    destruct H1.
-    reflexivity.
-
-  }
-  apply (H0 _ _ map _ x) in H1.
-  - rewrite <- H1. reflexivity.
-  - unfold MProps.Add. 
-  
-  
-  
-  unfold MProps.Add. intros. bdestruct (y =? key).
-  + rewrite H2. rewrite e. assert (key = key). {
-    reflexivity.
-  }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-  + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-    pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
-  
-Defined.
-
-
-Lemma IG_dft'terminates1 : forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B)(n : Node) (ns : list Node),
-  nodes = n :: ns ->
-  nodesIg = (n :: ns, ig) ->
-  IG_isEmpty ig = false ->
-  forall (m : MContext A B) (same : IG A B) (cntxt : Context A B),
-  m = Some cntxt -> IG_match n ig = (Some cntxt, same) -> lex_prodDfs A B (suc cntxt ++ ns, same) (n :: ns, ig).
-Proof.
-  intros. unfold lex_prodDfs. unfold lex_dProdDfs. 
-  unfold prodTodPairDfs.
-  simpl.
-  apply left_lex.
-
-  unfold IG_match in H3.
-  destruct (NatMap.find n ig) eqn:split.
-  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
-    unfold _cleanSplit in split0. 
-    assert (S (NatMap.cardinal i) = NatMap.cardinal (ig)). {
-      destruct c.
-      destruct p.
-      inversion split0.
-      rewrite _IG_updAdj_does_not_change_cardinality.
-      rewrite _IG_updAdj_does_not_change_cardinality.
-      apply _map_find_some_remove_lowers_cardinality.
-      exists (a0, a1, a).
-      apply split.
-
-    }
-    assert (same = i). {
-      inversion H3.
-      reflexivity.
-    } 
-    rewrite H5. rewrite <- H4. lia.
-
-  + inversion H3.
-Qed.
-
-Lemma IG_dft'terminates2 :
-  forall (A B : Type) (nodesIg : list Node * IG A B) (nodes : list Node) (ig : IG A B) (n : Node) (ns : list Node),
-  nodes = n :: ns ->
-  nodesIg = (n :: ns, ig) ->
-  IG_isEmpty ig = false ->
-  forall (m : MContext A B) (same : IG A B),
-  m = None -> IG_match n ig = (None, same) -> lex_prodDfs A B (ns, same) (n :: ns, ig).
-Proof.
-  intros. unfold lex_prodDfs. unfold lex_dProdDfs.
-  unfold prodTodPairDfs. simpl.
-
-  unfold IG_match in H3.
-  destruct (NatMap.find n ig) eqn:split.
-  + destruct (_cleanSplit n c (NatMap.remove n ig)) eqn:split0.
-    inversion H3.
-  
-  + inversion H3. apply right_lex. auto.
-Qed.
-  
-Lemma IG_dft'terminates3 : forall A B : Type, well_founded (lex_prodDfs A B).
-Proof.
-  apply wf_lex_prodDfs.
-Qed.
-
-Function IG_dfs' {A B : Type} (nodesIg : list Node * IG A B) {wf (lex_prodDfs A B) nodesIg} : list Node := 
-  match nodesIg with
-  | (nodes, ig) =>
-    match nodes with
-    | [] => []
-    | n :: ns => if IG_isEmpty ig then [] else
-                  match IG_match n ig with
-                  | (Some cntxt, rest) => n :: IG_dfs' ((suc cntxt ++ ns), rest)
-                  | (None, same) => IG_dfs' (ns, same)
-                  end
-    end
-  end.
-Proof.
-  - exact IG_dft'terminates1.
-  - exact IG_dft'terminates2.
-  - exact IG_dft'terminates3.
-Defined.
-
-
-Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-  IG_dfs' A B (nodes, ig).
-
-Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation; simpl).
-
-
-
-Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
-  IG_dfs'_computer.
-  exists [].
-  reflexivity.
-Defined.
-
-Example IG_dfs'_test' : exists n, IG_dfs'caller [1] (@IG_mkGraph string string [(1, "one"); (2, "two")] [ 
-  (1,2, "link")
-  ]) = n.
-  simpl.
-  IG_dfs'_computer.
-
-  exists [1; 2].
-
-  reflexivity.
-Qed.
-
-
-
-
-Example IG_dfs'_test'' : exists n, IG_dfs'caller [1] (IG_mkGraph [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five")
-] [ 
-  (1,2, "link");
-  (2,3, "link")
-  ]) = n.
-  IG_dfs'_computer.
-
-  exists [1; 2; 3].
-  reflexivity.
-Qed.
-
-Compute 1 + 2.
-
-Lemma always_exists : forall l : list Node, exists n : list Node, l = n.
-Proof.
-  intros. exists l. reflexivity.
-Qed.
-
-
-(* This should be able to compile, but is just way too slow *)
-(* Example IG_dfs'_test''' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
-  unfold IG_dfs'caller.
-
-  IG_dfs'_computer.
-  apply always_exists.
-
-Qed. *)
-
-
-(* Now, some queue implementation stuff, such that I can try implementing a quick BFS*)
-
-Definition Queue (A : Type) : Type :=
-  (list A) * (list A).
-
-
-Definition emptyQueue {A : Type} : Queue A := ([], []).
-
-Definition enqueue {A : Type} (a : A) (q : Queue A) : Queue A :=
-  match q with
-  | (q1, q2) => (a :: q1, q2)
-  end.
-
-Definition removeFirst {A : Type} (l : list A) : list A :=
-  match l with
-  | [] => []
-  | a::l => l
-  end.
-
-Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
-  match q with
-  | ([], []) => (None, q)
-  | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
-  | (q1, a2::q2) => (Some a2, (q1, q2))
-  end.
-
-
-(* Test the implementation *)
-Compute dequeue (enqueue 1 (enqueue 2 (enqueue 3 (emptyQueue)))).
-Compute dequeue (emptyQueue).
-Compute dequeue (enqueue 1 (emptyQueue)).
-Compute dequeue (enqueue 1 (enqueue 2 (emptyQueue))).
-
-
-
-
-
-
-
-(* Transpose: *)
-
-(* TODO: this remination proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
-Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
-  match IG_matchAny ig with
-    | (Some c, rest) => f c (IG_ufold f acc rest)
-    | (None, rest) => acc
-  end
-.
-Proof.
-Admitted.
-
-Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure NatMap.cardinal ig} : IG C D :=
-  match IG_matchAny ig with
-    | (Some c, rest) => add (f c) (IG_gmap_diy f rest)
-    | (None, rest) => IG_gmap_diy f rest
-  end
-.
-Proof.
-Admitted.
-
-
-Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
-  IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => add (f c) acc) IG_empty ig.
-
-Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
-  let '(froms, node, l, tos) := c in (tos, node, l, froms). 
-
-  
-Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
-  IG_gmap _transposeContext ig
-.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* 
-(* Here starts stuff from the paper, that I did not bother to implement *)
-(* Possible extensions: *)
-dfs vs Empty = [ ]
-dfs vs g | null vs || isEmpty g = [ ]
-
-
-dfs [ ]
-g0 = [ ]
-dfs (v :vs) g 0 = case match v g 0 of
-(Just c, g) → v :dfs (suc c++vs) g
-(Nothing, g) → dfs vs g
-
-data Tree a = Br a [Tree a]
-postorder :: Tree a → [a]
-postorder (Br v ts) = concatMap postorder ts++[v ]
-
-concatMap :: (a → [b]) → [a] → [b]
-concatMap f = concat . map f
-
-
-df :: [Node] → Graph a b → ([Tree Node], Graph a b)
-df [ ]
-g
-= ([ ], g)
-v
-df (v :vs) (c & g) = (Br v f :f 0 , g2 ) where (f , g1 ) = df (suc c) g
-(f 0 , g2 ) = df vs g1
-df (v :vs) g
-= df vs g
-
-dff :: [Node] → Graph a b → [Tree Node]
-dff vs g = fst (df vs g)
-
-
-topsort :: Graph a b → [Node]
-topsort = reverse . concatMap postorder . dff
-scc :: Graph a b → [Tree Node]
-scc g = dff (topsort g) (grev g)
-
-
-
-
-(* BFS *)
-
-bfs :: [Node] → Graph a b → [Node]
-bfs [ ]
-g
-= []
-v
-bfs (v :vs) (c & g) = v :bfs (vs++suc c) g
-bfs (v :vs) g
-= bfs vs g
-
-type Path = [Node]
-type RTree = [Path]
-bft :: Node → Graph a b → RTree
-bft v = bf [[v ]]
-bf :: [Path] → Graph a b → RTree
-bf [ ]
-g
-= []
-v
-bf (p@(v : ):ps) (c & g) = p:bf (ps++map (:p) (suc c)) g
-bf (p:ps)
-g
-= bf ps g
-
-
-first :: (a → Bool ) → [a] → a
-first p = head . filter p
-esp :: Node → Node → Graph a b → Path
-esp s t = reverse . first (\(v : ) → v t) . bft s
-
-
-
-
-*)
