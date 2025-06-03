@@ -96,7 +96,6 @@ Qed.
 
 
 
-
 Theorem _IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
     IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.

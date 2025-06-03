@@ -10,6 +10,7 @@ Require Import Coq.Structures.OrderedType.
 Require Import Coq.Structures.OrderedTypeEx.
 
 Import ListNotations.
+
 Require Import Coq.Wellfounded.Inverse_Image.
 Require Import Coq.Relations.Relation_Operators.
 
@@ -18,31 +19,16 @@ Require Import GraphVerification.src.util.NatMap.
 
 Require Import GraphVerification.src.inductive.inductive_graph.
 
+(* Defining operations on an IG that depend on well-founded recursion for their termination.
+They require the Theorems about IG_noNodes etc. from inductive_graph_measure.
+At the moment, has DFS and transpose *) 
 
 
 Definition suc {A B : Type} (c : Context A B) : list Node :=
     let '(_, _, _, tos) := c in map snd tos.
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+(* Defining the argument pair to be used in the DFS. It starts as a dependent pair, since lexprod expects this *)
 Definition dep_arg_pair_s (A B : Type) := {_ : IG A B & list Node}. 
 
 Definition lexord_dep_arg_pair_s (A B : Type) :=
@@ -66,7 +52,7 @@ Definition lexord_arg_pair_s (A B : Type) (igNodes1 igNodes2 : IG A B * list Nod
     lexord_dep_arg_pair_s _ _ (prodTo_dep_arg_pair_s igNodes1) (prodTo_dep_arg_pair_s igNodes2).
 
 
-    (* Prove lexicographic order is well-founded *)
+(* Prove lexicographic order is well-founded *)
 Lemma wf_lexord_arg_pair_s (A B : Type) : well_founded (lexord_arg_pair_s A B).
 Proof.
     unfold lexord_arg_pair_s.
@@ -87,14 +73,14 @@ Ltac break_up_lexord := intros;
 
 
 
-Function IG_dfs' {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
+Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
     let '(ig, nodes) := igNodes in
         match nodes with
         | [] => []
         | n :: ns => if IG_isEmpty ig then [] else
                     match IG_match n ig with
-                    | (Some cntxt, rest) => n :: IG_dfs' (rest, (suc cntxt ++ ns))
-                    | (None, same) => IG_dfs' (same, ns)
+                    | (Some cntxt, rest) => n :: IG_DFS_rec (rest, (suc cntxt ++ ns))
+                    | (None, same) => IG_DFS_rec (same, ns)
                     end
   end.
 Proof.
@@ -113,63 +99,10 @@ Defined.
 
 
 
+Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
+    IG_DFS_rec A B (ig, nodes).
 
-Definition IG_dfs'caller {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-  IG_dfs' A B (ig, nodes).
-
-Ltac IG_dfs'_computer := unfold IG_dfs'caller; repeat (rewrite IG_dfs'_equation; simpl).
-
-
-
-(* Example IG_dfs'_test : exists n, @IG_dfs'caller nat nat [1] IG_empty = n.
-  IG_dfs'_computer.
-  exists [].
-  reflexivity.
-Defined. *)
-
-Require Import String.
-
-(* Example IG_dfs'_test' : exists n, IG_dfs'caller [1] (@IG_mkGraph string string [(1, "one"); (2, "two")] [ 
-  (1,2, "link")
-  ]) = n.
-  simpl.
-  IG_dfs'_computer.
-
-  exists [1; 2].
-
-  reflexivity.
-Qed. *)
-
-
-
-
-(* Example IG_dfs'_test'' : exists n, IG_dfs'caller [1] (IG_mkGraph [(1, "one"); (2, "two"); (3, "three"); (4, "four"); (5, "five")
-] [ 
-  (1,2, "link");
-  (2,3, "link")
-  ]) = n.
-  IG_dfs'_computer.
-
-  exists [1; 2; 3].
-  reflexivity.
-Qed. *)
-
-Compute 1 + 2.
-
-Lemma always_exists : forall l : list Node, exists n : list Node, l = n.
-Proof.
-  intros. exists l. reflexivity.
-Qed.
-
-
-(* This should be able to compile, but is just way too slow *)
-(* Example IG_dfs'_test''' : exists n, IG_dfs'caller [1] my_complicated_graph = n.
-  unfold IG_dfs'caller.
-
-  IG_dfs'_computer.
-  apply always_exists.
-
-Qed. *)
+Ltac IG_DFS_computer := unfold IG_DFS; repeat (rewrite IG_DFS_rec_equation; simpl).
 
 
 
@@ -206,10 +139,7 @@ Qed. *)
 
 
 
-
-
-(* Now, some queue implementation stuff, such that I can try implementing a quick BFS*)
-
+(* Demo queue implementation to allow for BFS: *)
 Definition Queue (A : Type) : Type :=
   (list A) * (list A).
 
