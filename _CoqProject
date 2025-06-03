@@ -13,7 +13,7 @@
 
 ./src/inductive/inductive_graph.v
 ./src/inductive/inductive_graph_measure.v
-# ./src/inductive/inductive_graph_theory.v
+./src/inductive/inductive_graph_theory.v
 
 # ./src/inductive/inductive_graph_theory_mkGraph.v
 

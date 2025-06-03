@@ -26,9 +26,12 @@ Require Import GraphVerification.src.relational_graph_theory.
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.util.
 
-(* Next Section about IG_mkGraph *)
+(* Stating and proving Lemmas and Theorems about IG_mkGraph and helper functions *)
+
+
 Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
-    In x (IG_labNodes (_insNode node ig)) <-> In x ((if NatMap.mem (fst node) ig then [] else [node]) ++ IG_labNodes ig).
+    In node (IG_labNodes (_insNode node ig)). 
+
 Proof.
     intros. simpl.
     destruct node.
@@ -103,7 +106,7 @@ Proof.
         }
 
         eapply IG_match_removes_node in HH.
-        unfold not in HH. apply HH. apply H0.
+        unfold not in HH. apply HH. firstorder.
 
 
         + simpl. apply IG_match_returns_node in HH as HHHH. subst. apply (IG_match_just_removes_node _ _ _ _ _ _ _ _ _ x) in HH. rewrite HH. simpl. reflexivity.
@@ -191,7 +194,6 @@ Proof.
             simpl. auto.
         }
         apply H in H2. clear H.
-
 
         rewrite _In_labNodes_is_some_MapsTo in H2.
         destruct H2 as [fromss [toss H2]].

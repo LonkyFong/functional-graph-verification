@@ -42,6 +42,21 @@ For those, go to inductive_graph_measured_algorithms_theory
  *)
 
 
+(* Start with the most basic properties about IG_empty *)
+Theorem IG_empty_isEmpty : forall (A B : Type),
+    IG_isEmpty (@IG_empty A B) = true.
+Proof.
+    compute. reflexivity.
+Qed.
+
+Theorem IG_labNodes_empty_nil : forall (A B : Type),
+    IG_labNodes (@IG_empty A B) = [].
+Proof.
+    compute. reflexivity.
+Qed.
+
+
+
 
 (* Block to derive useful conversion theorem "In_labNodes_is_InMap" *)
 
@@ -254,9 +269,10 @@ Qed.
 
 
 
+Require Import Coq.Sorting.Permutation.
 
 
-
+(* Permutation l1 l2 *)
 
 
 
@@ -264,22 +280,34 @@ Qed.
 
 (* Some theorems about IG_match *)
 
-Lemma IG_match_is_In_IG_labNodes : forall (A B : Type) (query node : Node) (label : A) (ig i : IG A B),
-    (exists froms tos, IG_match query ig = (Some (froms, node, label, tos), i)) <-> In (node, label) (IG_labNodes ig).
+
+
+(* Unproved Lemmas, to convert IG_labNodes to IG_match *)
+Lemma IG_match_is_In_IG_labNodes : forall (A B : Type) (x : LNode A) (ig : IG A B),
+    In x (IG_labNodes ig)
+        <-> let '(query, label) := x in
+        (exists froms tos hit i, IG_match query ig = (Some (froms, hit, label, tos), i)).
 Proof.
 Admitted.
 
-Lemma IG_match_hit_is_In_fst_IG_labNodes : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B), 
-    IG_match query ig = (Some c, i) <-> (exists other, In (query, other) (IG_labNodes ig)).  
+Lemma IG_match_does_not_exist : forall (A B : Type) (query : Node) (ig : IG A B),
+    not (exists c i, IG_match query ig = (Some c, i))
+        -> IG_match query ig = (None, ig).
 Proof.
 Admitted.
+
+Lemma IG_match_hit_is_In_fst_IG_labNodes : forall (A B : Type) (query : Node) (ig : IG A B), 
+    (exists other, In (query, other) (IG_labNodes ig)) <-> exists c i, IG_match query ig = (Some c, i).  
+Proof.
+Admitted.
+
 
 
 Lemma IG_match_removes_node : forall (A B : Type) (query : Node) (mContext : MContext A B) (ig i : IG A B),
     IG_match query ig = (mContext, i)
-        -> (forall label, not (In (query, label) (IG_labNodes i))).
+        -> not (exists other, In (query, other) (IG_labNodes i)).
 Proof.
-    intros. unfold not. intros.
+    intros. unfold not. intros. destruct H0.
     unfold IG_match in H. destruct (NatMap.find query ig) eqn:HH.
     - unfold _cleanSplit in H. destruct_context' c. inversion H. clear H H2. rewrite <- H3 in H0. clear H3.
         apply _updAdj_clearPred_does_not_change_IG_labNodes in H0.
@@ -312,18 +340,17 @@ Proof.
                 apply (MFacts.MapsTo_fun HH H0).
             }
             inversion H1. reflexivity.
-        -- right. apply _updAdj_filter_clearPred_does_not_change_IG_labNodes. apply _updAdj_filter_clearSucc_does_not_change_IG_labNodes.
+        -- right. apply _updAdj_clearPred_does_not_change_IG_labNodes. apply _updAdj_clearSucc_does_not_change_IG_labNodes.
             apply _In_labNodes_is_some_MapsTo. apply _In_labNodes_is_some_MapsTo in H0. firstorder. exists x0, x1.
             apply MFacts.remove_mapsto_iff. split.
             ++ assumption.
             ++ assumption.
         + destruct H0.
         -- subst. apply MFacts.find_mapsto_iff in HH. apply _In_labNodes_is_some_MapsTo. exists froms', toss. assumption.
-        -- apply _updAdj_filter_clearPred_does_not_change_IG_labNodes in H0. apply _updAdj_filter_clearSucc_does_not_change_IG_labNodes in H0.
+        -- apply _updAdj_clearPred_does_not_change_IG_labNodes in H0. apply _updAdj_clearSucc_does_not_change_IG_labNodes in H0.
             apply _In_labNodes_is_some_MapsTo in H0. apply _In_labNodes_is_some_MapsTo. firstorder. exists x0, x1. apply MFacts.remove_mapsto_iff in H0.
             destruct H0. assumption.
     
-
     - inversion H.
 Qed.
 
@@ -336,9 +363,9 @@ Qed.
 
 Lemma IG_match_returns_valid_neighbours : forall (A B : Type) (query : Node) (ig i : IG A B) (c : Context A B) (n : Node),
     let '(froms, hit, label, tos) := c in
-    IG_match query ig = (Some (froms, hit, label, tos), i) ->
-    (In n (map snd froms) \/ In n (map snd tos)) ->
-    In n (map fst (IG_labNodes i)).
+    IG_match query ig = (Some (froms, hit, label, tos), i)
+        -> (In n (map snd froms) \/ In n (map snd tos))
+        -> In n (map fst (IG_labNodes i)).  
 Proof.
 Admitted.
 
@@ -364,6 +391,8 @@ Admitted.
 
 
 (* TODO: change NatMap.mem to In x IG_labNodes *)
+
+
 
 Lemma IG_and_adds_node : forall (A B : Type) (context : Context A B) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (IG_and context ig))
@@ -393,21 +422,5 @@ Qed.
 
 
 
-
-
-
-
-
-Theorem IG_empty_isEmpty : forall (A B : Type),
-    IG_isEmpty (@IG_empty A B) = true.
-Proof.
-    compute. reflexivity.
-Qed.
-
-Theorem IG_labNodes_empty_nil : forall (A B : Type),
-    IG_labNodes (@IG_empty A B) = [].
-Proof.
-    compute. reflexivity.
-Qed.
 
 
