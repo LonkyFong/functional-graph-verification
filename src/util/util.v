@@ -1,6 +1,7 @@
 Require Import Bool.
 Require Import Coq.Arith.Arith.
 Require Import List.
+Import ListNotations.
 
 Require Import Coq.Sets.Ensembles.
 Require Import Setoid Morphisms.
@@ -48,3 +49,29 @@ Ltac bdestruct X :=
         | destruct H as [H|H];
             [ | try first [apply not_lt in H | apply not_le in H]]
         ].
+
+
+
+(* A small and amortized O(1) queue implementation to be potentially used in BFS *)
+Definition Queue (A : Type) : Type :=
+    (list A) * (list A).
+
+Definition emptyQueue {A : Type} : Queue A := ([], []).
+
+Definition enqueue {A : Type} (a : A) (q : Queue A) : Queue A :=
+    match q with
+    | (q1, q2) => (a :: q1, q2)
+    end.
+
+Definition removeFirst {A : Type} (l : list A) : list A :=
+    match l with
+    | [] => []
+    | a::l => l
+    end.
+
+Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
+    match q with
+    | ([], []) => (None, q)
+    | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
+    | (q1, a2::q2) => (Some a2, (q1, q2))
+end.

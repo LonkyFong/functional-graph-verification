@@ -20,7 +20,7 @@ Require Import GraphVerification.src.util.util.
 (* Defining how an IG converts to an RG *)
 
 
-Definition RG_add {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
+Definition RG_and {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
     destruct context as [[[froms node] label] tos].
     refine {|
@@ -39,9 +39,8 @@ Defined.
 
 
 
-
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
-    IG_ufold _ _ _ RG_add RG_empty ig.
+    IG_ufold _ _ _ RG_and RG_empty ig.
 
 
 

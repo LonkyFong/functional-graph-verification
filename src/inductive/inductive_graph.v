@@ -193,9 +193,5 @@ Definition IG_nodeRange {A B : Type} (ig : IG A B) : Node * Node :=
 
 
 
-
 Definition IG_labEdges {A B : Type} (ig : IG A B) : list (LEdge B) :=
     fold_right (fun '(node, (_, _, tos)) acc => map (fun '(l, to) => (node, to, l)) tos ++ acc) [] (NatMap.elements ig). 
-
-
-

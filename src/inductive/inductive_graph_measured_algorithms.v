@@ -45,6 +45,7 @@ Proof.
     - intros. apply well_founded_ltof.
 Qed.
 
+(* Convert dependent pair to an ordinary product, since that is more user-friendly *)
 Definition prodTo_dep_arg_pair_s {A B : Type} (p : IG A B * list Node) : dep_arg_pair_s A B := 
     existT _ (fst p) (snd p).
 
@@ -72,7 +73,6 @@ Ltac break_up_lexord := intros;
 
 
 
-
 Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
     let '(ig, nodes) := igNodes in
         match nodes with
@@ -84,25 +84,23 @@ Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_
                     end
   end.
 Proof.
+    (* Case 1: graph gets smaller *)
     - break_up_lexord.
         apply _IG_match_decreases_IG_noNodes in teq2.
         apply left_lex. auto.
+    (* Case 2: stack gets smaller *)
     - break_up_lexord.
         apply IG_match_none_returns_graph in teq2. subst.
         apply right_lex. auto.
-
+    (* lexord_arg_pair_s is indeed well-founded *) 
     - exact wf_lexord_arg_pair_s.
 Defined.
 
 
-
-
-
-
+(* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
     IG_DFS_rec A B (ig, nodes).
 
-Ltac IG_DFS_computer := unfold IG_DFS; repeat (rewrite IG_DFS_rec_equation; simpl).
 
 
 
@@ -110,142 +108,38 @@ Ltac IG_DFS_computer := unfold IG_DFS; repeat (rewrite IG_DFS_rec_equation; simp
 
 
 
+(* Other typical functional operations (leading to transpose) *)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* Demo queue implementation to allow for BFS: *)
-Definition Queue (A : Type) : Type :=
-  (list A) * (list A).
-
-
-Definition emptyQueue {A : Type} : Queue A := ([], []).
-
-Definition enqueue {A : Type} (a : A) (q : Queue A) : Queue A :=
-  match q with
-  | (q1, q2) => (a :: q1, q2)
-  end.
-
-Definition removeFirst {A : Type} (l : list A) : list A :=
-  match l with
-  | [] => []
-  | a::l => l
-  end.
-
-Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
-  match q with
-  | ([], []) => (None, q)
-  | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
-  | (q1, a2::q2) => (Some a2, (q1, q2))
-  end.
-
-
-(* Test the implementation *)
-Compute dequeue (enqueue 1 (enqueue 2 (enqueue 3 (emptyQueue)))).
-Compute dequeue (emptyQueue).
-Compute dequeue (enqueue 1 (emptyQueue)).
-Compute dequeue (enqueue 1 (enqueue 2 (emptyQueue))).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* Transpose: *)
-
-(* TODO: this remination proof becomes basically trivial, once the project is refactored, and there is access to _nodeAmount and its < *)
-Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure NatMap.cardinal ig} : C :=
-  match IG_matchAny ig with
+Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
+    match IG_matchAny ig with
     | (Some c, rest) => f c (IG_ufold f acc rest)
     | (None, rest) => acc
-  end
-.
+    end.
 Proof.
-Admitted.
+    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+Defined.
 
-Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure NatMap.cardinal ig} : IG C D :=
-  match IG_matchAny ig with
+
+(* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
+Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
+    match IG_matchAny ig with
     | (Some c, rest) => IG_and (f c) (IG_gmap_diy f rest)
-    | (None, rest) => IG_gmap_diy f rest
-  end
-.
+    | (None, rest) => IG_empty
+    end.
 Proof.
-Admitted.
+    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+Defined.
 
 
 Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
-  IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
+    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
+
 
 Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
-  let '(froms, node, l, tos) := c in (tos, node, l, froms). 
+    let '(froms, node, label, tos) := c in
+    (tos, node, label, froms). 
 
   
-Definition IG_grev {A B : Type} (ig : IG A B) : IG A B :=
-  IG_gmap _transposeContext ig
-.
-
-
+Definition IG_transpose {A B : Type} (ig : IG A B) : IG A B :=
+    IG_gmap _transposeContext ig.
 

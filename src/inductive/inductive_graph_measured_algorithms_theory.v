@@ -243,14 +243,14 @@ Admitted.
 
 
 Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
-  RG_transpose (RG_add c rg) R== RG_add (_transposeContext c) (RG_transpose rg).
+  RG_transpose (RG_and c rg) R== RG_and (_transposeContext c) (RG_transpose rg).
 Proof.
   intros.
   firstorder.
-  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
-  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
-  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
-  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_add in H. simpl in H. firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_and in H. simpl in H. firstorder.
+  - simpl. unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_and in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_and in H. simpl in H. firstorder.
+  - unfold RG_transpose in H. simpl in H. destruct c as [[[froms node] label] tos]. unfold RG_and in H. simpl in H. firstorder.
 Qed.
 
 Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
@@ -265,7 +265,7 @@ Admitted.
 
 
 
-Instance Proper_RG_add {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_add. 
+Instance Proper_RG_and {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
 Proof.
     split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
     - firstorder.
@@ -398,7 +398,7 @@ Admitted.
 
 
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
-  IG_to_RG (IG_and c ig) R== RG_add c (IG_to_RG ig). 
+  IG_to_RG (IG_and c ig) R== RG_and c (IG_to_RG ig). 
 Proof.
   intros.
 
@@ -413,7 +413,7 @@ Qed.
 
 Lemma IG_to_RG_distributes_over_add' : forall {A B : Type} (cIG : Context A B * IG A B),
   let '(c, ig) := cIG in
-  IG_to_RG (IG_and c ig) R== RG_add c (IG_to_RG ig). 
+  IG_to_RG (IG_and c ig) R== RG_and c (IG_to_RG ig). 
 Proof.
   intros A B.
         apply (well_founded_induction
@@ -427,7 +427,7 @@ Proof.
 
   - apply matchAnyIsAdd in mat as bb.
       rewrite bb.
-      assert (IG_ufold _ _ _ RG_add RG_empty i = IG_to_RG i). {
+      assert (IG_ufold _ _ _ RG_and RG_empty i = IG_to_RG i). {
         reflexivity.
       }
 
@@ -487,13 +487,13 @@ Admitted.
 (* Showing properties about transpose: *)
 
 Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
-    IG_to_RG (IG_grev ig) R== RG_transpose (IG_to_RG ig).
+    IG_to_RG (IG_transpose ig) R== RG_transpose (IG_to_RG ig).
 Proof.
   intros A B.
   apply (well_founded_induction
         (well_founded_ltof _ IG_noNodes)).
     intros ig IH.
-    unfold IG_grev. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
     destruct m eqn:mm.
     - specialize (IH i). assert (ltof (IG A B) IG_noNodes i ig). {
       unfold ltof.
@@ -508,7 +508,7 @@ Proof.
       destruct c as [[[froms node] label] tos].
       
       rewrite IG_to_RG_distributes_over_add.
-      assert (IG_ufold A B (IG A B) (fun (c : Context A B) (acc : IG A B) => IG_and (_transposeContext c) acc) IG_empty i = IG_grev i). {
+      assert (IG_ufold A B (IG A B) (fun (c : Context A B) (acc : IG A B) => IG_and (_transposeContext c) acc) IG_empty i = IG_transpose i). {
         reflexivity.
       }
       rewrite H.
@@ -610,7 +610,7 @@ Admitted.
 
 
 Lemma IG_to_RG_distributes_over_add_using_IG_induction : forall {A B : Type} (c : Context A B) (ig : IG A B),
-  IG_to_RG (IG_and c ig) R== RG_add c (IG_to_RG ig). 
+  IG_to_RG (IG_and c ig) R== RG_and c (IG_to_RG ig). 
 Proof.
   intros.
   unfold IG_to_RG at 2.

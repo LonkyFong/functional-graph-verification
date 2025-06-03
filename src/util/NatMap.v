@@ -76,7 +76,7 @@ Proof.
 Qed.
 
 
-Lemma NatMap_map_find_some_remove_lowers_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
+Lemma NatMap_map_find_some_remove_minusOnes_cardinality : forall {A : Type} (key : Node) (map : NatMap.t A),
     (exists x, NatMap.find key map = Some x) -> (S (NatMap.cardinal (NatMap.remove key map)) = NatMap.cardinal map).
 Proof.
     intros.
@@ -103,3 +103,27 @@ Proof.
     + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
         pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
 Defined.
+
+
+Lemma NatMap_MapsTo_same_key_same_value : forall {A : Type} (k : Node) (v v' : A) (m : NatMap.t A),
+    NatMap.MapsTo k v m -> NatMap.MapsTo k v' m -> v = v'.
+Proof.
+    intros.
+    apply MFacts.find_mapsto_iff in H. apply MFacts.find_mapsto_iff in H0.
+    rewrite H0 in H. inversion H. reflexivity.
+Qed.
+
+
+Lemma NatMap_find_some_add_some_idem : forall {A : Type} (k : Node) (v : A) (m : NatMap.t A),
+    NatMap.find k m = Some v -> NatMap.Equal m (NatMap.add k v m).
+Proof.
+    intros.
+    apply MFacts.find_mapsto_iff in H.
+    apply MFacts.Equal_mapsto_iff. intros. rewrite MFacts.add_mapsto_iff.
+    bdestruct (k =? k0).
+    - subst. firstorder.
+        ++ left.
+            rewrite (NatMap_MapsTo_same_key_same_value _ _ _ _ H H0). auto.
+        ++ subst. assumption.
+    - firstorder.
+Qed.

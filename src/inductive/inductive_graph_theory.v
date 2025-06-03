@@ -684,13 +684,13 @@ Theorem _IG_match_decreases_nodeAmount_permutation : forall (A B : Type) (n : No
 Proof.
   intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
   assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
-    rewrite !IG_labNodes_len_cardinal.
+    rewrite <- !IG_labNodes_len_cardinal.
     apply IG_match_labNodes_permuation in H.
     apply _lists_diff_by_one in H.
     - assumption.
     - apply (node, label).
   }
-  rewrite <- !IG_labNodes_len_cardinal. 
+  rewrite !IG_labNodes_len_cardinal. 
   lia.
 Qed.
 
