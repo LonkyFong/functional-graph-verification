@@ -30,6 +30,20 @@ Require Import GraphVerification.src.relational_graph_theory.
 
 Require Import Coq.Relations.Relation_Operators.
 
+(* Todo: Helper Lemma, maybe move to util *)
+Lemma _In_map_fst_exists_second : forall (A B: Type) (a : A) (l : list (A * B)),
+    In a (map fst l) <-> exists second, In (a, second) l.
+Proof.
+    intros. induction l; simpl.
+    - firstorder.
+    - destruct a0. split; intros.
+        + destruct H.
+        -- exists b. left. subst. auto.
+        -- firstorder.
+        + destruct H. destruct H.
+        -- left. inversion H. auto.
+        -- right. apply IHl. exists x. assumption.
+Qed.
 
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG s  *)
