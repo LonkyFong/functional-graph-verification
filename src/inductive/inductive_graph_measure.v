@@ -23,7 +23,8 @@ These are the only proofs that the last remaining computational functions on IGs
 *)
 
 (* Lemmas and Theorems try to have only the context as an argument, and break it up internally, and this allows proof to do this too *)
-Ltac destruct_context c := destruct c as [[[froms node] label] tos].
+
+
 
 
 Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),
@@ -34,10 +35,11 @@ Proof.
 Qed.
 
 Lemma IG_match_returns_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B),
-    IG_match query ig = (Some c, i) -> let '(_, hit, _, _) := c in query = hit.
+    IG_match query ig = (Some c, i)
+        -> let '(_, hit, _, _) := c in query = hit.
 Proof.
     destruct_context c. intros. unfold IG_match in H. destruct (NatMap.find query ig).
-    - unfold _cleanSplit in H. destruct c as [[fromss labell] toss]. inversion H. reflexivity. 
+    - unfold _cleanSplit in H. destruct_context' c. inversion H. reflexivity. 
     - inversion H.
 Qed.
 
@@ -86,7 +88,7 @@ Proof.
     - destruct (_cleanSplit node c (NatMap.remove node ig)) eqn:split.
         inversion H. subst.
         unfold _cleanSplit in split.
-        destruct c as [[fromss labell] toss].
+        destruct_context' c.
         inversion split.
         clear split H1.
 
@@ -94,7 +96,7 @@ Proof.
         apply symmetry.
         apply NatMap_map_find_some_remove_minusOnes_cardinality.
 
-        exists (fromss, labell, toss).
+        exists (froms', label', tos').
         apply find.
     - inversion H.
 Qed.
@@ -149,7 +151,7 @@ Admitted.
 Theorem _IG_match_decreases_nodeAmount_permutation : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
     IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.
-    intros. destruct c as [[[froms node] label] tos]. apply IG_match_returns_node in H as s. subst.
+    intros. destruct_context c. apply IG_match_returns_node in H as s. subst.
     assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
         rewrite <- !IG_labNodes_len_cardinal.
         apply IG_match_labNodes_permuation in H.

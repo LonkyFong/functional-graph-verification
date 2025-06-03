@@ -56,6 +56,11 @@ Definition IG_empty {A B : Type} : IG A B :=
 Definition IG_isEmpty {A B : Type} (ig : IG A B) : bool :=
     NatMap.is_empty ig.
 
+(* These are here for now, as all theory files use them *)
+Ltac destruct_context c := destruct c as [[[froms node] label] tos].
+Ltac destruct_contextt c := destruct c as [[[fromss nodee] labell] toss].
+Ltac destruct_context' c' := destruct c' as [[froms' label'] tos'].
+Ltac destruct_contextt' c' := destruct c' as [[fromss' labell'] toss'].
 
 
 (* Here start the helper functions for IG_match *)
@@ -72,11 +77,9 @@ Definition _updateEntry {A B : Type} (node : Node) (f : Context' A B -> Context'
 
 Definition _addSucc {A B : Type} (node : Node) (label : B) (context' : Context' A B) : Context' A B :=
     let '(froms, l, tos) := context' in (froms, l, (label, node) :: tos).
-
   
 Definition _addPred {A B : Type} (node : Node) (label : B) (context' : Context' A B) : Context' A B :=
     let '(froms, l, tos) := context' in ((label, node) :: froms, l, tos).
-
 
 Definition _clearSucc {A B : Type} (node : Node) (context' : Context' A B) : Context' A B :=
     let '(froms, label, tos) := context' in (froms, label, filter (fun '(_, n) => negb (n =? node)) tos).

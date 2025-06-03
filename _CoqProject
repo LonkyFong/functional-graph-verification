@@ -13,12 +13,14 @@
 
 ./src/inductive/inductive_graph.v
 ./src/inductive/inductive_graph_measure.v
-./src/inductive/inductive_graph_theory.v
+# ./src/inductive/inductive_graph_theory.v
+
+# ./src/inductive/inductive_graph_theory_mkGraph.v
 
 
-./src/inductive/inductive_graph_measured_algorithms.v
-./src/inductive/inductive_graph_to_RG.v
-./src/inductive/inductive_graph_measured_algorithms_theory.v
+# ./src/inductive/inductive_graph_measured_algorithms.v
+# ./src/inductive/inductive_graph_to_RG.v
+# ./src/inductive/inductive_graph_measured_algorithms_theory.v
 
 
 
