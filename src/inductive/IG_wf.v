@@ -16,7 +16,7 @@ Require Import Coq.Relations.Relation_Operators.
 
 Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.util.NatMap.
-Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.IG.
 
 (* Stating and proving Lemmas and Theorems about measuring the size of an IG.
 These are the only proofs that the last remaining computational functions on IGs need to prove termination.

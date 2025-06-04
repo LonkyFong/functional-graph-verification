@@ -19,14 +19,14 @@ Require Import Coq.Relations.Relation_Operators.
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.NatMap.
 
-Require Import GraphVerification.src.inductive.inductive_graph.
-Require Import GraphVerification.src.inductive.inductive_graph_measure.
-Require Import GraphVerification.src.inductive.inductive_graph_theory.
-Require Import GraphVerification.src.inductive.inductive_graph_measured_algorithms.
-Require Import GraphVerification.src.inductive.inductive_graph_to_RG.
+Require Import GraphVerification.src.inductive.IG.
+Require Import GraphVerification.src.inductive.IG_wf.
+Require Import GraphVerification.src.inductive.IG_theory.
+Require Import GraphVerification.src.inductive.IG_wf_algorithms.
+Require Import GraphVerification.src.inductive.IG_to_RG.
 
-Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
 
 

@@ -16,10 +16,10 @@ Require Import Setoid Morphisms.
 
 Require Import GraphVerification.src.util.NatSet.
 
-Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.IG.
 
-Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.util.

@@ -14,10 +14,10 @@ Import ListNotations.
 Require Import Coq.Wellfounded.Inverse_Image.
 Require Import Coq.Relations.Relation_Operators.
 
-Require Import GraphVerification.src.inductive.inductive_graph_measure.
+Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.util.NatMap.
 
-Require Import GraphVerification.src.inductive.inductive_graph.
+Require Import GraphVerification.src.inductive.IG.
 
 (* Defining operations on an IG that depend on well-founded recursion for their termination.
 They require the Theorems about IG_noNodes etc. from inductive_graph_measure.

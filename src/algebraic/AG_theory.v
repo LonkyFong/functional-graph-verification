@@ -7,11 +7,11 @@ Require Import Coq.Sorting.Permutation.
 
 Require Import GraphVerification.src.util.NatSet.
 
-Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
-Require Import GraphVerification.src.algebraic.algebraic_graph.
-Require Import GraphVerification.src.algebraic.algebraic_graph_to_RG.
+Require Import GraphVerification.src.algebraic.AG.
+Require Import GraphVerification.src.algebraic.AG_to_RG.
 
 (* Stating and proving Lemmas and Theorems about AGs *)
 

@@ -17,12 +17,12 @@ Require Import Setoid Morphisms.
 
 Require Import GraphVerification.src.util.NatSet.
 
-Require Import GraphVerification.src.inductive.basic.inductive_graph_basic.
+Require Import GraphVerification.src.inductive.basic.IG_basic.
 
-Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
-Require Import GraphVerification.src.inductive.basic.inductive_graph_basic_to_RG.
+Require Import GraphVerification.src.inductive.basic.IG_basic_to_RG.
 
 
 (* This file shows that I== is an equivalence and attempts at "direct equational specification" of IG_basic s  *)

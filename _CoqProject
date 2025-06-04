@@ -4,53 +4,24 @@
 ./src/util/NatSet.v
 ./src/util/NatMap.v
 
-./src/relational_graph.v
-./src/relational_graph_theory.v
+./src/RG.v
+./src/RG_theory.v
 
-./src/algebraic/algebraic_graph.v
-./src/algebraic/algebraic_graph_to_RG.v
-./src/algebraic/algebraic_graph_theory.v
+./src/algebraic/AG.v
+./src/algebraic/AG_to_RG.v
+./src/algebraic/AG_theory.v
 
-./src/inductive/inductive_graph.v
-./src/inductive/inductive_graph_measure.v
-./src/inductive/inductive_graph_measured_algorithms.v
-./src/inductive/inductive_graph_to_RG.v
-
-
-./src/inductive/inductive_graph_theory.v
-./src/inductive/inductive_graph_theory_mkGraph.v
+./src/inductive/IG.v
+./src/inductive/IG_wf.v
+./src/inductive/IG_wf_algorithms.v
+./src/inductive/IG_to_RG.v
 
 
-./src/inductive/inductive_graph_measured_algorithms_theory.v
+./src/inductive/IG_theory.v
+./src/inductive/IG_mkGraph_theory.v
 
+./src/inductive/IG_wf_algorithms_theory.v
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ./src/relational_graph_IG_operations.v
-# ./src/relational_graph_IG_operations_theory.v
-
-# ./src/relational_graph_decidable.v
-
-
-# ./src/inductive/basic/inductive_graph_basic.v
-# ./src/inductive/basic/inductive_graph_basic_to_RG.v
-# ./src/inductive/basic/inductive_graph_basic_theory.v
-
-
-# ./src/scrapped_examples/examples.v
-
-# ./src/inductive/IG_operations_as_RG.v
 
 
 # coq_makefile -f _CoqProject -o Makefile

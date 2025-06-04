@@ -8,7 +8,7 @@ Import ListNotations.
 
 Require Import GraphVerification.src.util.util.
 
-(* Require Import GraphVerification.src.relational_graph.
+(* Require Import GraphVerification.src.RG.
  *)
 
 Require Import Coq.Sets.Ensembles.
@@ -16,9 +16,9 @@ Require Import Setoid Morphisms.
 
 
 Require Import GraphVerification.src.util.NatSet.
-Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
-Require Import GraphVerification.src.relational_graph_IG_operations.
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
+Require Import GraphVerification.src.RG_IG_operations.
 
 
 Open Scope nat_scope.

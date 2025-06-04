@@ -9,8 +9,6 @@ Require Import GraphVerification.src.util.util.
 
 Definition Node := Nat_as_OT.t.
 
-Print Module FMaps.
-
 (* Uses the quick AVL-tree variant *)
 Module NatMap := FMapAVL.Make(Nat_as_OT).
 
@@ -30,8 +28,8 @@ Module OMProps := OrdProperties NatMap.
 Lemma NatMap_cardinal_Add_In:
     forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
 Proof.
-    assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add.
-    { intros. unfold MProps.Add.
+    assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add. {
+        intros. unfold MProps.Add.
         intros.
         rewrite MFacts.add_o.
         destruct (MFacts.eq_dec k y).
@@ -39,8 +37,8 @@ Proof.
         - rewrite MFacts.remove_neq_o by assumption. reflexivity.
     }
     intros.
-    assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')).
-    { intros y. rewrite 2!MFacts.remove_o.
+    assert (NatMap.Equal (NatMap.remove x m) (NatMap.remove x m')). {
+        intros y. rewrite 2!MFacts.remove_o.
         destruct (MFacts.eq_dec x y).
         - reflexivity.
         - unfold MProps.Add in H0. rewrite H0.

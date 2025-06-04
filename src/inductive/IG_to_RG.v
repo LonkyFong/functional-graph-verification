@@ -6,10 +6,10 @@ Require Import List.
 Require Import Bool.
 Import ListNotations.
 
-Require Import GraphVerification.src.inductive.inductive_graph.
-Require Import GraphVerification.src.inductive.inductive_graph_measured_algorithms.
+Require Import GraphVerification.src.inductive.IG.
+Require Import GraphVerification.src.inductive.IG_wf_algorithms.
 
-Require Import GraphVerification.src.relational_graph.
+Require Import GraphVerification.src.RG.
 
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.NatSet.

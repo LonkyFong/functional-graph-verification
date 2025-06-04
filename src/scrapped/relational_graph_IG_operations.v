@@ -12,7 +12,7 @@ Require Import Bool.
 
 Require Import GraphVerification.src.util.util.
 
-Require Import GraphVerification.src.relational_graph_theory.
+Require Import GraphVerification.src.RG_theory.
 
 
 Require Import Coq.Sets.Ensembles.
@@ -23,7 +23,7 @@ Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
-Require Import GraphVerification.src.relational_graph.
+Require Import GraphVerification.src.RG.
 
 Require Import GraphVerification.src.util.util.
 
