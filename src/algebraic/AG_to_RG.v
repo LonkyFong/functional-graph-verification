@@ -1,5 +1,6 @@
-Require Import GraphVerification.src.algebraic.AG.
 Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.algebraic.AG.
+
 
 (* Defining how an AG converts to an RG *)
 

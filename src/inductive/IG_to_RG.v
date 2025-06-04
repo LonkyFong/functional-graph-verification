@@ -1,19 +1,12 @@
-Require Import String.
-Require Import Coq.Arith.Arith.
-Open Scope string_scope.
+Require Import Coq.Lists.List.
 
-Require Import List.
-Require Import Bool.
-Import ListNotations.
+Require Import GraphVerification.src.util.util.
+
+Require Import GraphVerification.src.RG.
 
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf_algorithms.
 
-Require Import GraphVerification.src.RG.
-
-Require Import GraphVerification.src.util.NatMap.
-Require Import GraphVerification.src.util.NatSet.
-Require Import GraphVerification.src.util.util.
 
 (* Defining how an IG converts to an RG *)
 
@@ -33,8 +26,6 @@ Proof.
     |}.
     RG_valid_prover_with rg.
 Defined.
-
-
 
 
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=

@@ -2,7 +2,6 @@ Require Import MSets.
 
 (* Instantiate an FSet module, such that it is the same across the whole project *)
 
-
 Definition Node := Nat_as_OT.t.
 
 (* Uses the quick AVL-tree variant *)

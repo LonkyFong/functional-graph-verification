@@ -1,4 +1,4 @@
-Require Import FMaps.
+Require Export FMaps.
 Require Export FMapAVL.
 
 Require Import Lia.
@@ -58,9 +58,7 @@ Proof.
     - apply remove_In_Add.
         apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
         rewrite MFacts.add_eq_o; reflexivity.
-Qed. 
-
-
+Qed.
 
 Lemma NatMap_add_value_does_not_matter_for_cardinality : forall {A : Type} (node : Node) (c c' : A) (m : NatMap.t A),
     NatMap.cardinal (NatMap.add node c m) = NatMap.cardinal (NatMap.add node c' m).
@@ -92,8 +90,7 @@ Proof.
     apply (H0 _ _ map _ x) in H1.
     - rewrite <- H1. reflexivity.
     - unfold MProps.Add. 
-    
-    
+
     
     unfold MProps.Add. intros. bdestruct (y =? key).
     + rewrite H2. rewrite e. assert (key = key). {

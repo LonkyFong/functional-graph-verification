@@ -2,11 +2,9 @@ Require Import Coq.Relations.Relation_Definitions.
 Require Import Coq.Relations.Relation_Operators.
 Require Import Coq.Sets.Ensembles.
 
-Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.util.
 
-Require Import List.
-Import ListNotations.
+
 
 
 (* Defining a relational_graph (RG) and its operations. It it most similar to the typical graph from discrete mathematics.

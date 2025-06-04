@@ -1,23 +1,16 @@
-Require Import Recdef.
-Require Import Lia.
-
 Require Import Coq.Arith.Arith.
-Require Import Coq.Arith.Wf_nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Wellfounded.Wellfounded.
 Require Import Coq.Wellfounded.Lexicographic_Product.
-Require Import Coq.Structures.OrderedType.
-Require Import Coq.Structures.OrderedTypeEx.
-
-Import ListNotations.
-
 Require Import Coq.Wellfounded.Inverse_Image.
 Require Import Coq.Relations.Relation_Operators.
 
-Require Import GraphVerification.src.inductive.IG_wf.
+Require Import Coq.Lists.List.
+Import ListNotations.
+
 Require Import GraphVerification.src.util.NatMap.
 
 Require Import GraphVerification.src.inductive.IG.
+Require Import GraphVerification.src.inductive.IG_wf.
+
 
 (* Defining operations on an IG that depend on well-founded recursion for their termination.
 They require the Theorems about IG_noNodes etc. from inductive_graph_measure.
@@ -100,8 +93,6 @@ Defined.
 (* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
     IG_DFS_rec A B (ig, nodes).
-
-
 
 
 

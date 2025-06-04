@@ -1,15 +1,7 @@
 Require Import List.
 Import ListNotations.
-Require Import Bool.
-Require Import Nat.
 
 Require Import Coq.Arith.PeanoNat.
-
-Require Import Coq.Lists.ListSet.
-Require Import Coq.Arith.EqNat.
-
-Require Import Coq.Arith.Peano_dec.
-Require Import Recdef.
 
 Require Import GraphVerification.src.util.NatSet.
 
@@ -111,12 +103,12 @@ Definition induce {A : Type} (f : A -> bool) (ag : AG A) : AG A :=
 
 
 Definition removeVertex (x : nat) (ag : AG nat) : AG nat :=
-    induce (fun y => negb (eqb x y)) ag.
+    induce (fun y => negb (Nat.eqb x y)) ag.
 
 
 Definition splitVertex {A : Type} (x : nat) (l : list nat) (ag : AG nat) : AG nat :=
     gmapVertex (fun g' => match g' with
-                          | Vertex y => if eqb x y then vertices l else Vertex y
+                          | Vertex y => if Nat.eqb x y then vertices l else Vertex y
                           | _ => g'
                           end) ag.
 

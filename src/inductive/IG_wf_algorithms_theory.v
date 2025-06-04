@@ -5,30 +5,23 @@ Require Import Coq.Logic.PropExtensionality.
 Require Import Coq.Arith.Arith.
 
 Require Import List.
-Require Import Coq.Structures.OrdersTac.
-Require Import Bool.
 Import ListNotations.
-
-Require Import FSets.
-Require Import FMaps.
-Require Import OrderedTypeEx.
-Require Import Setoid Morphisms.
-Require Import Coq.Relations.Relation_Operators.
-
 
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.NatMap.
+
+Require Import Coq.Relations.Relation_Operators.
+
+
+
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
 Require Import GraphVerification.src.inductive.IG_wf_algorithms.
 Require Import GraphVerification.src.inductive.IG_to_RG.
-
-Require Import GraphVerification.src.RG.
-Require Import GraphVerification.src.RG_theory.
-
-
 
 (* Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. *)
 
@@ -89,7 +82,7 @@ Proof.
         + (* this case is a contradiction*) 
         admit.
 
-        + admit. 
+ 
 Admitted.
 
 
@@ -498,13 +491,13 @@ Proof.
     intros A B.
     apply (well_founded_induction
             (well_founded_ltof _ IG_noNodes)).
-        intros ig IH.
-        unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
-        destruct m eqn:mm.
-        - specialize (IH i). assert (ltof (IG A B) IG_noNodes i ig). {
-        unfold ltof.
-        apply _IG_matchAny_decreases_IG_noNodes in mat.
-        assumption.
+    intros ig IH.
+    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    destruct m eqn:mm.
+    - specialize (IH i). assert (ltof (IG A B) IG_noNodes i ig). {
+            unfold ltof.
+            apply _IG_matchAny_decreases_IG_noNodes in mat.
+            assumption.
         }
         specialize (IH H). clear H.
         rewrite RG_transpose_distributes_over_extendByContext.
@@ -521,15 +514,8 @@ Proof.
         rewrite IH.
         reflexivity.
 
-        - clear mat mm IH. unfold IG_to_RG. rewrite IG_ufold_equation. simpl. unfold RG_transpose. firstorder. 
+    - clear mat mm IH. unfold IG_to_RG. rewrite IG_ufold_equation. simpl. unfold RG_transpose. firstorder. 
 
 Qed.
-
-
-
-
-
-
-
 
 

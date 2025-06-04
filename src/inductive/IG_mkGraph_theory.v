@@ -5,29 +5,20 @@ Require Import Coq.Logic.PropExtensionality.
 Require Import Coq.Arith.Arith.
 
 Require Import List.
-Require Import Coq.Structures.OrdersTac.
-Require Import Bool.
 Import ListNotations.
 
-Require Import FSets.
-Require Import FMaps.
-Require Import OrderedTypeEx.
-Require Import Setoid Morphisms.
-
+Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.util.NatSet.
+Require Import GraphVerification.src.util.NatMap.
+
+Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.RG_theory.
 
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
 
-Require Import GraphVerification.src.RG.
-Require Import GraphVerification.src.RG_theory.
-
-Require Import GraphVerification.src.util.NatMap.
-Require Import GraphVerification.src.util.util.
-
 (* Stating and proving Lemmas and Theorems about IG_mkGraph and helper functions *)
-
 
 
 (* Here, one may consider using IG_match as a probing tool instead of IG_labNodes *)

@@ -4,7 +4,6 @@ Require Import List.
 Import ListNotations.
 
 Require Import Coq.Sets.Ensembles.
-Require Import Setoid Morphisms.
 
 (* Defines miscellaneous utilities useful across the project  *)
 

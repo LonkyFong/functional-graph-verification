@@ -16,7 +16,6 @@
 ./src/inductive/IG_wf_algorithms.v
 ./src/inductive/IG_to_RG.v
 
-
 ./src/inductive/IG_theory.v
 ./src/inductive/IG_mkGraph_theory.v
 
