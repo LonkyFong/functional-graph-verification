@@ -19,6 +19,8 @@ Module MFacts := WFacts_fun Nat_as_OT NatMap.
 (* More useful lemmas about maps *)
 Module MProps := WProperties_fun Nat_as_OT NatMap.
 
+Module OMProps := OrdProperties NatMap.
+
 
 
 
@@ -47,8 +49,7 @@ Proof.
     apply MProps.Equal_cardinal in H1.
     rewrite 2!MProps.cardinal_fold.
     destruct H as (e' & H).
-Admitted.
-    (* rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
+    rewrite MProps.fold_Add with (eqA:=eq) (m1:=NatMap.remove x m) (m2:=m) (k:=x) (e:=e');
     try now (compute; auto).
     2:apply NatMap.remove_1; reflexivity.
     2:apply remove_In_Add; assumption.
@@ -59,7 +60,7 @@ Admitted.
     - apply remove_In_Add.
         apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
         rewrite MFacts.add_eq_o; reflexivity.
-Qed.  *)
+Qed. 
 
 
 
@@ -126,4 +127,10 @@ Proof.
             rewrite (NatMap_MapsTo_same_key_same_value _ _ _ _ H H0). auto.
         ++ subst. assumption.
     - firstorder.
+Qed.
+
+Lemma NatMap_In_exists_MapsTo_iff : forall (A : Type) (x : Node) (m : NatMap.t A),
+    NatMap.In x m <-> exists y, NatMap.MapsTo x y m.
+Proof.
+    firstorder.
 Qed.

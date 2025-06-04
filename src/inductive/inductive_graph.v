@@ -62,6 +62,8 @@ Ltac destruct_contextt c := destruct c as [[[fromss nodee] labell] toss].
 Ltac destruct_context' c' := destruct c' as [[froms' label'] tos'].
 Ltac destruct_contextt' c' := destruct c' as [[fromss' labell'] toss'].
 
+Ltac destruct_edge e := destruct e as [[from to] el].
+
 
 (* Here start the helper functions for IG_match *)
 

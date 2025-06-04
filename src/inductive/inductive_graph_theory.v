@@ -36,7 +36,6 @@ even consider how using match as a probe could be used
 
 
 
-
 (* Stating and proving Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
 For those, go to inductive_graph_measured_algorithms_theory
  *)
@@ -92,9 +91,52 @@ Qed.
 Ltac destruct_eMapsTo H := destruct H as [efroms [etos H]].
 
 
+(* TODO: use this in all fitting cases *)
+Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
+    (exists other, In (node, other) (IG_labNodes ig)).
 
+(* Definition _key_In_IGb {A B : Type} (node : Node) (ig : IG A B) : bool :=
+    negb (existsb (fun '(n, _) => n =? node) (IG_labNodes ig)).
 
+Lemma _key_In_IGb_is_mem : forall (A B : Type) (x : Node) (ig : IG A B),
+    _key_In_IGb x ig = negb (NatMap.mem x ig).
+Proof.
+    intros. unfold _key_In_IGb. apply f_equal. destruct (NatMap.mem x ig) eqn:HH.
 
+    - assert (exists o, In (x, o) (IG_labNodes ig)). {
+            apply MFacts.mem_in_iff in HH.
+            apply -> NatMap_In_exists_MapsTo_iff in HH.
+            destruct HH.
+            destruct_context' x0.
+            exists label'.
+            apply _In_labNodes_is_some_MapsTo. firstorder.                  
+        }
+        apply existsb_exists. destruct H.
+        exists (x, x0).
+        firstorder.
+        apply Nat.eqb_refl.
+
+    - assert (not (existsb (fun '(n, _) => n =? x) (IG_labNodes ig) = true)). {
+            assert (not (exists o, In (x, o) (IG_labNodes ig))). {
+                unfold not. intros. 
+                apply MFacts.not_mem_in_iff in HH.
+                unfold not in HH. apply HH.
+                apply NatMap_In_exists_MapsTo_iff.
+                destruct H.
+                apply _In_labNodes_is_some_MapsTo in H.
+                firstorder. 
+            }
+            unfold not. intros.
+            apply existsb_exists in H0. destruct H0.
+            destruct x0.
+            bdestruct (n =? x).
+            - subst. firstorder.
+            - firstorder. inversion H2.
+        }
+        destruct (existsb (fun '(n, _) => n =? x) (IG_labNodes ig)).
+        + firstorder.
+        + firstorder.
+Qed.  *)
 
 
 (* Here start "meaningful statements" *)
@@ -267,17 +309,6 @@ Qed.
 
 
 
-
-
-Require Import Coq.Sorting.Permutation.
-
-
-(* Permutation l1 l2 *)
-
-
-
-
-
 (* Some theorems about IG_match *)
 
 
@@ -325,9 +356,9 @@ Proof.
 Qed.
 
 
-Lemma IG_match_just_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (froms tos : Adj B) (x : LNode A),
+Lemma IG_match_just_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
     IG_match query ig = (Some c, i)
-        -> let '(froms, hit, label, tos) := c in    
+        -> let '(_, hit, label, _) := c in    
             In x (IG_labNodes ig) <-> In x ((hit, label) :: IG_labNodes i). 
 Proof.
     intros. simpl.
@@ -372,52 +403,6 @@ Admitted.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* TODO: change NatMap.mem to In x IG_labNodes *)
-
-
-
-Lemma IG_and_adds_node : forall (A B : Type) (context : Context A B) (ig : IG A B) (x : LNode A),
-    In x (IG_labNodes (IG_and context ig))
-        <-> let '(_, node, label, _) := context in
-        In x ((if NatMap.mem node ig then [] else [(node, label)]) ++ IG_labNodes ig).
-Proof.
-    intros. simpl.
-    destruct context as [[[froms node] label] tos]. unfold IG_and.
-    destruct (NatMap.mem node ig) eqn:cond; simpl.
-    - reflexivity.
-    - rewrite _updAdj_addSucc_does_not_change_IG_labNodes. rewrite _updAdj_addPred_does_not_change_IG_labNodes.
-        rewrite !_In_labNodes_is_some_MapsTo. 
-    
-    split; intros.
-        + destruct H as [fromss [toss H]]. apply MFacts.add_mapsto_iff in H. destruct H.
-        -- left. destruct x. destruct H. inversion H0. simpl in *. subst. reflexivity.
-        -- right. destruct H. firstorder.
-        + destruct H.
-        -- exists froms, tos. apply MFacts.add_mapsto_iff. left. destruct x. inversion H. simpl in *. subst. auto.
-        -- destruct H as [fromss [toss H]]. exists fromss, toss. apply MFacts.add_mapsto_iff. right. split.
-            ++ unfold not. intros. destruct x. simpl in *. subst. assert (NatMap.In n ig). {
-                firstorder.          
-            } apply NatMap.mem_1 in H0. rewrite H0 in cond. discriminate cond.
-            ++ assumption.
-Qed.
 
 
 
