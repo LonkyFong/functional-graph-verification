@@ -28,7 +28,6 @@ Open Scope nat_scope.
 
 (* Proving also Adj and Context equivalence relations *)
 
-
 Instance RG_Adj_Equivalence {A B : Type} : Equivalence (@RG_Adj_equiv A B).
 Proof.
   unfold RG_Adj_equiv. split.

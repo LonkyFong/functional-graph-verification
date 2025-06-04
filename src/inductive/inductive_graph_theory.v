@@ -24,21 +24,13 @@ Require Import GraphVerification.src.relational_graph_theory.
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.util.
 
-(* TODO (* Notive, how In + [] is basically used as a set. Also possibly provide no duplicates proofs *) *)
-(* ie: change a statement like     In x (IG_labNodes (_updateEntry node (_clearPred whose) ig)) <-> In x (IG_labNodes ig).     
-to     Permutation (IG_labNodes (_updateEntry node (_clearPred whose) ig)) (IG_labNodes ig).
-
-
-
-even consider how using match as a probe could be used
-
-*)
-
-
 
 (* Stating and proving Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
 For those, go to inductive_graph_measured_algorithms_theory
  *)
+
+ 
+ (* TODO: use match instead of IG_labNodes to make statements about countend *)
 
 
 (* Start with the most basic properties about IG_empty *)

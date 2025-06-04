@@ -35,6 +35,8 @@ Ltac G_derived_equivalence_prover A B f :=
 
 
 (* Some theorems about RG_transpose: *)
+
+
 Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) R== rg.
 Proof.
     firstorder.   

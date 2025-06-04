@@ -18,9 +18,9 @@ Require Import GraphVerification.src.util.util.
 (* Defining how an IG converts to an RG *)
 
 
-Definition RG_and {A B : Type} (context : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
+Definition RG_and {A B : Type} (c : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
-    destruct context as [[[froms node] label] tos].
+    destruct_context c.
     refine {|
         RG_nodes := fun (n : nat) => (Ensemble_add node rg.(RG_nodes)) n;
         RG_edges := fun (n1 n2 : nat) l => rg.(RG_edges) n1 n2 l \/
