@@ -57,13 +57,35 @@ Proof.
     assumption.
 Qed.
 
-Ltac break_up_lexord := intros;
-                            unfold lexord_arg_pair_s;
+Ltac break_up_lexord := unfold lexord_arg_pair_s;
                             unfold lexord_dep_arg_pair_s;
                             unfold prodTo_dep_arg_pair_s;
                             simpl.
 
+                          
+(* The next two are used equally for proving termination as doing wf-induction to prover properties *)
+Lemma IG_match_some_decreases_lexord : forall (A B : Type) (n : Node) (c : Context A B) (ig i : IG A B) (any1 any2 : list Node),
+    IG_match n ig = (Some c, i)
+    -> lexord_arg_pair_s A B (i, any1) (ig, any2).
+Proof.
+    intros.
+    break_up_lexord.
+    apply left_lex.
+    apply _IG_match_decreases_IG_noNodes in H.
+    assumption.
+Qed.
 
+
+Lemma IG_match_none_list_diff_lexord : forall (A B : Type) (n : Node) (ig i : IG A B) (any : list Node),
+    IG_match n ig = (None, i)
+    -> lexord_arg_pair_s A B (i, any) (ig, n :: any).
+Proof.
+    intros.
+    break_up_lexord.
+    apply IG_match_none_returns_graph in H. subst.
+    apply right_lex.
+    auto.
+Qed.
 
 
 Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
@@ -78,13 +100,9 @@ Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_
   end.
 Proof.
     (* Case 1: graph gets smaller *)
-    - break_up_lexord.
-        apply _IG_match_decreases_IG_noNodes in teq2.
-        apply left_lex. auto.
-    (* Case 2: stack gets smaller *)
-    - break_up_lexord.
-        apply IG_match_none_returns_graph in teq2. subst.
-        apply right_lex. auto.
+    - intros. eapply IG_match_some_decreases_lexord in teq2. apply teq2.
+    (* Case 2: graph is same, stack gets smaller *)
+    - intros. eapply IG_match_none_list_diff_lexord in teq2. apply teq2.
     (* lexord_arg_pair_s is indeed well-founded *) 
     - exact wf_lexord_arg_pair_s.
 Defined.
@@ -93,8 +111,6 @@ Defined.
 (* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
     IG_DFS_rec A B (ig, nodes).
-
-
 
 
 

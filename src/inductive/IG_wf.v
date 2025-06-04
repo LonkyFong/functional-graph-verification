@@ -132,33 +132,3 @@ Qed.
 
 
 
-(* TODO: This is another approach of proving the same. Check it out perhaps. So far nothing depends on it *)
-
-Require Import Coq.Sorting.Permutation.
-
-Lemma _lists_diff_by_one : forall (A : Type) (l l' : list A) (x diff : A),
-    Permutation l (diff :: l') -> length l = S (length l').
-Proof.
-    intros. apply Permutation_length in H. simpl in H. assumption.
-Qed.
-
-Lemma IG_match_labNodes_permuation : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
-    IG_match n ig = (Some c, rest) -> let '(_, node, label, _) := c in Permutation (IG_labNodes ig) ((node, label) :: IG_labNodes rest).
-Proof.
-Admitted. 
-
-
-Theorem _IG_match_decreases_nodeAmount_permutation : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
-    IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
-Proof.
-    intros. destruct_context c. apply IG_match_returns_node in H as s. subst.
-    assert (NatMap.cardinal ig = S (NatMap.cardinal rest)). {
-        rewrite <- !IG_labNodes_len_cardinal.
-        apply IG_match_labNodes_permuation in H.
-        apply _lists_diff_by_one in H.
-        - assumption.
-        - apply (node, label).
-    }
-    rewrite !IG_labNodes_len_cardinal. 
-    lia.
-Qed.

@@ -26,47 +26,35 @@ Lemma IG_and_adds_node : forall (A B : Type) (c : Context A B) (ig : IG A B) (x 
     In x (IG_labNodes (IG_and c ig))
         <-> let '(_, node, label, _) := c in (x = (node, label) /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).
 Proof.
-    intros.
-    destruct_context c.
-
-    unfold _key_In_IG.
+    intros. destruct_context c. unfold _key_In_IG.
     unfold IG_and.
     destruct (NatMap.mem node ig) eqn:cond.
     - split; intros.
         + firstorder.
         + destruct H.
-            -- destruct H. unfold not in H0. exfalso. apply H0. destruct x as [xn xl]. inversion H. subst.
+            -- destruct H. unfold not in H0. exfalso. apply H0. clear H0. destruct x as [xn xl]. inversion H. subst.
                 apply MFacts.mem_in_iff in cond.
                 apply -> NatMap_In_exists_MapsTo_iff in cond. destruct cond. destruct_context' x.
                 exists label'.
-                apply _In_labNodes_is_some_MapsTo. firstorder.
+                apply _In_labNodes_is_some_MapsTo. simpl. firstorder.
             -- assumption.
     - rewrite _updAdj_addSucc_does_not_change_IG_labNodes.
         rewrite _updAdj_addPred_does_not_change_IG_labNodes.
         rewrite _In_labNodes_is_some_MapsTo. destruct x as [xn xl]. 
         simpl.
 
-        (* This allows for rewriting within an exists *)
         setoid_rewrite MFacts.add_mapsto_iff.
         rewrite _In_labNodes_is_some_MapsTo.
         apply MFacts.not_mem_in_iff in cond.
         simpl.
         firstorder. 
-        + inversion H1. subst. left. split.
-            -- reflexivity.
-
-            -- unfold not. intros. destruct H0.
-                apply _In_labNodes_is_some_MapsTo in H0.
-                firstorder.
+        + inversion H1. subst. left. firstorder. unfold not. 
+            setoid_rewrite _In_labNodes_is_some_MapsTo. firstorder.
         + inversion H0. subst. exists froms, tos. firstorder.
         + bdestruct (node =? xn).
             -- subst. firstorder.
             -- firstorder.
 Qed.
-
-
-
-
 
 
 Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
@@ -81,7 +69,7 @@ Qed.
 
 
 
-
+(* Two helpers for "_insNodes_any_ins_all_nodes" *)
 Lemma _MapsTo_same_on_different_insNodes : forall (A B : Type) (n : Node) (a : A) (nodes : list (LNode A)) (ig : IG A B),
     ~ InA (fun x y : NatSet.Node * A => fst x = fst y) (n, a) nodes
         -> forall c, NatMap.MapsTo n c (_insNodes nodes ig) <-> NatMap.MapsTo n c ig.  
@@ -99,8 +87,7 @@ Proof.
         + apply IHnodes.
         + simpl. rewrite MFacts.add_mapsto_iff. firstorder.
 Qed.
-        
-        
+
 
 
 Lemma _key_In_IG_same_on_different_insNodes : forall (A B : Type) (n : Node) (a : A) (nodes : list (LNode A)) (ig : IG A B),
@@ -128,9 +115,7 @@ Proof.
     - firstorder.
     - inversion H. subst. specialize (IHnodes H3). clear H. destruct a as [an al].
         rewrite _insNode_any_ins_node. rewrite IHnodes. clear IHnodes. split; intros.
-        +
-        (* apply (_mem_different_insNodes A B _ _ _ ig) in H2. *)
-            destruct H.
+        + destruct H.
             -- destruct H. left.  destruct x as [xn xl]. inversion H. subst.
                 split.
                 ++ firstorder.
@@ -155,48 +140,34 @@ Qed.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 Lemma _insEdge_does_not_add_node : forall (A B : Type) (edge : LEdge B) (ig : IG A B) (x : LNode A),
-  In x (IG_labNodes (_insEdge edge ig)) <-> In x (IG_labNodes ig).
+    In x (IG_labNodes (_insEdge edge ig)) <-> In x (IG_labNodes ig).
 Proof.
-  intros. unfold _insEdge. destruct edge as [[from to] label].
-  destruct (IG_match from ig) eqn:HH.
-  destruct m as [[[[froms n] l] tos] | ].
-  - rewrite IG_and_adds_node. destruct (NatMap.mem from i) eqn:HHH.
-    + exfalso. apply IG_match_returns_node in HH as HHHH. subst.
-      apply  MFacts.mem_in_iff in HHH.
-      
-      assert (exists c, NatMap.MapsTo n c i). {
-        firstorder.
-      }
-      destruct H as [[[fromss node] toss] H].
+    intros. unfold _insEdge. destruct_edge edge.
+    
+    destruct (IG_match from ig) eqn:mat.
+    destruct m.
+    - destruct_context c. rewrite IG_and_adds_node.
+        destruct (NatMap.mem from i) eqn:mem.
+        + exfalso. apply IG_match_returns_node in mat as mat'. subst.
+        apply  MFacts.mem_in_iff in mem.
+        
+        assert (exists c, NatMap.MapsTo n c i). {
+            firstorder.
+        }
+        destruct H as [[[fromss node] toss] H].
 
-      assert (In (n, node) (IG_labNodes i)). {
-        apply _In_labNodes_is_some_MapsTo. firstorder.
-      }
+        assert (In (n, node) (IG_labNodes i)). {
+            apply _In_labNodes_is_some_MapsTo. firstorder.
+        }
 
-      eapply IG_match_removes_node in HH.
-      unfold not in HH. apply HH. exists node. apply H0.
+        eapply IG_match_removes_node in mat.
+        unfold not in mat. apply mat. exists node. apply H0.
 
 
-    + simpl. apply IG_match_returns_node in HH as HHHH. subst.
-        apply (IG_match_exactly_removes_node _ _ _ _ _ _  x) in HH. rewrite HH. simpl. reflexivity.
-  - reflexivity.
+        + simpl. apply IG_match_returns_node in mat as mat'. subst.
+            apply (IG_match_exactly_removes_node _ _ _ _ _ _  x) in mat. rewrite mat. simpl. reflexivity.
+    - reflexivity.
 Qed.
 
 
