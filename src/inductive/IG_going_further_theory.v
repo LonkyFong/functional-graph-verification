@@ -1,8 +1,6 @@
-Require Import Coq.micromega.Lia.
-Require Import Coq.Logic.FunctionalExtensionality.
-Require Import Coq.Logic.PropExtensionality.
+Require Import Lia.
 
-Require Import Coq.Arith.Arith.
+Require Import Arith.
 
 Require Import List.
 Import ListNotations.
@@ -10,7 +8,7 @@ Import ListNotations.
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.NatMap.
 
-Require Import Coq.Relations.Relation_Operators.
+Require Import Relation_Operators.
 
 
 Require Import GraphVerification.src.RG.

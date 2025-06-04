@@ -2,7 +2,7 @@ Require Export FMaps.
 Require Export FMapAVL.
 
 Require Import Lia.
-Require Import Coq.Arith.Arith.
+Require Import Arith.
 Require Import GraphVerification.src.util.util.
 
 (* Instantiate an FMap module, such that it is the same across the whole project *)

@@ -1,17 +1,17 @@
 Require Import Recdef.
 Require Import Lia.
 
-Require Import Coq.Arith.Arith.
-Require Import Coq.Arith.Wf_nat.
-Require Import Coq.Lists.List.
-Require Import Coq.Wellfounded.Wellfounded.
-Require Import Coq.Wellfounded.Lexicographic_Product.
-Require Import Coq.Structures.OrderedType.
-Require Import Coq.Structures.OrderedTypeEx.
+Require Import Arith.
+Require Import Wf_nat.
+Require Import List.
+Require Import Wellfounded.
+Require Import Lexicographic_Product.
+Require Import OrderedType.
+Require Import OrderedTypeEx.
 
 Import ListNotations.
-Require Import Coq.Wellfounded.Inverse_Image.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Inverse_Image.
+Require Import Relation_Operators.
 
 
 Require Import GraphVerification.src.util.util.

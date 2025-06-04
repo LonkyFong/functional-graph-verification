@@ -1,6 +1,6 @@
-Require Import Coq.Relations.Relation_Definitions.
-Require Import Coq.Relations.Relation_Operators.
-Require Import Coq.Sets.Ensembles.
+Require Import Relation_Definitions.
+Require Import Relations.Relation_Operators.
+Require Import Ensembles.
 
 Require Import GraphVerification.src.util.util.
 

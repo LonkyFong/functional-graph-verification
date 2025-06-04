@@ -1,4 +1,4 @@
-Require Import Coq.Arith.Arith.
+Require Import Arith.
 Require Import String.
 Open Scope string_scope.
 

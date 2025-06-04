@@ -1,7 +1,7 @@
 Require Import List.
 Import ListNotations.
 
-Require Import Coq.Arith.PeanoNat.
+Require Import PeanoNat.
 
 Require Import GraphVerification.src.util.NatSet.
 

@@ -1,4 +1,4 @@
-Require Import Coq.Lists.List.
+Require Import List.
 
 Require Import GraphVerification.src.util.util.
 

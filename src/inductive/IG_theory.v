@@ -1,8 +1,6 @@
-Require Import Coq.micromega.Lia.
-Require Import Coq.Logic.FunctionalExtensionality.
-Require Import Coq.Logic.PropExtensionality.
+Require Import Lia.
 
-Require Import Coq.Arith.Arith.
+Require Import Arith.
 
 Require Import List.
 Import ListNotations.

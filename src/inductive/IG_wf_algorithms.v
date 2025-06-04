@@ -1,9 +1,9 @@
-Require Import Coq.Arith.Arith.
-Require Import Coq.Wellfounded.Lexicographic_Product.
-Require Import Coq.Wellfounded.Inverse_Image.
-Require Import Coq.Relations.Relation_Operators.
+Require Import Arith.
+Require Import Lexicographic_Product.
+Require Import Inverse_Image.
+Require Import Relation_Operators.
 
-Require Import Coq.Lists.List.
+Require Import List.
 Import ListNotations.
 
 Require Import GraphVerification.src.util.NatMap.

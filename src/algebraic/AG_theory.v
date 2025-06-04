@@ -1,9 +1,9 @@
 Require Import Setoid Morphisms.
-Require Import Coq.Sets.Ensembles.
+Require Import Ensembles.
 
 Require Import List.
 Import ListNotations.
-Require Import Coq.Sorting.Permutation.
+Require Import Sorting.Permutation.
 
 Require Import GraphVerification.src.util.NatSet.
 

@@ -1,9 +1,9 @@
 Require Import Bool.
-Require Import Coq.Arith.Arith.
+Require Import Arith.
 Require Import List.
 Import ListNotations.
 
-Require Import Coq.Sets.Ensembles.
+Require Import Ensembles.
 
 (* Defines miscellaneous utilities useful across the project  *)
 
