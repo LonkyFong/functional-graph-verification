@@ -134,3 +134,9 @@ Lemma NatMap_In_exists_MapsTo_iff : forall (A : Type) (x : Node) (m : NatMap.t A
 Proof.
     firstorder.
 Qed.
+
+Lemma NatMap_MapsTo_then_In : forall (A : Type) (x : Node) (y : A) (m : NatMap.t A),
+    NatMap.MapsTo x y m -> NatMap.In x m. 
+Proof.
+    firstorder.
+Qed.

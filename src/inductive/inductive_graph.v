@@ -59,6 +59,7 @@ Definition IG_isEmpty {A B : Type} (ig : IG A B) : bool :=
 (* These are here for now, as all theory files use them *)
 Ltac destruct_context c := destruct c as [[[froms node] label] tos].
 Ltac destruct_contextt c := destruct c as [[[fromss nodee] labell] toss].
+Ltac destruct_contexttt c := destruct c as [[[fromsss nodeee] labelll] tosss].
 Ltac destruct_context' c' := destruct c' as [[froms' label'] tos'].
 Ltac destruct_contextt' c' := destruct c' as [[fromss' labell'] toss'].
 

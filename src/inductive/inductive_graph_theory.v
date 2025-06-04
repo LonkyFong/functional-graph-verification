@@ -95,48 +95,6 @@ Ltac destruct_eMapsTo H := destruct H as [efroms [etos H]].
 Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
     (exists other, In (node, other) (IG_labNodes ig)).
 
-(* Definition _key_In_IGb {A B : Type} (node : Node) (ig : IG A B) : bool :=
-    negb (existsb (fun '(n, _) => n =? node) (IG_labNodes ig)).
-
-Lemma _key_In_IGb_is_mem : forall (A B : Type) (x : Node) (ig : IG A B),
-    _key_In_IGb x ig = negb (NatMap.mem x ig).
-Proof.
-    intros. unfold _key_In_IGb. apply f_equal. destruct (NatMap.mem x ig) eqn:HH.
-
-    - assert (exists o, In (x, o) (IG_labNodes ig)). {
-            apply MFacts.mem_in_iff in HH.
-            apply -> NatMap_In_exists_MapsTo_iff in HH.
-            destruct HH.
-            destruct_context' x0.
-            exists label'.
-            apply _In_labNodes_is_some_MapsTo. firstorder.                  
-        }
-        apply existsb_exists. destruct H.
-        exists (x, x0).
-        firstorder.
-        apply Nat.eqb_refl.
-
-    - assert (not (existsb (fun '(n, _) => n =? x) (IG_labNodes ig) = true)). {
-            assert (not (exists o, In (x, o) (IG_labNodes ig))). {
-                unfold not. intros. 
-                apply MFacts.not_mem_in_iff in HH.
-                unfold not in HH. apply HH.
-                apply NatMap_In_exists_MapsTo_iff.
-                destruct H.
-                apply _In_labNodes_is_some_MapsTo in H.
-                firstorder. 
-            }
-            unfold not. intros.
-            apply existsb_exists in H0. destruct H0.
-            destruct x0.
-            bdestruct (n =? x).
-            - subst. firstorder.
-            - firstorder. inversion H2.
-        }
-        destruct (existsb (fun '(n, _) => n =? x) (IG_labNodes ig)).
-        + firstorder.
-        + firstorder.
-Qed.  *)
 
 
 (* Here start "meaningful statements" *)
@@ -145,7 +103,7 @@ Qed.  *)
 
 (* Two general Lemmas about _updateEntry and _updAdj using any function f *)
 Lemma _updateEntry_does_not_change_key_set : forall (A B : Type) (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) (x : Node),
-    (exists other, In (x, other) (IG_labNodes (_updateEntry node f ig))) <-> (exists other, In (x, other) (IG_labNodes ig)). 
+    _key_In_IG x (_updateEntry node f ig) <-> _key_In_IG x ig. 
 Proof.
     intros. unfold _updateEntry.
     destruct (NatMap.find node ig) eqn:isIn.
@@ -169,7 +127,7 @@ Qed.
 
 
 Lemma _updAdj_does_not_change_key_set : forall (A B : Type) (adj : Adj B) (f : B -> Context' A B -> Context' A B) (ig : IG A B) (x : Node), 
-    (exists other, In (x, other) (IG_labNodes (_updAdj adj f ig))) <-> (exists other, In (x, other) (IG_labNodes ig)).
+    _key_In_IG x (_updAdj adj f ig) <-> _key_In_IG x ig. 
 Proof.
     intros. unfold _updAdj.
     induction adj; simpl.
@@ -289,28 +247,7 @@ Qed.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 (* Some theorems about IG_match *)
-
 
 
 (* Unproved Lemmas, to convert IG_labNodes to IG_match *)
@@ -321,14 +258,10 @@ Lemma IG_match_is_In_IG_labNodes : forall (A B : Type) (x : LNode A) (ig : IG A 
 Proof.
 Admitted.
 
-Lemma IG_match_does_not_exist : forall (A B : Type) (query : Node) (ig : IG A B),
-    not (exists c i, IG_match query ig = (Some c, i))
-        -> IG_match query ig = (None, ig).
-Proof.
-Admitted.
 
-Lemma IG_match_hit_is_In_fst_IG_labNodes : forall (A B : Type) (query : Node) (ig : IG A B), 
-    (exists other, In (query, other) (IG_labNodes ig)) <-> exists c i, IG_match query ig = (Some c, i).  
+
+Lemma IG_match_hit_is_key : forall (A B : Type) (query : Node) (ig : IG A B), 
+    _key_In_IG query ig <-> exists c i, IG_match query ig = (Some c, i).  
 Proof.
 Admitted.
 
@@ -336,7 +269,7 @@ Admitted.
 
 Lemma IG_match_removes_node : forall (A B : Type) (query : Node) (mContext : MContext A B) (ig i : IG A B),
     IG_match query ig = (mContext, i)
-        -> not (exists other, In (query, other) (IG_labNodes i)).
+        -> not (_key_In_IG query i). 
 Proof.
     intros. unfold not. intros. destruct H0.
     unfold IG_match in H. destruct (NatMap.find query ig) eqn:HH.
@@ -356,40 +289,58 @@ Proof.
 Qed.
 
 
-Lemma IG_match_just_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
+
+Lemma IG_match_exactly_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
     IG_match query ig = (Some c, i)
-        -> let '(_, hit, label, _) := c in    
-            In x (IG_labNodes ig) <-> In x ((hit, label) :: IG_labNodes i). 
+        -> In x (IG_labNodes ig)
+                <-> let '(_, hit, label, _) := c in (x = (hit, label) /\ ~_key_In_IG (fst x) i) \/ In x (IG_labNodes i).
 Proof.
     intros. simpl.
-    unfold IG_match in H. destruct (NatMap.find query ig) eqn:HH.
-    - unfold _cleanSplit in H. destruct_contextt c. destruct_context' c0. inversion H. subst.
+    unfold IG_match in H. destruct (NatMap.find query ig) eqn:found.
+    - unfold _cleanSplit in H. destruct_context c. destruct_context' c0. inversion H. subst. clear H.
         split; intros.
-        + bdestruct (nodee =? fst x).
-        -- destruct x. subst. left. f_equal. apply _In_labNodes_is_some_MapsTo in H0. simpl in H0. firstorder. apply MFacts.find_mapsto_iff in HH.
-            assert ((froms', labell, toss) = (x, a, x0)). {
-                apply (MFacts.MapsTo_fun HH H0).
-            }
-            inversion H1. reflexivity.
+        + bdestruct (node =? fst x).
+            -- destruct x. subst. left. split.
+                ++ f_equal. apply _In_labNodes_is_some_MapsTo in H. simpl in H. firstorder. apply MFacts.find_mapsto_iff in found.
+                    assert ((froms', label, tos) = (x, a, x0)). {
+                        apply (MFacts.MapsTo_fun found H).
+                    }
+                    inversion H0. reflexivity.
+                ++ unfold not. intros. unfold _key_In_IG in H0.
+                    destruct H0.
+                    apply _updAdj_clearPred_does_not_change_IG_labNodes in H0.
+                    apply _updAdj_clearSucc_does_not_change_IG_labNodes in H0.
+                    
+                    apply _In_labNodes_is_some_MapsTo in H0.
+                    simpl in H0.
+                    destruct_eMapsTo H0.
+                    apply NatMap_MapsTo_then_In in H0.
+                    apply MFacts.remove_in_iff in H0.
+                    firstorder.
         -- right. apply _updAdj_clearPred_does_not_change_IG_labNodes. apply _updAdj_clearSucc_does_not_change_IG_labNodes.
-            apply _In_labNodes_is_some_MapsTo. apply _In_labNodes_is_some_MapsTo in H0. firstorder. exists x0, x1.
-            apply MFacts.remove_mapsto_iff. split.
-            ++ assumption.
-            ++ assumption.
-        + destruct H0.
-        -- subst. apply MFacts.find_mapsto_iff in HH. apply _In_labNodes_is_some_MapsTo. exists froms', toss. assumption.
-        -- apply _updAdj_clearPred_does_not_change_IG_labNodes in H0. apply _updAdj_clearSucc_does_not_change_IG_labNodes in H0.
-            apply _In_labNodes_is_some_MapsTo in H0. apply _In_labNodes_is_some_MapsTo. firstorder. exists x0, x1. apply MFacts.remove_mapsto_iff in H0.
-            destruct H0. assumption.
-    
+                apply _In_labNodes_is_some_MapsTo. apply _In_labNodes_is_some_MapsTo in H. firstorder. exists x0, x1.
+                apply MFacts.remove_mapsto_iff. split.
+                ++ assumption.
+                ++ assumption.
+    + destruct H.
+        -- subst. apply MFacts.find_mapsto_iff in found. apply _In_labNodes_is_some_MapsTo. exists froms', tos. destruct x.
+            destruct H. inversion H. subst. assumption.
+        -- apply _updAdj_clearPred_does_not_change_IG_labNodes in H. apply _updAdj_clearSucc_does_not_change_IG_labNodes in H.
+            apply _In_labNodes_is_some_MapsTo in H. apply _In_labNodes_is_some_MapsTo. firstorder. exists x0, x1. apply MFacts.remove_mapsto_iff in H.
+            destruct H. assumption.
+        
     - inversion H.
 Qed.
+
+
+
 
 Theorem IG_match_empty_is_nothing : forall (A B : Type) (node : Node),
     IG_match node (@IG_empty A B) = (None, IG_empty).   
 Proof.
     intros. compute. reflexivity.
 Qed.
+
 
 
 Lemma IG_match_returns_valid_neighbours : forall (A B : Type) (query : Node) (ig i : IG A B) (c : Context A B) (n : Node),
@@ -399,13 +350,6 @@ Lemma IG_match_returns_valid_neighbours : forall (A B : Type) (query : Node) (ig
         -> In n (map fst (IG_labNodes i)).  
 Proof.
 Admitted.
-
-
-
-
-
-
-
 
 
 

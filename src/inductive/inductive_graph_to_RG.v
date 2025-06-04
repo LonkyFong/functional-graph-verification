@@ -7,11 +7,9 @@ Require Import Bool.
 Import ListNotations.
 
 Require Import GraphVerification.src.inductive.inductive_graph.
-Require Import GraphVerification.src.inductive.inductive_graph_measure.
 Require Import GraphVerification.src.inductive.inductive_graph_measured_algorithms.
 
 Require Import GraphVerification.src.relational_graph.
-Require Import GraphVerification.src.relational_graph_theory.
 
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.util.NatSet.
@@ -44,7 +42,7 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
 
 
 
-(* This does not respect the labels for now *)
+(* This ignores labels for now *)
 Definition IG_equiv {A B : Type} (ig1 ig2 : IG A B) : Prop :=
     RG_equiv (IG_to_RG ig1) (IG_to_RG ig2).
 
