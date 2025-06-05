@@ -24,7 +24,8 @@ Module OMProps := OrdProperties NatMap.
 
 (* This proof is adapted from the link below. This is something that should be in stdlib *)
 (* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
-(* TODO: This is correct, but extremely slow for coq to check *)
+(* This is correct, but extremely slow for coq to check.
+If a list is used as the FMap backend, checking is much faster *)
 Lemma NatMap_cardinal_Add_In:
     forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
 Proof.

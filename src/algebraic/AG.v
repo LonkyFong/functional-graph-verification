@@ -8,126 +8,126 @@ Require Import GraphVerification.src.util.NatSet.
 (* Defining an algebraic_graph (AG) and its operations. There are only single edges.
 It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
 Inductive AG (A : Type) : Type :=
-    | Empty : AG A
-    | Vertex : A -> AG A
-    | Overlay : AG A -> AG A -> AG A
-    | Connect : AG A -> AG A -> AG A.
+    | AG_empty : AG A
+    | AG_vertex : A -> AG A
+    | AG_overlay : AG A -> AG A -> AG A
+    | AG_connect : AG A -> AG A -> AG A.
 
-Arguments Empty {A}.
-Arguments Vertex {A}.
-Arguments Overlay {A}.
-Arguments Connect {A}.
+Arguments AG_empty {A}.
+Arguments AG_vertex {A}.
+Arguments AG_overlay {A}.
+Arguments AG_connect {A}.
 
 (* For user-friendly input of AGs with numeric labels *)
-Definition from_nat (n:nat) : AG nat :=
-    Vertex n.
-Coercion from_nat : nat >-> AG.
+Definition AG_from_nat (n : nat) : AG nat :=
+    AG_vertex n.
+Coercion AG_from_nat : nat >-> AG.
 
 
 
 (* *** has more priority than +++ *)
-Notation "ag1 +++ ag2" := (Overlay ag1 ag2) (at level 60, right associativity).
-Notation "ag1 *** ag2" := (Connect ag1 ag2) (at level 59, right associativity).
+Notation "ag1 +++ ag2" := (AG_overlay ag1 ag2) (at level 60, right associativity).
+Notation "ag1 *** ag2" := (AG_connect ag1 ag2) (at level 59, right associativity).
 
 
 
 (* Initially functions from the paper *)
 
-Definition edge {A : Type} (a1 a2 : A) : AG A :=
-    (Vertex a1) *** (Vertex a2).
+Definition AG_edge {A : Type} (a1 a2 : A) : AG A :=
+    (AG_vertex a1) *** (AG_vertex a2).
 
-Definition vertices {A : Type} (l : list A) : AG A :=
-    fold_right Overlay Empty (map Vertex l).
+Definition AG_vertices {A : Type} (l : list A) : AG A :=
+    fold_right AG_overlay AG_empty (map AG_vertex l).
 
-Definition edges {A : Type} (l : list (A * A)) : AG A :=
-    fold_right Overlay Empty (map (fun x => edge (fst x) (snd x)) l).
+Definition AG_edges {A : Type} (l : list (A * A)) : AG A :=
+    fold_right AG_overlay AG_empty (map (fun x => AG_edge (fst x) (snd x)) l).
 
-Definition clique {A : Type} (l : list A) : AG A :=
-    fold_right Connect Empty (map Vertex l).
+Definition AG_clique {A : Type} (l : list A) : AG A :=
+    fold_right AG_connect AG_empty (map AG_vertex l).
 
-Definition makeGraph {A : Type} (vs : list A) (es : list (A * A)) : AG A :=
-    Overlay (vertices vs) (edges es).
+Definition AG_makeGraph {A : Type} (vs : list A) (es : list (A * A)) : AG A :=
+    (AG_vertices vs) +++ (AG_edges es).
 
 
-Definition path {A : Type} (l : list A) : AG A :=
+Definition AG_path {A : Type} (l : list A) : AG A :=
     match l with
-    | [] => Empty
-    | [x] => Vertex x
-    | _::xs => edges (combine l xs)
+    | [] => AG_empty
+    | [x] => AG_vertex x
+    | _::xs => AG_edges (combine l xs)
     end.
 
-Definition circuit {A : Type} (l : list A) : AG A :=
+Definition AG_circuit {A : Type} (l : list A) : AG A :=
     match l with
-    | [] => Empty
-    | x::_ => path (l ++ [x])
+    | [] => AG_empty
+    | x::_ => AG_path (l ++ [x])
     end.
 
   
-Definition star {A : Type} (x : A) (l : list A) : AG A :=
-    Connect (Vertex x) (vertices l).
+Definition AG_star {A : Type} (x : A) (l : list A) : AG A :=
+    AG_vertex x *** AG_vertices l.
 
 
-Fixpoint gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' := 
+Fixpoint AG_gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' := 
     match ag with
-    | Empty => Empty
-    | Vertex x => Vertex (f x)
-    | Overlay ag1 ag2 => Overlay (gmap f ag1) (gmap f ag2)
-    | Connect ag1 ag2 => Connect (gmap f ag1) (gmap f ag2)
+    | AG_empty => AG_empty
+    | AG_vertex x => AG_vertex (f x)
+    | ag1 +++ ag2 => AG_gmap f ag1 +++ AG_gmap f ag2
+    | ag1 *** ag2 => AG_gmap f ag1 *** AG_gmap f ag2
     end.
 
 
-Definition mergeVertices {A : Type} (f : A -> bool) (v : A) (ag : AG A) : AG A :=
-    gmap (fun x => if f x then v else x) ag.
+Definition AG_mergeVertices {A : Type} (f : A -> bool) (v : A) (ag : AG A) : AG A :=
+    AG_gmap (fun x => if f x then v else x) ag.
 
-Fixpoint toList {A : Type} (ag : AG A) : list A :=
+Fixpoint AG_toList {A : Type} (ag : AG A) : list A :=
     match ag with
-    | Empty => []
-    | Vertex x => [x]
-    | Overlay ag1 ag2 => toList ag1 ++ toList ag2
-    | Connect ag1 ag2 => toList ag1 ++ toList ag2
+    | AG_empty => []
+    | AG_vertex x => [x]
+    | ag1 +++ ag2 => AG_toList ag1 ++ AG_toList ag2
+    | ag1 *** ag2 => AG_toList ag1 ++ AG_toList ag2
     end.
 
-Fixpoint gmapVertex {A A' : Type} (f : AG A -> AG A') (ag : AG A) : AG A' :=
+Fixpoint AG_gmapVertex {A A' : Type} (f : AG A -> AG A') (ag : AG A) : AG A' :=
     match ag with
-    | Empty => Empty
-    | Vertex x => f (Vertex x)
-    | Overlay ag1 ag2 => Overlay (gmapVertex f ag1) (gmapVertex f ag2)
-    | Connect ag1 ag2 => Connect (gmapVertex f ag1) (gmapVertex f ag2)
+    | AG_empty => AG_empty
+    | AG_vertex x => f (AG_vertex x)
+    | ag1 +++ ag2 => AG_gmapVertex f ag1 +++ AG_gmapVertex f ag2
+    | ag1 *** ag2 => AG_gmapVertex f ag1 *** AG_gmapVertex f ag2
     end.
 
-Definition induce {A : Type} (f : A -> bool) (ag : AG A) : AG A :=
-    gmapVertex (fun g' => match g' with
-                          | Vertex x => if f x then Vertex x else Empty
+Definition AG_induce {A : Type} (f : A -> bool) (ag : AG A) : AG A :=
+    AG_gmapVertex (fun g' => match g' with
+                          | AG_vertex x => if f x then AG_vertex x else AG_empty
                           | _ => g'
                           end) ag.
 
 
-Definition removeVertex (x : nat) (ag : AG nat) : AG nat :=
-    induce (fun y => negb (Nat.eqb x y)) ag.
+Definition AG_removeVertex (x : nat) (ag : AG nat) : AG nat :=
+    AG_induce (fun y => negb (Nat.eqb x y)) ag.
 
 
-Definition splitVertex {A : Type} (x : nat) (l : list nat) (ag : AG nat) : AG nat :=
-    gmapVertex (fun g' => match g' with
-                          | Vertex y => if Nat.eqb x y then vertices l else Vertex y
+Definition AG_splitVertex {A : Type} (x : nat) (l : list nat) (ag : AG nat) : AG nat :=
+    AG_gmapVertex (fun g' => match g' with
+                          | AG_vertex y => if Nat.eqb x y then AG_vertices l else AG_vertex y
                           | _ => g'
                           end) ag.
 
-Fixpoint removeEdge (x y : nat) (ag : AG nat) : AG nat :=
+Fixpoint AG_removeEdge (x y : nat) (ag : AG nat) : AG nat :=
     match ag with
-    | Empty => Empty
-    | Vertex z => Vertex z
-    | Overlay ag1 ag2 => Overlay (removeEdge x y ag1) (removeEdge x y ag2)
-    | Connect ag1 ag2 => Overlay (Connect (removeVertex x ag1) ag2) (Connect ag1 (removeVertex y ag2))
+    | AG_empty => AG_empty
+    | AG_vertex z => AG_vertex z
+    | ag1 +++ ag2 =>AG_removeEdge x y ag1 +++ AG_removeEdge x y ag2
+    | ag1 *** ag2 => ((AG_removeVertex x ag1) *** ag2) +++ (ag1 *** (AG_removeVertex y ag2))
     end.
     
     
   
-Fixpoint transpose {A : Type} (ag : AG A) : AG A :=
+Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
     match ag with
-    | Empty => Empty
-    | Vertex x => Vertex x
-    | Overlay ag1 ag2 => Overlay (transpose ag1) (transpose ag2)
-    | Connect ag1 ag2 => Connect (transpose ag2) (transpose ag1)
+    | AG_empty => AG_empty
+    | AG_vertex x => AG_vertex x
+    | ag1 +++ ag2 => AG_transpose ag1 +++ AG_transpose ag2
+    | ag1 *** ag2 => AG_transpose ag2 *** AG_transpose ag1
     end.
 
 
@@ -141,10 +141,10 @@ Fixpoint transpose {A : Type} (ag : AG A) : AG A :=
 Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t := 
     let leftAndRight := fun (ag1 ag2 : AG nat) => NatSet.union (AG_nodeSet ag1) (AG_nodeSet ag2) in
     match ag with
-    | Empty => NatSet.empty
-    | Vertex x => NatSet.singleton x
-    | Overlay ag1 ag2 => leftAndRight ag1 ag2
-    | Connect ag1 ag2 => leftAndRight ag1 ag2
+    | AG_empty => NatSet.empty
+    | AG_vertex x => NatSet.singleton x
+    | ag1 +++ ag2 => leftAndRight ag1 ag2
+    | ag1 *** ag2 => leftAndRight ag1 ag2
     end.
 
 Definition AG_nodeAmount (ag : AG nat) : nat :=
@@ -159,10 +159,10 @@ Definition NatList_filterOutOf (remove : NatSet.t) (from : list nat) : list nat 
 Fixpoint _singleStep (from : NatSet.t) (ag : AG nat) : NatSet.t :=
     let leftAndRight := fun (ag1 ag2 : AG nat) (from : NatSet.t) => NatSet.union (_singleStep from ag1) (_singleStep from ag2) in
     match ag with
-    | Empty => NatSet.empty
-    | Vertex x => NatSet.empty
-    | Overlay ag1 ag2 => leftAndRight ag1 ag2 from
-    | Connect ag1 ag2 => NatSet.union (leftAndRight ag1 ag2 from) (
+    | AG_empty => NatSet.empty
+    | AG_vertex x => NatSet.empty
+    | ag1 +++ ag2 => leftAndRight ag1 ag2 from
+    | ag1 *** ag2 => NatSet.union (leftAndRight ag1 ag2 from) (
                             let LHS := AG_nodeSet ag1 in
                             let RHS := AG_nodeSet ag2 in 
                             if NatSet.is_empty (NatSet.inter LHS from) then NatSet.empty else RHS)

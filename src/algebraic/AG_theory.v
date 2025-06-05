@@ -23,45 +23,45 @@ Ltac AG_axiom_proof_automation_via_RG :=
 (* These are the "8 axioms" originally proposed by functional graphs with class *)
 
 (* +++ is commutative and associative *)
-Theorem AG_Overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
+Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_Overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
+Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* (G, ***, e) is a monoid *)
-Theorem AG_Empty_Connect_L_Identity {A : Type} : forall (ag : AG A), Empty *** ag A== ag.
+Theorem AG_empty_connect_L_Identity {A : Type} : forall (ag : AG A), AG_empty *** ag A== ag.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_Empty_Connect_R_Identity {A : Type} : forall (ag : AG A), ag *** Empty A== ag.
+Theorem AG_empty_connect_R_Identity {A : Type} : forall (ag : AG A), ag *** AG_empty A== ag.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_Connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
+Theorem AG_connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* *** distributes over +++ *)
-Theorem AG_Connect_Overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
+Theorem AG_connect_overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_Connect_Overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
+Theorem AG_connect_overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* Decomposition *)
-Theorem AG_Connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
+Theorem AG_connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
@@ -69,21 +69,21 @@ Qed.
 
 
 
-(* Section to make rewrite work with A== of Overlays and Connects *)
+(* Section to make rewrite work with A== of overlays and connects *)
 (* This proof is based on R== being an equivalence relation *)
 Instance AG_Equivalence {A : Type} : Equivalence (@AG_equiv A).
 Proof.
-    G_derived_equivalence_prover A unit (@AG_to_RG_unlE A).
+    G_derived_equivalence_prover A unit (@AG_to_RG A).
 Qed.
 
 Ltac Proper_proof_automation := split; simpl in *; firstorder.
 
-Instance Proper_add {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Overlay.
+Instance Proper_add {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) AG_overlay.
 Proof.
     Proper_proof_automation.
 Qed.
 
-Instance Proper_mul {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) Connect.
+Instance Proper_mul {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) AG_connect.
 Proof.
     Proper_proof_automation.
 Qed.
@@ -96,13 +96,13 @@ but this section aims to demonstrate their utility, by using only them.
 This has already been done in the Agda formalization by Andrey Mokhov *)
 
 (* This is a helper for multiple theorems *)
-Lemma _Overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ Empty A== ag.
+Lemma _overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ AG_empty A== ag.
 Proof.
     intros.
-    pose proof (AG_Connect_Decomposition ag Empty Empty).
+    pose proof (AG_connect_Decomposition ag AG_empty AG_empty).
 
-    rewrite AG_Empty_Connect_R_Identity in H.
-    rewrite AG_Empty_Connect_R_Identity in H.
+    rewrite AG_empty_connect_R_Identity in H.
+    rewrite AG_empty_connect_R_Identity in H.
     rewrite <- H.
 
     reflexivity.
@@ -110,29 +110,29 @@ Qed.
 
 
 (* Identity of + *)
-Theorem AG_Empty_Overlay_R_Identity {A : Type}: forall (g : AG A), g +++ Empty A== g.
+Theorem AG_empty_overlay_R_Identity {A : Type}: forall (g : AG A), g +++ AG_empty A== g.
 Proof.
     intros.
-    rewrite <- _Overlay_preidempotence.
+    rewrite <- _overlay_preidempotence.
 
-    rewrite <- AG_Overlay_Associative.
-    rewrite (AG_Overlay_Associative Empty (g +++ Empty)). 
-    rewrite (AG_Overlay_Commutative Empty (g +++ Empty)).
-    rewrite <- AG_Overlay_Associative.
-    rewrite <- AG_Overlay_Associative.
+    rewrite <- AG_overlay_Associative.
+    rewrite (AG_overlay_Associative AG_empty (g +++ AG_empty)). 
+    rewrite (AG_overlay_Commutative AG_empty (g +++ AG_empty)).
+    rewrite <- AG_overlay_Associative.
+    rewrite <- AG_overlay_Associative.
 
-    rewrite _Overlay_preidempotence.
-    rewrite _Overlay_preidempotence.
+    rewrite _overlay_preidempotence.
+    rewrite _overlay_preidempotence.
     reflexivity.
 Qed.
 
 
 (* Idempotence of + *)
-Theorem AG_Overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag A== ag.
+Theorem AG_overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag A== ag.
 Proof.
     intros.
-    pose proof _Overlay_preidempotence ag.
-    rewrite AG_Empty_Overlay_R_Identity in H.
+    pose proof _overlay_preidempotence ag.
+    rewrite AG_empty_overlay_R_Identity in H.
     assumption.
 Qed.
 
@@ -140,11 +140,11 @@ Qed.
 (* Absorption *)
 Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 A== ag1 *** ag2.
 Proof.
-    intros. pose proof AG_Connect_Decomposition ag1 ag2 Empty.
-    rewrite (AG_Connect_Associative) in H.
-    rewrite AG_Empty_Connect_R_Identity in H.
-    rewrite AG_Empty_Connect_R_Identity in H.
-    rewrite AG_Empty_Connect_R_Identity in H.
+    intros. pose proof AG_connect_Decomposition ag1 ag2 AG_empty.
+    rewrite (AG_connect_Associative) in H.
+    rewrite AG_empty_connect_R_Identity in H.
+    rewrite AG_empty_connect_R_Identity in H.
+    rewrite AG_empty_connect_R_Identity in H.
     symmetry in H.
     assumption.
 Qed.
@@ -154,10 +154,10 @@ Qed.
 Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag A== ag *** ag.
 Proof.
     intros.
-    rewrite AG_Connect_Decomposition.
+    rewrite AG_connect_Decomposition.
 
-    rewrite AG_Overlay_Idempotence.
-    rewrite AG_Overlay_Idempotence.
+    rewrite AG_overlay_Idempotence.
+    rewrite AG_overlay_Idempotence.
     reflexivity.
 Qed.
 
@@ -309,7 +309,7 @@ Qed.
 
 
 Lemma In_AG_nodeSet_is_In_RG : forall (ag : AG nat),
-    forall x, NatSet.In x (AG_nodeSet ag) <-> (AG_to_RG_unlE ag).(RG_nodes) x.
+    forall x, NatSet.In x (AG_nodeSet ag) <-> (AG_to_RG ag).(RG_nodes) x.
 Proof.
     intros. induction ag.
     - simpl. apply SProps.MP.FM.empty_iff.
@@ -321,7 +321,7 @@ Qed.
 
 
 Lemma _singleStep_returns_only_nodes : forall (from : NatSet.t) (ag : AG nat),
-    forall x, NatSet.In x (_singleStep from ag) -> (AG_to_RG_unlE ag).(RG_nodes) x.
+    forall x, NatSet.In x (_singleStep from ag) -> (AG_to_RG ag).(RG_nodes) x.
 Proof.
     intros. induction ag; simpl in *.
     - apply NatSet_In_is_In_elements in H. simpl in H. destruct H.
@@ -343,7 +343,7 @@ Qed.
 
 Lemma _upToNStepsCap_rec_returns_only_nodes : forall (from s: NatSet.t) (ag : AG nat) (n : nat),
     forall x y, NatSet.Subset from (AG_nodeSet ag) ->
-    In x (_upToNStepsCap_rec from s ag n) -> NatSet.In y x -> (AG_to_RG_unlE ag).(RG_nodes) y.
+    In x (_upToNStepsCap_rec from s ag n) -> NatSet.In y x -> (AG_to_RG ag).(RG_nodes) y.
 Proof.
     intros. generalize dependent from. generalize dependent s. induction n; intros; simpl in *.
     - contradiction.
@@ -361,7 +361,7 @@ Qed.
 
 
 Lemma _upToNStepsCap_returns_only_nodes : forall (from : NatSet.t) (ag : AG nat) (n : nat),
-    forall x y, In x (_upToNStepsCap from ag n) -> NatSet.In y x -> (AG_to_RG_unlE ag).(RG_nodes) y.
+    forall x y, In x (_upToNStepsCap from ag n) -> NatSet.In y x -> (AG_to_RG ag).(RG_nodes) y.
 Proof.
     intros.
     pose proof _upToNStepsCap_rec_returns_only_nodes.
@@ -376,7 +376,7 @@ Qed.
 
 
 Theorem AG_BFS_returns_only_nodes : forall (nodes : list nat) (ag : AG nat),
-    forall x, In x (AG_BFS nodes ag) -> (AG_to_RG_unlE ag).(RG_nodes) x. 
+    forall x, In x (AG_BFS nodes ag) -> (AG_to_RG ag).(RG_nodes) x. 
 Proof.
     intros. unfold AG_BFS in H. apply _consolidation_fold_right_preserves_nodes in H.
     destruct H. destruct H.
@@ -389,13 +389,13 @@ Qed.
 
 
 
+(* Here are attempts at specifying which elements are in BFS and in which order *)
 
 
-
-
-Theorem AG_BFS_path : forall (nodes : list nat) (ag : AG nat),
-    forall x y, In x nodes ->
-    (In y (AG_BFS nodes ag) <-> RG_existsPath x y (AG_to_RG_unlE ag)).
+(* About what is included *)
+Theorem AG_BFS_path : forall (nodes : list nat) (ag : AG nat) x,
+    In x (AG_BFS nodes ag)
+        -> exists y, In y nodes /\ RG_existsPath y x (AG_to_RG ag).
 Proof.
     intros.
 Admitted.
@@ -404,10 +404,7 @@ Admitted.
 
 
 
-
-(* Now, the specification of a BFS search order: *)
-
-
+(* About the order of BFS *)
 Inductive sameDistance_rec {A B : Type} (rg : RG A B) : Ensemble A -> A -> Ensemble A -> A -> Prop :=
     | bothInStart (start1 start2 : Ensemble A) : forall (a1 a2 : A), start1 a1 -> start2 a2 -> sameDistance_rec rg start1 a1 start2 a2
     | bothOneStep (start1 start2 : Ensemble A) : forall (a1 a2 : A),
@@ -417,7 +414,8 @@ Inductive sameDistance_rec {A B : Type} (rg : RG A B) : Ensemble A -> A -> Ensem
 Definition sameDistance {A B : Type} (start : Ensemble A) (a1 a2 : A) (rg : RG A B) : Prop :=
     sameDistance_rec rg start a1 start a2.
 
-Lemma sameDistance_caller_test1 : sameDistance (fun x => x = 1) 2 3 (AG_to_RG_unlE (1 *** 2 +++ 1 *** 3)).
+(* Testing that two specific nodes indeed have the same distance to some starting set *)
+Lemma sameDistance_caller_test1 : sameDistance (fun x => x = 1) 2 3 (AG_to_RG (1 *** 2 +++ 1 *** 3)).
 Proof.
     unfold sameDistance.
     apply bothOneStep.
@@ -432,7 +430,7 @@ Definition distanceSecondOneLower {A B : Type} (start : Ensemble A) (a1 a2 : A) 
     sameDistance_rec rg (fun x => RG_reachableInOneStep start x rg) a1 start a2.
 
     
-Lemma distanceSecondOneLower_test1 : distanceSecondOneLower (fun x => x = 1) 4 2 (AG_to_RG_unlE (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
+Lemma distanceSecondOneLower_test1 : distanceSecondOneLower (fun x => x = 1) 4 2 (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
 Proof.
     unfold distanceSecondOneLower.
     apply bothOneStep.
@@ -445,60 +443,59 @@ Qed.
 
 
 
-Inductive revBFSOrder {B : Type} (start : NatSet.t) (rg : RG nat B) : list nat -> Prop :=
-  | revBFSOrder_start (l : list nat) : Permutation (NatSet.elements start) l -> revBFSOrder start rg l
+Inductive revBFS_Order {B : Type} (start : NatSet.t) (rg : RG nat B) : list nat -> Prop :=
+    | revBFS_Order_start (l : list nat) : Permutation (NatSet.elements start) l -> revBFS_Order start rg l
 
-  | revBFSOrder_same (noww next : nat) (l : list nat) :
-    sameDistance (fun x => NatSet.In x start) noww next rg -> revBFSOrder start rg (next :: l) -> revBFSOrder start rg (noww :: next :: l)   
+    | revBFS_Order_same (noww next : nat) (l : list nat) :
+        sameDistance (fun x => NatSet.In x start) noww next rg -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l)   
 
-  | revBFSOrder_next (noww next : nat) (l : list nat) :
-    distanceSecondOneLower  (fun x => NatSet.In x start) noww next rg 
-    -> revBFSOrder start rg (next :: l) -> revBFSOrder start rg (noww :: next :: l).
+    | revBFS_Order_next (noww next : nat) (l : list nat) :
+        distanceSecondOneLower  (fun x => NatSet.In x start) noww next rg 
+        -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l).
 
-Definition BFSOrder {B : Type} (startL result : list nat) (rg : RG nat B) :=
-    revBFSOrder (NatSet_fromList startL) rg (rev result).
+Definition BFS_Order {B : Type} (startL result : list nat) (rg : RG nat B) :=
+    revBFS_Order (NatSet_fromList startL) rg (rev result).
 
 
+(* Actual specification about the order of nodes from BFS *)
 Theorem AG_BFS_order : forall (nodes : list nat) (ag : AG nat),
-    BFSOrder nodes (AG_BFS nodes ag) (AG_to_RG_unlE ag).
+    BFS_Order nodes (AG_BFS nodes ag) (AG_to_RG ag).
 Proof.
     intros.
 Admitted.
 
 
-
-Lemma revBFSOrder_test1 : BFSOrder [1] (AG_BFS [1] (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)) (AG_to_RG_unlE (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
+(* Testing that BFS_Order holds for a specific example *)
+Lemma revBFS_Order_test1 : BFS_Order [1] (AG_BFS [1] (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)) (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
 Proof.
-    unfold BFSOrder. simpl.
-    apply revBFSOrder_next.
+    unfold BFS_Order. simpl.
+    apply revBFS_Order_next.
     - unfold distanceSecondOneLower. apply bothOneStep. apply bothInStart.
         + unfold RG_reachableInOneStep. simpl. exists 3, tt. firstorder. exists 1, tt. firstorder.
             apply NatSet.singleton_spec. reflexivity.
         + unfold RG_reachableInOneStep. simpl. exists 1, tt. firstorder.
             apply NatSet.singleton_spec. reflexivity.
 
-    - apply revBFSOrder_same.
+    - apply revBFS_Order_same.
         + unfold sameDistance. apply bothOneStep. apply bothInStart.
             -- unfold RG_reachableInOneStep. simpl. exists 1, tt. firstorder.
                 apply NatSet.singleton_spec. reflexivity.
             -- unfold RG_reachableInOneStep. simpl. exists 1, tt. firstorder.
                 apply NatSet.singleton_spec. reflexivity.
-        + apply revBFSOrder_next.
+        + apply revBFS_Order_next.
             -- unfold distanceSecondOneLower. apply bothInStart.
                 ++ unfold RG_reachableInOneStep. simpl. exists 1, tt. firstorder.
                     apply NatSet.singleton_spec. reflexivity.
                 ++ apply NatSet.singleton_spec. reflexivity.
-            -- apply revBFSOrder_start. apply perm_skip. apply perm_nil.
+            -- apply revBFS_Order_start. apply perm_skip. apply perm_nil.
 Qed.
-
-
 
 
 
 
 (* AG_transpose relates to RG_transpose *)
 Theorem AG_transpose_is_RG : forall (ag : AG nat),
-    AG_to_RG_unlE (transpose ag) R== RG_transpose (AG_to_RG_unlE ag). 
+    AG_to_RG (AG_transpose ag) R== RG_transpose (AG_to_RG ag). 
 Proof.
     intros. induction ag; simpl; firstorder.
 Qed.

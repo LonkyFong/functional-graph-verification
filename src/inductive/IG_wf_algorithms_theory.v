@@ -127,7 +127,7 @@ Qed.
 
 
 (* For all in the list, there is a path from one of the starting nodes *)
-Theorem IG_DFSpath : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
+Theorem IG_DFS_path : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
     let '(nodes, ig) := igNodes in
     In x (IG_DFS nodes ig)
         -> exists y, In y nodes /\ RG_existsPath y x (IG_to_RG ig).
