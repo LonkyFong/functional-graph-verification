@@ -32,7 +32,6 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
     IG_ufold _ _ _ RG_and RG_empty ig.
 
 
-
 (* This ignores labels for now *)
 Definition IG_equiv {A B : Type} (ig1 ig2 : IG A B) : Prop :=
     RG_equiv (IG_to_RG ig1) (IG_to_RG ig2).

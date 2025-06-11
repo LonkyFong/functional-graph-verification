@@ -21,7 +21,7 @@ Require Import GraphVerification.src.inductive.IG.
 For those, go to inductive_graph_measured_algorithms_theory
  *)
 
- 
+
 Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
     (exists other, In (node, other) (IG_labNodes ig)).
 
@@ -38,7 +38,6 @@ Theorem IG_labNodes_empty_nil : forall (A B : Type),
 Proof.
     compute. reflexivity.
 Qed.
-
 
 
 

@@ -161,11 +161,13 @@ Proof.
 Qed.
 
 
+
+
 (* Some theory about RG_add (rewriting, interaction with RG_transpose) *)
 Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
     c1 = c2.
 
-Instance Proper_RG_and {A B : Type}  : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
+Instance Proper_RG_and {A B : Type} : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
 Proof.
     split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
     - firstorder.
@@ -179,7 +181,7 @@ Proof.
     firstorder.
 Qed.
 
-
+Check IG_ufold.
 
 Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
     IG_to_RG (IG_transpose ig) R== RG_transpose (IG_to_RG ig).

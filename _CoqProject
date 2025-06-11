@@ -4,12 +4,10 @@
 ./src/util/NatSet.v
 ./src/util/NatMap.v
 
+
 ./src/RG.v
 ./src/RG_theory.v
 
-./src/algebraic/AG.v
-./src/algebraic/AG_to_RG.v
-./src/algebraic/AG_theory.v
 
 ./src/inductive/IG.v
 ./src/inductive/IG_wf.v
@@ -20,6 +18,11 @@
 
 ./src/inductive/IG_mkGraph_theory.v
 ./src/inductive/IG_wf_algorithms_theory.v
+
+
+./src/algebraic/AG.v
+./src/algebraic/AG_to_RG.v
+./src/algebraic/AG_theory.v
 
 
 
