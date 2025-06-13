@@ -20,10 +20,17 @@ Require Import GraphVerification.src.inductive.IG_theory.
 Require Import GraphVerification.src.inductive.IG_wf_algorithms.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
+Require Import GraphVerification.src.util.util.
+
+
+
+
+
+
 (* More theorems about basic IG operations, that are quite advanced *)
 
 
-(* This is a useful, and hopefully true lemma *)
+(* This is a useful, and hopefully true lemma. A better version will be proven later *)
 Lemma matchIsAdd : forall (A B : Type) (n : Node) (ig i : IG A B) (c : Context A B),
     IG_match n ig = (Some c,  i) -> ig I== IG_and c i.
 Proof.
@@ -49,13 +56,15 @@ Proof.
         (NatMap.remove (elt:=Context' A B) node ig)))) eqn:alreadyIn.
 
 
-        + (* this case is a contradiction*) 
+        + (* this case is a contradiction, since we know alreadyIn is true, but we removed the node *) 
         admit.
+        + 
 
  
 Admitted.
 
 
+(* depends on unproved matchIsAdd *)
 Lemma matchAnyIsAdd : forall (A B : Type) (ig i : IG A B) (c : Context A B),
     IG_matchAny ig = (Some c,  i) -> ig I== IG_and c i.
 Proof.
@@ -75,16 +84,7 @@ Qed.
 
 
 
-(* Some of this is duplicated *)
-Instance IG_Equivalence {A B : Type} : Equivalence (@IG_equiv A B).
-Proof.
-    G_derived_equivalence_prover nat unit (@ IG_to_RG A B).  
-Qed.
-
-Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
-    c1 = c2.
-
-
+Require Import GraphVerification.src.inductive.IG_wf_algorithms_theory.
 
 (* This one is really hard... *)
 Instance Proper_and {A B : Type} : Proper ((@contextEquiv A B) ==> (@IG_equiv A B) ==> (@IG_equiv A B)) (IG_and).  
@@ -94,7 +94,7 @@ Admitted.
 
 
 
-
+(* TODO: do this lemma *)
 (* Doable with some induction probably *)
 Lemma IG_matchAny_None_is_empty : forall (A B : Type) (ig i : IG A B),
     IG_matchAny ig = (None, i) -> IG_isEmpty ig = true.
@@ -110,6 +110,7 @@ Admitted.
 
 (* Relies on unproven lemmas:
 Proper_and
+matchAnyIsAdd
 ... *)
 Lemma IG_ufold_nothing : forall (A B : Type) (ig : IG A B),
     IG_ufold _ _ _ IG_and IG_empty ig I== ig.
@@ -153,7 +154,7 @@ Qed.
 
 
 
-
+(* Inductive principel for fold on IG? *)
 Lemma IG_ufold_rec :
     forall (A B C : Type) (P : IG A B -> C -> Prop) (f : Context A B -> C -> C),
         forall (i : C) (g : IG A B), 
@@ -241,13 +242,6 @@ Qed.
 
 
 
-Instance Proper_RG_and {A B : Type} : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
-Proof.
-    split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
-    - firstorder.
-    - firstorder.
-Qed.
-
 
 
 Lemma IG_to_RG_distributes_over_add_using_IG_induction : forall {A B : Type} (c : Context A B) (ig : IG A B),
@@ -259,22 +253,11 @@ Proof.
 R== RG_and c (IG_to_RG ig))). 
     - admit. (* Doable *)
     - admit. (* Doable *)
-    - intros. rewrite H . (* Does not help *)
+    - intros. rewrite H . admit.  (* IH Does not help *)
 Admitted.
 
 
 
-Lemma IG_to_RG_distributes_over_add_using_openign_defs : forall {A B : Type} (c : Context A B) (ig : IG A B),
-    IG_to_RG (IG_and c ig) R== RG_and c (IG_to_RG ig). 
-Proof.
-    intros.
-    generalize dependent c.
-    apply (IG_induction A B ig (fun ig => forall c : Context A B, IG_to_RG (IG_and c ig)
-R== RG_and c (IG_to_RG ig))). 
-    - admit. (* Doable *)
-    - admit. (* Doable *)
-    - intros. rewrite H . (* Does not help *)
-Admitted.
 
 
 
@@ -354,6 +337,8 @@ Proof.
         rewrite IG_to_RG_distributes_over_add'.
         rewrite -> IH.
         rewrite <- RG_transpose_distributes_over_extendByContext.
+
+    
         (* Now, I somehow need to show that if I have a match, I can derive a I& from it *)
          
 Admitted.
@@ -407,14 +392,22 @@ Require Import GraphVerification.src.util.util.
 
 
 
+
+
+(* STAR *)
+
+
+(* This hold so far and does not depend on unproven lemmas *)
+(* If a node in the IG, then ufolding it will preserve the node *)
 Lemma helper_ufold_preserves_mem : forall (A B : Type) (node : Node) (ig : IG A B),
-    NatMap.mem node ig = true
-    <-> RG_nodes (IG_ufold A B (RG_unlE nat) RG_and RG_empty ig) node.
+    NatMap.mem node ig = true <-> RG_nodes (IG_to_RG ig) node.
+
 Proof.
     intros A B n.
     
     apply (well_founded_induction (well_founded_ltof _ (@IG_noNodes A B))).
     intros ig IH.
+    unfold IG_to_RG.
 
 
     rewrite IG_ufold_equation.
@@ -425,7 +418,9 @@ Proof.
         specialize (IH mat').
 
         destruct_context c. simpl. bdestruct (n =? node).
+        (* same *)
         + subst. assert (NatMap.mem node ig = true). {
+            (* This is true because of IG_matchAny *)
             unfold IG_matchAny in mat. destruct (IG_labNodes ig).
             - inversion mat.
             - clear mat'. destruct l. simpl in *. apply IG_match_returns_node in mat as mat'. subst.
@@ -452,55 +447,57 @@ Proof.
         rewrite H. unfold Ensemble_add. split; intros.
         -- left. reflexivity.
         -- reflexivity.
-    + unfold Ensemble_add. rewrite <- IH.
-        unfold IG_matchAny in mat. destruct (IG_labNodes ig).
-         -- inversion mat.
-         -- rewrite <- !MFacts.mem_in_iff.
-            rewrite !NatMap_In_exists_MapsTo_iff.
-            split; intros.
-            ++ destruct H0. destruct_context' x.
-                apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
-                rewrite !_In_labNodes_is_some_MapsTo in mat.
-                assert (exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) ig). {
-                    exists froms', tos'. assumption. 
-                }
+        + unfold Ensemble_add. rewrite <- IH.
+            unfold IG_matchAny in mat. destruct (IG_labNodes ig).
+            -- inversion mat.
+            -- rewrite <- !MFacts.mem_in_iff.
+                rewrite !NatMap_In_exists_MapsTo_iff.
+                split; intros.
+                ++ destruct H0. destruct_context' x.
+                    apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
+                    rewrite !_In_labNodes_is_some_MapsTo in mat.
+                    assert (exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) ig). {
+                        exists froms', tos'. assumption. 
+                    }
 
-                apply mat in H1. destruct H1.
-                --- destruct H1. inversion H1. rewrite H4 in H. unfold not in H. exfalso. apply H. reflexivity.
-                --- right. destruct_eMapsTo H1. exists (efroms, label', etos). assumption.
-            ++ destruct H0.
-                --- subst. exfalso. apply H. reflexivity.
-                --- destruct H0. destruct_context' x.
-                
-                
-                apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
-                rewrite !_In_labNodes_is_some_MapsTo in mat.
-                assert ((n, label') = (node, label) /\ ~ _key_In_IG (fst (n, label')) i \/ exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) i). {
-                    right. exists froms', tos'. assumption. 
-                }
-                apply mat in H1. destruct_eMapsTo H1. exists (efroms, label', etos). assumption.
-    - apply IG_matchAny_None_is_empty in mat.
-        admit.
-Admitted.
-    
-    
-Lemma node_is_ins_added_node : forall (A B : Type) (c : Context A B) (ig : IG A B),
-    let '(froms, node, label, tos) := c in
-    RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
-            (NatMap.add node (froms, label, tos) ig)))) node.
-Proof.
-    intros. destruct_context c.
+                    apply mat in H1. destruct H1.
+                    --- destruct H1. inversion H1. rewrite H4 in H. unfold not in H. exfalso. apply H. reflexivity.
+                    --- right. destruct_eMapsTo H1. exists (efroms, label', etos). assumption.
+                ++ destruct H0.
+                    --- subst. exfalso. apply H. reflexivity.
+                    --- destruct H0. destruct_context' x.
+                    
+                    
+                    apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
+                    rewrite !_In_labNodes_is_some_MapsTo in mat.
+                    assert ((n, label') = (node, label) /\ ~ _key_In_IG (fst (n, label')) i \/ exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) i). {
+                        right. exists froms', tos'. assumption. 
+                    }
+                    apply mat in H1. destruct_eMapsTo H1. exists (efroms, label', etos). assumption.
+    - simpl. apply IG_matchAny_None_is_empty in mat. (* This previous lemma is unproved*)
+        unfold IG_isEmpty in mat. apply MFacts.is_empty_iff in mat.
+        (* This can be made a lemma *)
+        assert (NatMap.Equal ig (NatMap.empty _)). {
+            unfold NatMap.Equal.
+            intros k.
+            unfold NatMap.Empty in mat.
+            unfold NatMap.Raw.Proofs.Empty in mat.
+            specialize (mat k).
+            setoid_rewrite MFacts.find_mapsto_iff in mat.
+            destruct (NatMap.find k ig) eqn:found.
+            - specialize (mat c). exfalso. apply mat. reflexivity.
+            - compute. reflexivity.
 
-    apply (IG_induction A B ig (fun ig => RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
-(NatMap.add node (froms, label, tos) ig)))) node)).
+        }
+            rewrite H.
+            compute.
+            clear.
+            firstorder.
+            inversion H.
+Qed.
 
-    - admit.
-    - admit.
-    - intros. destruct_contextt c. bdestruct (node =? nodee).
-        + subst. 
 
-
-Admitted.
+(* STAR *)
 
 (* Same as above, but now onIG_to_RG'. This is provable *)
 Lemma node_is_ins_added_node' : forall (A B : Type) (c : Context A B) (ig : IG A B),
@@ -523,7 +520,31 @@ Qed.
 
 
 
-(* I tried reall hard to get this to work. It is essentially a sub-problem of relating I& to R&, but it is also dam hard *)
+
+
+Lemma node_is_ins_added_node : forall (A B : Type) (c : Context A B) (ig : IG A B),
+    let '(froms, node, label, tos) := c in
+    RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
+            (NatMap.add node (froms, label, tos) ig)))) node.
+Proof.
+    intros. destruct_context c.
+
+    apply (IG_induction A B ig (fun ig => RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
+(NatMap.add node (froms, label, tos) ig)))) node)).
+
+    - admit.
+    - admit.
+    - intros. destruct_contextt c. bdestruct (node =? nodee).
+        + subst. admit. 
+
+
+Admitted.
+
+
+
+
+
+(* I tried really hard to get this to work. It is essentially a sub-problem of relating I& to R&, but it is also very hard *)
 Lemma get_nodes_is_get_nodes' : forall (A B : Type) (ig : IG A B) (c : Context A B) n,
     (RG_and c (IG_to_RG ig)).(RG_nodes) n
     <-> (IG_to_RG (IG_and c ig)).(RG_nodes) n.
@@ -534,14 +555,39 @@ Proof.
     destruct (NatMap.mem node ig) eqn:cond.
     - split; intros.
         + destruct H.
-            -- subst. admit. (* This semi proven *)
-            (* apply helper_ufold_preserves_mem in cond. assumption.   *)
-    
+            -- subst. 
+                apply helper_ufold_preserves_mem. (* This semi proven *)
+                assumption.
+
             -- assumption.
         + auto.
     - bdestruct (n =? node).
         -- subst. assert (RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
             (NatMap.add node (froms, label, tos) ig)))) node). {
+                assert (RG_nodes
+                    (IG_to_RG
+                    (NatMap.add node (froms, label, tos) ig))
+                    node). {
+                        clear.
+
+
+                        (* This can maybe be done with some induction.... *)
+(*                         
+                        unfold IG_to_RG.
+                        rewrite IG_ufold_equation.
+                        destruct (IG_matchAny (NatMap.add node (froms, label, tos) ig)) eqn:mat. destruct m.
+                        -   *)
+
+
+                    }
+                assert (RG_nodes
+(IG_to_RG
+(_updAdj tos (_addPred node) (NatMap.add node (froms, label, tos) ig)))
+node). {
+    admit.
+}
+                (* This is the problem. I have this with labnodes, but for not RG_nodes of IG_to_RG, if I copy those proofs, maybe I could *)
+
 
                         admit.
             } split; intros.
@@ -563,37 +609,6 @@ Admitted.
 
 
 
-Lemma get_nodes_is_get_nodes''' : forall (A B : Type) (ig : IG A B) (c : Context A B) n,
-    (RG_and c (IG_to_RG' ig)).(RG_nodes) n
-    <-> (IG_to_RG' (IG_and c ig)).(RG_nodes) n.
-Proof.
-    intros.
-    unfold IG_and.
-    destruct_context c. simpl. unfold Ensemble_add.
-    destruct (NatMap.mem node ig) eqn:cond.
-    - split; intros.
-        + destruct H.
-            -- subst. admit. (* This semi proven *)
-            (* apply helper_ufold_preserves_mem in cond. assumption.   *)
-    
-            -- assumption.
-        + auto.
-    - bdestruct (n =? node).
-        -- subst. assert (RG_nodes (IG_to_RG (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
-            (NatMap.add node (froms, label, tos) ig)))) node). {
-
-                        admit.
-            } split; intros.
-            ++ admit.
-            ++ left. reflexivity.
-        -- split; intros.
-            ++ destruct H0.
-                --- subst. exfalso. apply H. reflexivity.
-                --- admit.
-            ++ right. admit.
-
-
-Admitted. 
 
 
 
@@ -637,7 +652,7 @@ Admitted.
 
 
 
-(* Thinking about which operations are usable in a gmap *)
+(* Thinking about which operations are usable in a gmap, kinda failed *)
 
 
 Notation "c I& ig" := (IG_and c ig) (at level 59, right associativity).
@@ -679,7 +694,15 @@ Proof.
         + destruct (NatMap.mem nodee ig) eqn:cond3.
             -- reflexivity.
             -- inversion cond1.
-        + admit. (* I have no clue, why destruct, rewrite, remember do not work here *)
+        + destruct (NatMap.mem (elt:=Context' A B) nodee
+(_updAdj (filter (fun '(_, n) => negb (n =? nodee)) froms) (_addSucc node)
+(_updAdj (filter (fun '(_, n) => negb (n =? nodee)) tos) (_addPred node)
+(NatMap.add node
+(filter (fun '(_, n) => negb (n =? nodee)) froms, label,
+filter (fun '(_, n) => negb (n =? nodee)) tos) ig)))); 
+(* does nothing ??? *)
+        
+        admit. (* I have no clue, why destruct, rewrite, remember do not work here *)
         
     - destruct (NatMap.mem (elt:=Context' A B) node
 (_updAdj fromss (_addSucc nodee) (_updAdj toss (_addPred nodee) (NatMap.add nodee (fromss, labell, toss) ig)))) eqn:cond2.
@@ -697,10 +720,24 @@ Proof.
 Admitted.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Check incl.
 Print incl.
 
-(* Characterizing the functions for which fold is universally correct *)
+(* Characterizing the functions for which gmap is universally correct *)
 
 Lemma IG_map_splits_when : forall (A B C D: Type) (f : Context A B -> Context C D) (c : Context A B) (ig : IG A B),
     (forall anyC,
@@ -835,6 +872,8 @@ Notation "g1 I==' g2" := (IG_equiv' g1 g2) (at level 80).
 
 
 
+
+
 Lemma IG_match_rev_and : forall (A B : Type) (c : Context A B) (ig i : IG A B),
     let '(froms, node, label, tos) := c in
     IG_match node ig = (Some (froms, node, label, tos), i)
@@ -899,7 +938,7 @@ Admitted.
 
 
 
-
+(* STAR *)
 
 (* This thoof is finished unless IG_match_rev_and *)
 Theorem Erwig_Fact2 : forall (A B : Type) (ig : IG A B) (n : Node),
@@ -927,3 +966,45 @@ Proof.
             assumption.
 
 Qed.
+
+
+
+
+
+
+(* I managed to prove some things about relating IGs to RGs, 
+
+
+Here's a little update:
+
+
+    NatMap.mem node ig = true
+    <-> RG_nodes (IG_to_RG ig) node. 
+
+
+And when considering a different model, I can show 
+
+    let '(froms, node, label, tos) := c in
+    RG_nodes (IG_to_RG' (_updAdj froms (_addSucc node) (_updAdj tos (_addPred node)
+            (NatMap.add node (froms, label, tos) ig)))) node.
+
+
+
+Basically somewhat leading to: 
+    (RG_and c (IG_to_RG ig)).(RG_nodes) n
+    <-> (IG_to_RG (IG_and c ig)).(RG_nodes) n.
+
+
+
+I could also prove 
+    _key_In_IG n ig
+        -> exists froms label tos i, ig I==' (froms, n, label, tos) I& i.
+        
+        (but only for nodes)
+
+Leading to Erwig_Fact2:
+        
+    let '(froms, node, label, tos) := c in
+    IG_match node ig = (Some (froms, node, label, tos), i)
+    -> ig I==' (froms, node, label, tos) I& i. *)
+

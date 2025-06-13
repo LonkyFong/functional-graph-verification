@@ -17,6 +17,47 @@ They require the Theorems about IG_noNodes etc. from inductive_graph_measure.
 At the moment, has DFS and transpose *) 
 
 
+(* Other typical functional operations (leading to transpose) *)
+Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
+    match IG_matchAny ig with
+    | (Some c, rest) => f c (IG_ufold f acc rest)
+    | (None, rest) => acc
+    end.
+Proof.
+    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+Defined.
+
+
+(* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
+Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
+    match IG_matchAny ig with
+    | (Some c, rest) => IG_and (f c) (IG_gmap_diy f rest)
+    | (None, rest) => IG_empty
+    end.
+Proof.
+    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+Defined.
+
+
+Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
+    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
+
+
+Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
+    let '(froms, node, label, tos) := c in
+    (tos, node, label, froms). 
+
+  
+Definition IG_transpose {A B : Type} (ig : IG A B) : IG A B :=
+    IG_gmap _transposeContext ig.
+
+
+
+
+
+
+(* DFS *)
+
 Definition suc {A B : Type} (c : Context A B) : list Node :=
     let '(_, _, _, tos) := c in map snd tos.
 
@@ -114,39 +155,4 @@ Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
 
 
 
-
-(* Other typical functional operations (leading to transpose) *)
-
-Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
-    match IG_matchAny ig with
-    | (Some c, rest) => f c (IG_ufold f acc rest)
-    | (None, rest) => acc
-    end.
-Proof.
-    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
-Defined.
-
-
-(* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
-Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
-    match IG_matchAny ig with
-    | (Some c, rest) => IG_and (f c) (IG_gmap_diy f rest)
-    | (None, rest) => IG_empty
-    end.
-Proof.
-    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
-Defined.
-
-
-Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
-    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
-
-
-Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
-    let '(froms, node, label, tos) := c in
-    (tos, node, label, froms). 
-
-  
-Definition IG_transpose {A B : Type} (ig : IG A B) : IG A B :=
-    IG_gmap _transposeContext ig.
 

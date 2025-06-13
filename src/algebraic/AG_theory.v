@@ -164,7 +164,13 @@ Qed.
 
 
 
-
+(* AG_transpose relates to RG_transpose *)
+Theorem AG_transpose_is_RG : forall (ag : AG nat),
+    AG_to_RG (AG_transpose ag) R== RG_transpose (AG_to_RG ag). 
+Proof.
+    intros. induction ag; simpl; firstorder.
+Qed.
+    
 
 
 
@@ -561,13 +567,3 @@ Proof.
             -- apply revBFS_Order_start. apply perm_skip. apply perm_nil.
 Qed.
 
-
-
-
-(* AG_transpose relates to RG_transpose *)
-Theorem AG_transpose_is_RG : forall (ag : AG nat),
-    AG_to_RG (AG_transpose ag) R== RG_transpose (AG_to_RG ag). 
-Proof.
-    intros. induction ag; simpl; firstorder.
-Qed.
-    
