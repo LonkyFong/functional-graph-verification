@@ -18,15 +18,17 @@ At the moment, has DFS and transpose *)
 
 
 (* Other typical functional operations (leading to transpose) *)
-Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
+Function IG_ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
     match IG_matchAny ig with
-    | (Some c, rest) => f c (IG_ufold f acc rest)
+    | (Some c, rest) => f c (IG_ufold_rec f acc rest)
     | (None, rest) => acc
     end.
 Proof.
     intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
 
+Definition IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) : C :=
+    IG_ufold_rec _ _ _ f acc ig.
 
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
 Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
@@ -40,7 +42,7 @@ Defined.
 
 
 Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
-    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => (f c) &I acc) IG_empty ig.
+    IG_ufold (fun (c : Context A B) (acc : IG C D) => (f c) &I acc) IG_empty ig.
 
 
 Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=
@@ -151,8 +153,6 @@ Defined.
 
 (* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-    IG_DFS_rec A B (ig, nodes).
-
-
+    IG_DFS_rec _ _ (ig, nodes).
 
 

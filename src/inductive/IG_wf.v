@@ -128,7 +128,3 @@ Proof.
     - inversion H.
     - apply _IG_match_decreases_IG_noNodes in H. assumption.
 Qed.
-
-
-
-

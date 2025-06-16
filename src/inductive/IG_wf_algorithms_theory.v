@@ -143,7 +143,7 @@ Admitted.
 
 (* This is actually not true in the general case, but for the particular function, with which it is used, it is most likely true *)
 Lemma IG_ufold_step : forall (A B C : Type) (f : Context A B -> C -> C) (acc : C) (c : Context A B) (ig : IG A B),
-    IG_ufold _ _ _ f acc (c &I ig) = f c (IG_ufold _ _ _ f acc ig).
+    IG_ufold f acc (c &I ig) = f c (IG_ufold f acc ig).
 Proof.
 Admitted.
 
@@ -188,7 +188,7 @@ Proof.
     intros A B.
     apply (well_founded_induction (well_founded_ltof _ IG_noNodes)).
     intros ig IH.
-    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
     destruct m.
     - specialize (IH i).
         apply _IG_matchAny_decreases_IG_noNodes in mat.
@@ -199,7 +199,7 @@ Proof.
         rewrite -> IH.
         reflexivity.
 
-    - clear mat IH. unfold IG_to_RG. rewrite IG_ufold_equation. simpl. firstorder. 
+    - clear mat IH. unfold IG_to_RG. rewrite IG_ufold_rec_equation. simpl. firstorder. 
 Qed.
 
 

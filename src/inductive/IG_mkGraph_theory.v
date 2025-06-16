@@ -135,7 +135,6 @@ Qed.
 
 
 
-
 Lemma _insEdge_does_not_add_node : forall (A B : Type) (edge : LEdge B) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (_insEdge edge ig)) <-> In x (IG_labNodes ig).
 Proof.
@@ -192,16 +191,9 @@ Proof.
     - assumption.
 Qed.
 
-Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
-    not (NatMap.Empty m) <-> NatMap.is_empty m = false.
-Proof.
-    intros. unfold not. rewrite MFacts.is_empty_iff. destruct (NatMap.is_empty (elt:=A) m) eqn:cond.
-    - firstorder. congruence.
-    - firstorder. congruence.
-Qed.
 
 
-Theorem  IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
+Theorem IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
     NoDupA (fun x y => fst x = fst y) nodes
         -> length nodes <> 0 <-> IG_isEmpty (IG_mkGraph nodes edges) = false.
 Proof.
@@ -214,9 +206,7 @@ Proof.
         + apply MProps.elements_Empty in H1.
             
             apply (IG_mkGraph_any_ins_all_nodes _ B _ edges l) in H.
-            assert (In l (l :: nodes)). {
-                simpl. auto.
-            }
+            pose proof in_eq.
             apply H in H2. clear H.
 
             rewrite _In_labNodes_is_some_MapsTo in H2.

@@ -30,7 +30,6 @@ Require Import GraphVerification.src.util.util.
 
 
 
-
 (* This hold so far and does not depend on unproven lemmas *)
 (* If a node in the IG, then its also in the associated RG *)
 Lemma _IG_RG_nodes_relate : forall (A B : Type) (node : Node) (ig : IG A B),
@@ -39,7 +38,7 @@ Proof.
     intros A B n. setoid_rewrite _key_In_IG_mem_iff.
     apply (well_founded_induction (well_founded_ltof _ (@IG_noNodes A B))).
     intros ig IH. unfold IG_to_RG.
-    rewrite IG_ufold_equation.
+    rewrite IG_ufold_rec_equation.
     destruct (IG_matchAny ig) eqn:mat.
     destruct m.
     - specialize (IH i).
@@ -522,7 +521,7 @@ Proper_and
 matchAnyIsAdd
 ... *)
 Lemma IG_ufold_nothing : forall (A B : Type) (ig : IG A B),
-    IG_ufold _ _ _ IG_and IG_empty ig ==I ig.
+    IG_ufold IG_and IG_empty ig ==I ig.
 Proof.
     intros A B.
             apply (well_founded_induction
@@ -530,7 +529,7 @@ Proof.
 
     intros ig IH.
     (* unfold IG_equiv. *)
-    rewrite IG_ufold_equation.
+    rewrite IG_ufold_rec_equation.
     destruct (IG_matchAny ig) eqn:mat.
     destruct m eqn:mm.
     (* The "smaller" graph I use for IH is i *) 
@@ -549,7 +548,7 @@ Qed.
 
 (* ERelies on unproved Proper_and *)
 Lemma IG_ufold_add : forall (A B : Type)  (c : Context A B) (ig : IG A B),
-    IG_ufold _ _ _ IG_and IG_empty (c &I ig) ==I c &I (IG_ufold _ _ _ IG_and IG_empty ig).
+    IG_ufold IG_and IG_empty (c &I ig) ==I c &I (IG_ufold IG_and IG_empty ig).
 Proof.
     intros.
     rewrite IG_ufold_nothing.
@@ -573,7 +572,7 @@ Lemma IG_ufold_rec :
         g' ==I c &I g'' -> P g' a -> P g'' (f c a)) ->
 
 
-        P g (IG_ufold _ _ _ f i g).
+        P g (IG_ufold f i g).
 Proof.
     intros.
 Admitted.
@@ -710,7 +709,7 @@ Proof.
     intros ig IH.
     unfold IG_transpose. unfold IG_gmap.
     unfold IG_to_RG.
-    rewrite !IG_ufold_equation. destruct (IG_matchAny ig) eqn:mat.
+    rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
     destruct m.
     - specialize (IH i).
         apply _IG_matchAny_decreases_IG_noNodes in mat as mat'.

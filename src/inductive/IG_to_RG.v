@@ -31,7 +31,7 @@ Notation "c &R ig" := (RG_and c ig) (at level 59, right associativity).
 
 
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
-    IG_ufold _ _ _ RG_and RG_empty ig.
+    IG_ufold RG_and RG_empty ig.
 
 
 (* This ignores labels for now *)

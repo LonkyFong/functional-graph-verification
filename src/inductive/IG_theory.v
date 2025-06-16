@@ -16,15 +16,12 @@ Require Import GraphVerification.src.inductive.IG.
 
 
 
-
 (* Stating and proving Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
 For those, go to inductive_graph_measured_algorithms_theory
  *)
 
-
 Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
     (exists other, In (node, other) (IG_labNodes ig)).
-
 
 
 
@@ -40,7 +37,6 @@ Theorem IG_labNodes_empty_nil : forall (A B : Type),
 Proof.
     compute. reflexivity.
 Qed.
-
 
 
 (* Block to derive useful conversion theorem "In_labNodes_is_InMap" *)
@@ -92,7 +88,6 @@ Qed.
 
 
 
-
 (* Here start "meaningful statements" *)
 
 (* Section on statements about _updateEntry and _updAdj *)
@@ -111,8 +106,6 @@ Proof.
         + firstorder.
     - reflexivity.
 Qed.
-
-
 
 
 
@@ -237,32 +230,7 @@ Qed.
 
 
 
-
 (* Some theorems about IG_match *)
-
-
-(* Unproved Lemmas, to convert IG_labNodes to IG_match *)
-Lemma IG_match_is_In_IG_labNodes : forall (A B : Type) (x : LNode A) (ig : IG A B),
-    In x (IG_labNodes ig)
-        <-> let '(query, label) := x in
-        (exists froms tos hit i, IG_match query ig = (Some (froms, hit, label, tos), i)).
-Proof.
-Admitted.
-
-
-Lemma IG_match_hit_is_key : forall (A B : Type) (query : Node) (ig : IG A B), 
-    _key_In_IG query ig <-> exists c i, IG_match query ig = (Some c, i).  
-Proof.
-Admitted.
-
-Lemma IG_match_returns_valid_neighbours : forall (A B : Type) (query : Node) (ig i : IG A B) (c : Context A B) (n : Node),
-    let '(froms, hit, label, tos) := c in
-    IG_match query ig = (Some (froms, hit, label, tos), i)
-        -> (In n (map snd froms) \/ In n (map snd tos))
-        -> _key_In_IG n  i.  
-Proof.
-Admitted.
-
 
 Lemma IG_match_removes_node : forall (A B : Type) (query : Node) (mContext : MContext A B) (ig i : IG A B),
     IG_match query ig = (mContext, i)
@@ -318,8 +286,6 @@ Qed.
 
 
 
-
-
 Lemma IG_match_empty_is_nothing : forall (A B : Type) (node : Node),
     IG_match node (@IG_empty A B) = (None, IG_empty).   
 Proof.
@@ -348,10 +314,4 @@ Proof.
             apply MFacts.not_find_in_iff in found.
             firstorder.
 Qed.
-
-
-
-
-
-
 

@@ -153,3 +153,11 @@ Proof.
         + firstorder.
     - rewrite H. compute. intros. inversion H0.
 Qed.
+
+Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
+    not (NatMap.Empty m) <-> NatMap.is_empty m = false.
+Proof.
+    intros. unfold not. rewrite MFacts.is_empty_iff. destruct (NatMap.is_empty m) eqn:cond.
+    - firstorder. congruence.
+    - firstorder. congruence.
+Qed.
