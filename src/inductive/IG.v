@@ -134,13 +134,14 @@ Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
     let ig'' := _updAdj tos (_addPred node) ig' in
     _updAdj froms (_addSucc node) ig''.
 
-Notation "c I& ig" := (IG_and c ig) (at level 59, right associativity). 
+
+Notation "c &I ig" := (IG_and c ig) (at level 59, right associativity). 
 
 
 
 Definition _insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B :=
     let '(n, l) := node in
-    IG_and ([], n, l, []) ig.
+    ([], n, l, []) &I ig.
 
 Definition _insNodes {A B : Type} (nodes : list (LNode A)) (ig : IG A B) : IG A B :=
     fold_right _insNode ig nodes.
@@ -151,7 +152,7 @@ Definition _insEdge {A B : Type} (edge : LEdge B) (ig : IG A B) : IG A B :=
     let (mcxt, ig') := IG_match from ig in
 
     match mcxt with
-    | (Some (froms, _, label, tos)) => IG_and (froms, from, label, (l, to) :: tos) ig'
+    | (Some (froms, _, label, tos)) => (froms, from, label, (l, to) :: tos) &I ig'
     | None => ig
     end.
 

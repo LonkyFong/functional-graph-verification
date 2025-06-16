@@ -20,7 +20,7 @@ Require Import GraphVerification.src.inductive.IG_theory.
 
 (* Here, one may consider using IG_match as a probing tool instead of IG_labNodes *)
 Lemma IG_and_adds_node : forall (A B : Type) (c : Context A B) (ig : IG A B) (x : LNode A),
-    In x (IG_labNodes (IG_and c ig))
+    In x (IG_labNodes (c &I ig))
         <-> let '(_, node, label, _) := c in (x = (node, label) /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).
 Proof.
     intros. destruct_context c. unfold _key_In_IG.

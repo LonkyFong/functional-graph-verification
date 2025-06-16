@@ -31,7 +31,7 @@ Defined.
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
 Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
     match IG_matchAny ig with
-    | (Some c, rest) => IG_and (f c) (IG_gmap_diy f rest)
+    | (Some c, rest) => (f c) &I (IG_gmap_diy f rest)
     | (None, rest) => IG_empty
     end.
 Proof.
@@ -40,7 +40,7 @@ Defined.
 
 
 Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
-    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => IG_and (f c) acc) IG_empty ig.
+    IG_ufold _ _ (IG C D) (fun (c : Context A B) (acc : IG C D) => (f c) &I acc) IG_empty ig.
 
 
 Definition _transposeContext {A B : Type} (c : Context A B) : Context A B :=

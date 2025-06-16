@@ -136,3 +136,20 @@ Lemma NatMap_MapsTo_then_In : forall (A : Type) (x : Node) (y : A) (m : NatMap.t
 Proof.
     firstorder.
 Qed.
+
+
+Lemma NatMap_is_empty_Equal_empty_iff : forall (A : Type) (m : NatMap.t A), 
+    NatMap.is_empty m = true <-> NatMap.Equal m (NatMap.empty _).
+Proof.
+    intros.
+    unfold NatMap.Equal.
+    rewrite <- MFacts.is_empty_iff.
+    unfold NatMap.Empty.
+    unfold NatMap.Raw.Proofs.Empty.
+    setoid_rewrite MFacts.find_mapsto_iff.
+    firstorder.
+    - destruct (NatMap.find y m) eqn:found.
+        + firstorder.
+        + firstorder.
+    - rewrite H. compute. intros. inversion H0.
+Qed.

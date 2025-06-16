@@ -44,7 +44,7 @@ Definition RG_equiv {A B : Type} (rg1 rg2 : RG A B) : Prop :=
     (forall (a : A), rg1.(RG_nodes) a <-> rg2.(RG_nodes) a)
         /\ (forall (a1 a2 : A) (b : B), rg1.(RG_edges) a1 a2 b <-> rg2.(RG_edges) a1 a2 b).
 
-Notation "g1 R== g2" := (RG_equiv g1 g2) (at level 100, right associativity).
+Notation "g1 ==R g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
 (* A variant with only single edges *)
 Definition RG_unlE (A : Type) := RG A unit.

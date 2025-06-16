@@ -27,6 +27,8 @@ Proof.
     RG_valid_prover_with rg.
 Defined.
 
+Notation "c &R ig" := (RG_and c ig) (at level 59, right associativity).
+
 
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
     IG_ufold _ _ _ RG_and RG_empty ig.
@@ -36,5 +38,5 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
 Definition IG_equiv {A B : Type} (ig1 ig2 : IG A B) : Prop :=
     RG_equiv (IG_to_RG ig1) (IG_to_RG ig2).
 
-Notation "g1 I== g2" := (IG_equiv g1 g2) (at level 80).
+Notation "g1 ==I g2" := (IG_equiv g1 g2) (at level 80).
 

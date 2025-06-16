@@ -23,45 +23,45 @@ Ltac AG_axiom_proof_automation_via_RG :=
 (* These are the "8 axioms" originally proposed by functional graphs with class *)
 
 (* +++ is commutative and associative *)
-Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 A== ag2 +++ ag1.
+Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 ==A ag2 +++ ag1.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) A== (ag1 +++ ag2) +++ ag3.
+Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) ==A (ag1 +++ ag2) +++ ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* (G, ***, e) is a monoid *)
-Theorem AG_empty_connect_L_Identity {A : Type} : forall (ag : AG A), AG_empty *** ag A== ag.
+Theorem AG_empty_connect_L_Identity {A : Type} : forall (ag : AG A), AG_empty *** ag ==A ag.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_empty_connect_R_Identity {A : Type} : forall (ag : AG A), ag *** AG_empty A== ag.
+Theorem AG_empty_connect_R_Identity {A : Type} : forall (ag : AG A), ag *** AG_empty ==A ag.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) A== (ag1 *** ag2) *** ag3.
+Theorem AG_connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) ==A (ag1 *** ag2) *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* *** distributes over +++ *)
-Theorem AG_connect_overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) A== ag1 *** ag2 +++ ag1 *** ag3.
+Theorem AG_connect_overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) ==A ag1 *** ag2 +++ ag1 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_connect_overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 A== ag1 *** ag3 +++ ag2 *** ag3.
+Theorem AG_connect_overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 ==A ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
 (* Decomposition *)
-Theorem AG_connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 A== ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
+Theorem AG_connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 ==A ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
@@ -69,8 +69,8 @@ Qed.
 
 
 
-(* Section to make rewrite work with A== of overlays and connects *)
-(* This proof is based on R== being an equivalence relation *)
+(* Section to make rewrite work with ==A of overlays and connects *)
+(* This proof is based on ==R being an equivalence relation *)
 Instance AG_Equivalence {A : Type} : Equivalence (@AG_equiv A).
 Proof.
     G_derived_equivalence_prover A unit (@AG_to_RG A).
@@ -96,7 +96,7 @@ but this section aims to demonstrate their utility, by using only them.
 This has already been done in the Agda formalization by Andrey Mokhov *)
 
 (* This is a helper for multiple theorems *)
-Lemma _overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ AG_empty A== ag.
+Lemma _overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ AG_empty ==A ag.
 Proof.
     intros.
     pose proof (AG_connect_Decomposition ag AG_empty AG_empty).
@@ -110,7 +110,7 @@ Qed.
 
 
 (* Identity of + *)
-Theorem AG_empty_overlay_R_Identity {A : Type}: forall (g : AG A), g +++ AG_empty A== g.
+Theorem AG_empty_overlay_R_Identity {A : Type}: forall (g : AG A), g +++ AG_empty ==A g.
 Proof.
     intros.
     rewrite <- _overlay_preidempotence.
@@ -128,7 +128,7 @@ Qed.
 
 
 (* Idempotence of + *)
-Theorem AG_overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag A== ag.
+Theorem AG_overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag ==A ag.
 Proof.
     intros.
     pose proof _overlay_preidempotence ag.
@@ -138,7 +138,7 @@ Qed.
 
 
 (* Absorption *)
-Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 A== ag1 *** ag2.
+Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
 Proof.
     intros. pose proof AG_connect_Decomposition ag1 ag2 AG_empty.
     rewrite (AG_connect_Associative) in H.
@@ -151,7 +151,7 @@ Qed.
 
 
 (* Saturation *)
-Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag A== ag *** ag.
+Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag ==A ag *** ag.
 Proof.
     intros.
     rewrite AG_connect_Decomposition.
@@ -166,7 +166,7 @@ Qed.
 
 (* AG_transpose relates to RG_transpose *)
 Theorem AG_transpose_is_RG : forall (ag : AG nat),
-    AG_to_RG (AG_transpose ag) R== RG_transpose (AG_to_RG ag). 
+    AG_to_RG (AG_transpose ag) ==R RG_transpose (AG_to_RG ag). 
 Proof.
     intros. induction ag; simpl; firstorder.
 Qed.

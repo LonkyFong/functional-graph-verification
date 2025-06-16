@@ -30,7 +30,6 @@ Qed.
 
 
 
-
 (* Theorems about DFS *)
 
 Theorem IG_DFS_returns_only_nodes : forall (A B : Type) (igNodes : IG A B * list NatSet.Node),
@@ -144,14 +143,14 @@ Admitted.
 
 (* This is actually not true in the general case, but for the particular function, with which it is used, it is most likely true *)
 Lemma IG_ufold_step : forall (A B C : Type) (f : Context A B -> C -> C) (acc : C) (c : Context A B) (ig : IG A B),
-    IG_ufold _ _ _ f acc (IG_and c ig) = f c (IG_ufold _ _ _ f acc ig).
+    IG_ufold _ _ _ f acc (c &I ig) = f c (IG_ufold _ _ _ f acc ig).
 Proof.
 Admitted.
 
 
 
 Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
-    IG_to_RG (IG_and c ig) R== RG_and c (IG_to_RG ig). 
+    IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
 Proof.
     intros.
 
@@ -175,7 +174,7 @@ Proof.
 Qed.
 
 Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
-    RG_transpose (RG_and c rg) R== RG_and (_transposeContext c) (RG_transpose rg).
+    RG_transpose (c &R rg) ==R (_transposeContext c) &R (RG_transpose rg).
 Proof.
     intros. destruct_context c.
     firstorder.
@@ -184,7 +183,7 @@ Qed.
 Check IG_ufold.
 
 Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
-    IG_to_RG (IG_transpose ig) R== RG_transpose (IG_to_RG ig).
+    IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
 Proof.
     intros A B.
     apply (well_founded_induction (well_founded_ltof _ IG_noNodes)).
