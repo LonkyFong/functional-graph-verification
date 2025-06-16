@@ -180,7 +180,7 @@ Proof.
     firstorder.
 Qed.
 
-Check IG_ufold.
+
 
 Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
     IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).

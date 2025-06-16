@@ -103,7 +103,7 @@ Qed.
 
 
 
-Lemma _IG_match_minusOnes_IGnoNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+Lemma _IG_match_minusOnes_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
     IG_match n ig = (Some c, rest) -> IG_noNodes ig = S (IG_noNodes rest).
 Proof.
     intros. apply _IG_match_minusOnes_cardinality in H.
@@ -117,7 +117,7 @@ Theorem _IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Con
     IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.
     intros.
-    apply _IG_match_minusOnes_IGnoNodes in H. lia.
+    apply _IG_match_minusOnes_IG_noNodes in H. lia.
 Qed.
 
 
