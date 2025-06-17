@@ -126,13 +126,32 @@ Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
 (* This is the "&" constructor from the paper, defined here as a function, as it does more than mere pattern matching *)
 (* Does nothing, if the node already exists *)
 (* In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
-Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
+(* Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
     let '(froms, node, label, tos) := context in
 
     if NatMap.mem node ig then ig else
     let ig' := NatMap.add node (froms, label, tos) ig in
     let ig'' := _updAdj tos (_addPred node) ig' in
+    _updAdj froms (_addSucc node) ig''. *)
+
+Definition contextValidToAdd {A B : Type} (context : Context A B) (nodes : list Node) : bool :=
+    let '(froms, node, label, tos) := context in
+    let fromsValid := forallb (fun '(l, n) => existsb (Nat.eqb n) nodes) froms in
+    let tosValid := forallb (fun '(l, n) => existsb (Nat.eqb n) nodes) tos in
+    negb (existsb (Nat.eqb node) nodes) && fromsValid && tosValid.
+    
+
+
+(* SAFE VERSION *)
+(* If the added node is already in the graph the context is ignored. When there are non-existent neighbours, they are ignored as well *)
+Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
+    let '(froms, node, label, tos) := context in
+
+    if negb (contextValidToAdd context ig) then ig else
+    let ig' := NatMap.add node (froms, label, tos) ig in
+    let ig'' := _updAdj tos (_addPred node) ig' in
     _updAdj froms (_addSucc node) ig''.
+    
 
 
 Notation "c &I ig" := (IG_and c ig) (at level 59, right associativity). 

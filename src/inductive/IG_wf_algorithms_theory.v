@@ -124,7 +124,6 @@ Qed.
 
 
 
-
 (* For all in the list, there is a path from one of the starting nodes *)
 Theorem IG_DFS_path : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
     let '(nodes, ig) := igNodes in
@@ -153,13 +152,12 @@ Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig 
     IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
 Proof.
     intros.
+    (* unfold RG_equiv. split. *)
 
     unfold IG_to_RG.
     rewrite IG_ufold_step.
     reflexivity.
 Qed.
-
-
 
 
 (* Some theory about RG_add (rewriting, interaction with RG_transpose) *)

@@ -17,11 +17,11 @@ Proof.
     refine {|
         RG_nodes := fun (n : nat) => (Ensemble_add node rg.(RG_nodes)) n;
         RG_edges := fun (n1 n2 : nat) l => rg.(RG_edges) n1 n2 l \/
-                                           (not (rg.(RG_nodes) node) /\ rg.(RG_nodes) n1 /\ rg.(RG_nodes) n2 /\
-                                            ((In n1 (map snd froms) /\ n2 = node)
-                                            \/ (n1 = node /\ In n2 (map snd tos))
-                                           )
-                                           );
+                                            (not (rg.(RG_nodes) node) /\ (Ensemble_add node rg.(RG_nodes)) n1 /\ (Ensemble_add node rg.(RG_nodes)) n2 /\
+                                                ((In n1 (map snd froms) /\ n2 = node)
+                                                    \/ (n1 = node /\ In n2 (map snd tos))
+                                                )
+                                            );
          RG_valid := _
     |}.
     RG_valid_prover_with rg.

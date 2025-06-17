@@ -74,6 +74,7 @@ Proof.
                 rewrite <- !MFacts.mem_in_iff.
                 rewrite !NatMap_In_exists_MapsTo_iff.
                 firstorder.
+
                 ++ right. destruct_context' x.
                     apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
                     rewrite !_In_labNodes_is_some_MapsTo in mat.
@@ -141,7 +142,7 @@ Qed.
 
 
 
-
+Print IG_labEdges.
 
 (* Try proving the same, but now for edges *)
 
@@ -153,22 +154,67 @@ Definition addedByContext {A B : Type} (e : Node * Node) (c : Context A B) : Pro
 Proof.
 Admitted.
 
+
+
+
+
 Lemma and_relates_for_edges : forall (A B : Type) (ig : IG A B) (c : Context A B) e,
     let '(from, to, l) := e in
     (c &R (IG_to_RG ig)).(RG_edges) from to l
         <-> (IG_to_RG (c &I ig)).(RG_edges) from to l.
 Proof.
     intros. destruct e as [[from to] l].
-    assert (forall (A B : Type) (ig : IG A B) e, let '(from, to, l) := e in
-            _edge_In_IG (from, to) ig <-> (IG_to_RG ig).(RG_edges) from to l). {
-        admit.
+    assert (
+    forall (A B : Type) e (ig : IG A B),
+        let '(from, to, l) := e in
+        _edge_In_IG (from, to) ig <-> (IG_to_RG ig).(RG_edges) from to l). {
+        clear.
+            
+        intros A B e.
+        apply (well_founded_induction (well_founded_ltof _ (@IG_noNodes A B))).
+        intros ig IH. unfold IG_to_RG.
+        rewrite IG_ufold_rec_equation.
+        destruct (IG_matchAny ig) eqn:mat.
+        destruct m.
+        - specialize (IH i).
+            apply _IG_matchAny_decreases_IG_noNodes in mat as mat'.
+            specialize (IH mat'). clear mat'. destruct_edge e. destruct_context c. simpl.
+            unfold IG_labEdges.
+            (* Now, I need to distinguish between the case where the edge was added by the new context, or already existed *)
+
+            (* In the end, I would need to prove similar heorems about match also for edges and not just nodes *)
+
+(* Lemma IG_match_removes_edge : forall (A B : Type) (query : Node) (mContext : MContext A B) (ig i : IG A B),
+    IG_match query ig = (Some c, i)
+        -> forall e in c, e not in i. 
+
+Lemma IG_match_exactly_removes_edge : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
+    IG_match query ig = (Some c, i)
+        -> In e (IG_labEdges ig)
+                <->(e in c and e not in i) or e in I *)
+                (* the left and right of the or would yield the "split" of the ig, I need *)
+
+
+            admit.
+        - admit.
+
+
     }
-    rewrite <- (H _ _ _ (from, to, l)).
+    rewrite <- (H _ _ (from, to, l)).
 
     assert (forall (A B : Type) (c : Context A B) (ig : IG A B) (e : Node * Node),
             _edge_In_IG e (c &I ig) <->
             _edge_In_IG e ig \/
-            addedByContext e c). {
+            let '(froms, node, label, tos) := c in
+            let '(n1, n2) := e in
+                (not (_key_In_IG node ig) /\ (_key_In_IG n1 ig \/ node = n1) /\ (_key_In_IG n2 ig \/ node = n2) /\
+                    ((In n1 (map snd froms) /\ n2 = node)
+                        \/ (n1 = node /\ In n2 (map snd tos))
+                    )
+                )
+            
+            
+            ). {
         admit.
     }
 
@@ -181,6 +227,16 @@ Admitted.
 
 
 
+
+Lemma IG_to_RG_distributes_over_add_dep_on_incompl : forall {A B : Type} (c : Context A B) (ig : IG A B),
+    IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
+Proof.
+    intros.
+
+    unfold RG_equiv. split.
+    - intros. rewrite and_relates_for_nodes. reflexivity.
+    - intros. rewrite (and_relates_for_edges _ _ _ _ (a1, a2, b)). reflexivity.
+Qed.
 
 
 

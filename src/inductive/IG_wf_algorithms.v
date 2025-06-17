@@ -18,6 +18,7 @@ At the moment, has DFS and transpose *)
 
 
 (* Other typical functional operations (leading to transpose) *)
+
 Function IG_ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
     match IG_matchAny ig with
     | (Some c, rest) => f c (IG_ufold_rec f acc rest)
