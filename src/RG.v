@@ -1,14 +1,16 @@
 Require Import Relation_Definitions.
 Require Import Relations.Relation_Operators.
 Require Import Ensembles.
+Require Import List.
+Require Import Permutation.
 
+Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.util.
 
 
-
-
-(* Defining a relational_graph (RG) and its operations. It it most similar to the typical graph from discrete mathematics.
-It is useful as a model for verification. *)
+(** Defining a relational_graph (RG) and its operations.
+    It it most similar to the typical graph from discrete mathematics.
+    It is useful as a model for verification. *)
 
 
 Definition _edgeRelation (A B : Type) := A -> A -> B -> Prop.
@@ -46,7 +48,7 @@ Definition RG_equiv {A B : Type} (rg1 rg2 : RG A B) : Prop :=
 
 Notation "g1 ==R g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
-(* A variant with only single edges *)
+(* A variant of and RG with only single, un-id-able edges *)
 Definition RG_unlE (A : Type) := RG A unit.
 
 
@@ -136,6 +138,7 @@ Proof.
     RG_valid_prover_with rg.
 Defined.
 
+(* Start characterizing paths and search (so far unused) *)
 
 Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
     clos_trans A (_unlabelEdgeRelation rg.(RG_edges)) node1 node2.
@@ -143,3 +146,40 @@ Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
 (* Is node reachable from froms in exactly a single step? *)
 Definition RG_reachableInOneStep {A B : Type} (froms : Ensemble A) (node : A) (rg : RG A B) : Prop :=
     exists from l, froms from /\ rg.(RG_edges) from node l.
+
+
+(* Start characterizing the order of a BFS (so far unused) *)
+
+(* Recursive helper for  sameDistance. *) 
+Inductive sameDistance_rec {A B : Type} (rg : RG A B) : Ensemble A -> A -> Ensemble A -> A -> Prop :=
+    | bothInStart (start1 start2 : Ensemble A) : forall (a1 a2 : A), start1 a1 -> start2 a2 -> sameDistance_rec rg start1 a1 start2 a2
+    | bothOneStep (start1 start2 : Ensemble A) : forall (a1 a2 : A),
+        sameDistance_rec rg (fun x => RG_reachableInOneStep start1 x rg) a1 (fun x => RG_reachableInOneStep start2 x rg) a2
+        -> sameDistance_rec rg start1 a1 start2 a2. 
+
+(* Do the nodes have exactly the same distances to the start set?  *) 
+Definition sameDistance {A B : Type} (start : Ensemble A) (a1 a2 : A) (rg : RG A B) : Prop :=
+    sameDistance_rec rg start a1 start a2.
+
+
+(* Is the distance from a1 to start one plus the distance from a2 to start? *)
+Definition distanceSecondOneLower {A B : Type} (start : Ensemble A) (a1 a2 : A) (rg : RG A B) : Prop :=
+    sameDistance_rec rg (fun x => RG_reachableInOneStep start x rg) a1 start a2.
+
+
+
+(* Recursive helper for BFS_Order *)
+Inductive revBFS_Order {B : Type} (start : NatSet.t) (rg : RG nat B) : list nat -> Prop :=
+    | revBFS_Order_start (l : list nat) : Permutation (NatSet.elements start) l -> revBFS_Order start rg l
+
+    | revBFS_Order_same (noww next : nat) (l : list nat) :
+        sameDistance (fun x => NatSet.In x start) noww next rg -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l)   
+
+    | revBFS_Order_next (noww next : nat) (l : list nat) :
+        distanceSecondOneLower  (fun x => NatSet.In x start) noww next rg 
+        -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l).
+
+(* Is the result list a valid BFS order on the graph, starting from the given start nodes? *)
+Definition BFS_Order {B : Type} (startL result : list nat) (rg : RG nat B) :=
+    revBFS_Order (NatSet_fromList startL) rg (rev result).
+

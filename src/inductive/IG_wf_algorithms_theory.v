@@ -9,6 +9,8 @@ Require Import Relation_Operators.
 
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.NatMap.
+Require Import GraphVerification.src.util.util.
+
 
 Require Import GraphVerification.src.RG.
 Require Import GraphVerification.src.RG_theory.
@@ -19,7 +21,8 @@ Require Import GraphVerification.src.inductive.IG_theory.
 Require Import GraphVerification.src.inductive.IG_wf_algorithms.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
-(* Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. *)
+(** Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. 
+    In particular, transpose and DFS *)
 
 
 (* "IG_equiv" is an equivalence relation: *)
@@ -27,6 +30,157 @@ Instance IG_Equivalence {A B : Type} : Equivalence (@IG_equiv A B).
 Proof.
     G_derived_equivalence_prover nat unit (@ IG_to_RG A B).  
 Qed.
+
+
+
+(* Showing properties about transpose: *)
+
+
+Lemma _key_In_IG_relates : forall (A B : Type) (node : Node) (ig : IG A B),
+    _key_In_IG node ig <-> (IG_to_RG ig).(RG_nodes) node.
+Proof.
+    intros A B n. setoid_rewrite _key_In_IG_mem_iff.
+    apply (well_founded_induction (well_founded_ltof _ (@IG_noNodes A B))).
+    intros ig IH. unfold IG_to_RG.
+    rewrite IG_ufold_rec_equation.
+    destruct (IG_matchAny ig) eqn:mat.
+    destruct m.
+    - specialize (IH i).
+        apply _IG_matchAny_decreases_IG_noNodes in mat as mat'.
+        specialize (IH mat'). clear mat'.
+        destruct_context c. simpl. unfold Ensemble_add. 
+        unfold IG_matchAny in mat. destruct (IG_labNodes ig).
+        + inversion mat.
+        + destruct l. simpl in *. apply IG_match_returns_node in mat as mat'. subst.
+            rewrite <- MFacts.mem_in_iff.
+
+            bdestruct (n =? node).
+            (* same *)
+            -- clear IH. subst. assert (NatMap.In node ig). {
+                    apply NatMap_In_exists_MapsTo_iff.
+                    apply (IG_match_exactly_removes_node _ _ _ _ _ _ (node, label)) in mat as mat'.
+                    simpl in *.
+                    rewrite _In_labNodes_is_some_MapsTo in mat'.
+                    assert ((node, label) = (node, label) /\ ~ _key_In_IG node i \/ In (node, label) (IG_labNodes i)). {
+                        apply (IG_match_removes_node _ _ node) in mat.
+                        left. auto. 
+                    }
+                    apply mat' in H.
+                    destruct_eMapsTo H.
+                    exists (efroms, label, etos).
+                    assumption.
+                } clear mat. split; intros.
+                ++ left. reflexivity.
+                ++ assumption.
+        
+            -- rewrite <- IH. clear IH.
+                rewrite <- !MFacts.mem_in_iff.
+                rewrite !NatMap_In_exists_MapsTo_iff.
+                firstorder.
+
+                ++ right. destruct_context' x.
+                    apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
+                    rewrite !_In_labNodes_is_some_MapsTo in mat.
+                    assert (exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) ig). {
+                        exists froms', tos'. assumption. 
+                    }
+                    apply mat in H1. destruct H1.
+                    --- destruct H1. inversion H1. rewrite H4 in H. firstorder.
+                    --- destruct_eMapsTo H1. firstorder.
+                ++ destruct_context' x. 
+                    apply (IG_match_exactly_removes_node _ _ _ _ _ _ (n, label')) in mat.
+                    rewrite !_In_labNodes_is_some_MapsTo in mat.
+                    assert ((n, label') = (node, label) /\ ~ _key_In_IG (fst (n, label')) i \/ exists froms tos : Adj B, NatMap.MapsTo n (froms, label', tos) i). {
+                        right. firstorder. 
+                    }
+                    apply mat in H1. destruct_eMapsTo H1. firstorder.
+    - simpl. apply IG_matchAny_None_is_empty in mat. 
+        apply NatMap_is_empty_Equal_empty_iff in mat.
+        rewrite mat.
+        compute.
+        clear. firstorder. inversion H.
+Qed.
+
+
+Lemma IG_and_relates_for_nodes : forall (A B : Type) (ig : IG A B) (c : Context A B) n,
+    (c &R (IG_to_RG ig)).(RG_nodes) n
+        <-> (IG_to_RG (c &I ig)).(RG_nodes) n.
+Proof.
+    intros.
+    rewrite <- _key_In_IG_relates.
+    pose proof (IG_and_adds_key _ _ c).
+
+    destruct_context c.
+    rewrite H. clear H.
+    simpl.
+    unfold Ensemble_add.
+    rewrite _key_In_IG_relates.
+    reflexivity.
+Qed.
+
+(* This would be good to prove for completion, but there is the issue that as is stands,
+    &I and &R behave slightly differently with respect to edges.
+    &I may insert "phantom" edges, but &R cannot since RG has _valid_cond *)
+Lemma IG_and_relates_for_edges : forall (A B : Type) (ig : IG A B) (c : Context A B) e,
+    let '(from, to, l) := e in
+    (c &R (IG_to_RG ig)).(RG_edges) from to l
+        <-> (IG_to_RG (c &I ig)).(RG_edges) from to l.
+Proof.
+Admitted.
+
+(* Warning: This depends on unproven IG_and_relates_for_edges *)
+Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
+    IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
+Proof.
+    intros. unfold RG_equiv. split.
+    - intros. rewrite IG_and_relates_for_nodes. reflexivity.
+    - intros. rewrite (IG_and_relates_for_edges _ _ _ _ (a1, a2, b)). reflexivity.
+Qed.
+
+
+
+(* Some theory about RG_add (rewriting, interaction with RG_transpose) *)
+Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
+    c1 = c2.
+
+Instance Proper_RG_and {A B : Type} : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
+Proof.
+    split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
+    - firstorder.
+    - firstorder.
+Qed.
+
+Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
+    RG_transpose (c &R rg) ==R (_transposeContext c) &R (RG_transpose rg).
+Proof.
+    intros. destruct_context c.
+    firstorder.
+Qed.
+
+
+(* Warning: This depends on unproven IG_and_relates_for_edges *)
+Theorem IG_transpose_relates : forall (A B : Type) (ig : IG A B),
+    IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
+Proof.
+    intros A B.
+    apply (well_founded_induction (well_founded_ltof _ IG_noNodes)).
+    intros ig IH.
+    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
+    destruct m.
+    - specialize (IH i).
+        apply _IG_matchAny_decreases_IG_noNodes in mat.
+        specialize (IH mat).    
+    
+        rewrite RG_transpose_distributes_over_extendByContext.
+        rewrite IG_to_RG_distributes_over_add.
+        rewrite -> IH.
+        reflexivity.
+
+    - clear mat IH. unfold IG_to_RG. rewrite IG_ufold_rec_equation. simpl. firstorder. 
+Qed.
+
+
+
 
 
 
@@ -123,81 +277,11 @@ Qed.
 
 
 
-
-(* For all in the list, there is a path from one of the starting nodes *)
+(* Only reachable and all reachable nodes are included *)
 Theorem IG_DFS_path : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
     let '(nodes, ig) := igNodes in
     In x (IG_DFS nodes ig)
-        -> exists y, In y nodes /\ RG_existsPath y x (IG_to_RG ig).
+        <-> exists y, In y nodes /\ RG_existsPath y x (IG_to_RG ig).
 Proof.
     intros. destruct igNodes as [ig nodes].
 Admitted.
-
-
-
-
-
-
-(* Showing properties about transpose: *)
-
-(* This is actually not true in the general case, but for the particular function, with which it is used, it is most likely true *)
-Lemma IG_ufold_step : forall (A B C : Type) (f : Context A B -> C -> C) (acc : C) (c : Context A B) (ig : IG A B),
-    IG_ufold f acc (c &I ig) = f c (IG_ufold f acc ig).
-Proof.
-Admitted.
-
-
-
-Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
-    IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
-Proof.
-    intros.
-    (* unfold RG_equiv. split. *)
-
-    unfold IG_to_RG.
-    rewrite IG_ufold_step.
-    reflexivity.
-Qed.
-
-
-(* Some theory about RG_add (rewriting, interaction with RG_transpose) *)
-Definition contextEquiv {A B : Type} (c1 c2 : Context A B) : Prop :=
-    c1 = c2.
-
-Instance Proper_RG_and {A B : Type} : Proper ((@contextEquiv A B) ==> (@RG_equiv nat unit) ==> (@RG_equiv nat unit)) RG_and. 
-Proof.
-    split; unfold contextEquiv in H; subst; destruct y as [[[froms node] label] tos].
-    - firstorder.
-    - firstorder.
-Qed.
-
-Lemma RG_transpose_distributes_over_extendByContext : forall {A B : Type} (c : Context A B) (rg : RG_unlE nat),
-    RG_transpose (c &R rg) ==R (_transposeContext c) &R (RG_transpose rg).
-Proof.
-    intros. destruct_context c.
-    firstorder.
-Qed.
-
-
-
-Theorem IG_transpose_is_RG : forall (A B : Type) (ig : IG A B),
-    IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
-Proof.
-    intros A B.
-    apply (well_founded_induction (well_founded_ltof _ IG_noNodes)).
-    intros ig IH.
-    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
-    destruct m.
-    - specialize (IH i).
-        apply _IG_matchAny_decreases_IG_noNodes in mat.
-        specialize (IH mat).    
-    
-        rewrite RG_transpose_distributes_over_extendByContext.
-        rewrite IG_to_RG_distributes_over_add.
-        rewrite -> IH.
-        reflexivity.
-
-    - clear mat IH. unfold IG_to_RG. rewrite IG_ufold_rec_equation. simpl. firstorder. 
-Qed.
-
-

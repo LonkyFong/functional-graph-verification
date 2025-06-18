@@ -2,7 +2,7 @@ Require Import GraphVerification.src.RG.
 Require Import GraphVerification.src.algebraic.AG.
 
 
-(* Defining how an AG converts to an RG *)
+(** Defining how an AG converts to an RG *)
 
 (* Conversion for each constructor *)
 Definition RG_empty {A : Type} : RG_unlE A.
@@ -54,10 +54,8 @@ Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG_unlE A :=
     | ag1 *** ag2 => RG_connect (AG_to_RG ag1) (AG_to_RG ag2)
     end.
 
-(* Coercion to be able to "apply" RG functions to AGs directly *)
-Coercion AG_to_RG : AG >-> RG_unlE.
 
-
+(* Two AGs are equivalent, if their RGs are equivalent *)
 Definition AG_equiv {A : Type} (ag1 ag2 : AG A) : Prop :=
     RG_equiv (AG_to_RG ag1) (AG_to_RG ag2).
 

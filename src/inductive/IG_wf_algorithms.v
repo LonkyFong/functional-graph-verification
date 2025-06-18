@@ -12,12 +12,12 @@ Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 
 
-(* Defining operations on an IG that depend on well-founded recursion for their termination.
-They require the Theorems about IG_noNodes etc. from inductive_graph_measure.
-At the moment, has DFS and transpose *) 
+(** Defining operations on an IG that depend on well-founded recursion for their termination.
+    They require the Theorems about IG_noNodes etc. from IG_wf.
+    At the moment, has transpose (with ufold and gmap) and DFS *) 
 
 
-(* Other typical functional operations (leading to transpose) *)
+(* ufold and gmap (leading to transpose) *)
 
 Function IG_ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
     match IG_matchAny ig with

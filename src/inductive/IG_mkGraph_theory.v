@@ -15,44 +15,8 @@ Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
 
-(* Stating and proving Lemmas and Theorems about IG_mkGraph and helper functions *)
-
-
-(* Here, one may consider using IG_match as a probing tool instead of IG_labNodes *)
-Lemma IG_and_adds_node : forall (A B : Type) (c : Context A B) (ig : IG A B) (x : LNode A),
-    In x (IG_labNodes (c &I ig))
-        <-> let '(_, node, label, _) := c in (x = (node, label) /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).
-Proof.
-    intros. destruct_context c. unfold _key_In_IG.
-    unfold IG_and.
-    destruct (NatMap.mem node ig) eqn:cond.
-    - split; intros.
-        + firstorder.
-        + destruct H.
-            -- destruct H. unfold not in H0. exfalso. apply H0. clear H0. destruct x as [xn xl]. inversion H. subst.
-                apply MFacts.mem_in_iff in cond.
-                apply -> NatMap_In_exists_MapsTo_iff in cond. destruct cond. destruct_context' x.
-                exists label'.
-                apply _In_labNodes_is_some_MapsTo. simpl. firstorder.
-            -- assumption.
-    - rewrite _updAdj_addSucc_does_not_change_IG_labNodes.
-        rewrite _updAdj_addPred_does_not_change_IG_labNodes.
-        rewrite _In_labNodes_is_some_MapsTo. destruct x as [xn xl]. 
-        simpl.
-
-        setoid_rewrite MFacts.add_mapsto_iff.
-        rewrite _In_labNodes_is_some_MapsTo.
-        apply MFacts.not_mem_in_iff in cond.
-        simpl.
-        firstorder. 
-        + inversion H1. subst. left. firstorder. unfold not. 
-            setoid_rewrite _In_labNodes_is_some_MapsTo. firstorder.
-        + inversion H0. subst. exists froms, tos. firstorder.
-        + bdestruct (node =? xn).
-            -- subst. firstorder.
-            -- firstorder.
-Qed.
-
+(** Stating and proving Lemmas and Theorems leading to IG_mkGraph_any_ins_all_nodes.
+    At the end, there are some additional Lemmas too about ins edges *) 
 
 Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (_insNode node ig)) <-> (x = node /\ ~_key_In_IG (fst x) ig ) \/ In x (IG_labNodes ig).
@@ -63,7 +27,6 @@ Proof.
     pose proof (IG_and_adds_node _ B (nil, n, a, nil)).
     apply H.
 Qed.
-
 
 
 (* Two helpers for "_insNodes_any_ins_all_nodes" *)
@@ -102,7 +65,6 @@ Qed.
 
 
 
-
 Lemma _insNodes_any_ins_all_nodes : forall (A B : Type) (nodes : list (LNode A)) (ig : IG A B) (x : LNode A),
     NoDupA (fun x y => fst x = fst y) nodes
         -> In x (IG_labNodes (_insNodes nodes ig)) <-> (In x nodes /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).
@@ -131,8 +93,6 @@ Proof.
                 ++ firstorder.
             -- firstorder.
 Qed.
-
-
 
 
 Lemma _insEdge_does_not_add_node : forall (A B : Type) (edge : LEdge B) (ig : IG A B) (x : LNode A),
@@ -165,21 +125,6 @@ Proof.
     - rewrite _insEdge_does_not_add_node. rewrite IHedges. reflexivity.
 Qed. 
 
-Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
-    _insEdge edge (@IG_empty A B) = IG_empty. 
-Proof.
-    intros. destruct_edge edge. compute. reflexivity.
-Qed.
-
-
-Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
-    _insEdges edges (@IG_empty A B) = IG_empty.
-Proof.
-    intros. induction edges; simpl.
-    - reflexivity.
-    - rewrite IHedges. rewrite _insEdge_on_empty_is_empty. reflexivity.
-Qed.
-
 
 (* Quite interesting, compound statement about IG_mkGraph *)
 Theorem IG_mkGraph_any_ins_all_nodes : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)) (x : LNode A),
@@ -193,11 +138,12 @@ Qed.
 
 
 
+(* Some additional statements about mkGraph and _insEdge *)
 Theorem IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
     NoDupA (fun x y => fst x = fst y) nodes
         -> length nodes <> 0 <-> IG_isEmpty (IG_mkGraph nodes edges) = false.
 Proof.
-    intros. unfold IG_isEmpty. rewrite <- _not_NatMap_Empty_is_empty_false. unfold not. unfold IG_mkGraph.
+    intros. unfold IG_isEmpty. rewrite <- NatMap_not_Empty_is_empty_false. unfold not. unfold IG_mkGraph.
     destruct nodes; simpl.
     - rewrite _insEdges_on_empty_is_empty.
         rewrite MProps.elements_Empty. firstorder.
@@ -220,4 +166,21 @@ Proof.
             }
             rewrite  H in H2. inversion H2.
         + congruence.
+Qed.
+
+
+
+Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
+    _insEdge edge (@IG_empty A B) = IG_empty. 
+Proof.
+    intros. destruct_edge edge. compute. reflexivity.
+Qed.
+
+
+Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
+    _insEdges edges (@IG_empty A B) = IG_empty.
+Proof.
+    intros. induction edges; simpl.
+    - reflexivity.
+    - rewrite IHedges. rewrite _insEdge_on_empty_is_empty. reflexivity.
 Qed.

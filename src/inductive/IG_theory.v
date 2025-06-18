@@ -15,28 +15,11 @@ Require Import GraphVerification.src.RG_theory.
 Require Import GraphVerification.src.inductive.IG.
 
 
+(** Stating and proving basic Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
+    Start with very useful "_In_labNodes_is_some_MapsTo" and then moves on to showing how "match" and "and" work on nodes.
+    Then some statements about IG_isEmpty and when IG_labNodes is empty.
+    For theorems on functions using well_founded induction, go to "inductive_graph_measured_algorithms_theory" *)
 
-(* Stating and proving Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
-For those, go to inductive_graph_measured_algorithms_theory
- *)
-
-Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
-    (exists other, In (node, other) (IG_labNodes ig)).
-
-
-
-(* Start with the most basic properties about IG_empty *)
-Theorem IG_empty_isEmpty : forall (A B : Type),
-    IG_isEmpty (@IG_empty A B) = true.
-Proof.
-    compute. reflexivity.
-Qed.
-
-Theorem IG_labNodes_empty_nil : forall (A B : Type),
-    IG_labNodes (@IG_empty A B) = [].
-Proof.
-    compute. reflexivity.
-Qed.
 
 
 (* Block to derive useful conversion theorem "In_labNodes_is_InMap" *)
@@ -58,7 +41,7 @@ Qed.
         
 
 (* This is the most useful one for proving other statements.
-  Use it to convert from "use friendly" In- statements to "provable" NatMap.In- statements  *)
+    Use it to convert from "use friendly" In- statements to "provable" NatMap.In- statements  *)
 Lemma _In_labNodes_is_some_MapsTo : forall (A B : Type) (x : LNode A) (ig : IG A B),
     In x (IG_labNodes ig) <-> exists froms tos, NatMap.MapsTo (fst x) (froms, snd x, tos) ig.     
 Proof.
@@ -72,8 +55,11 @@ Qed.
 (* Useful for destructing arising existential statements *)
 Ltac destruct_eMapsTo H := destruct H as [efroms [etos H]].
 
+(* This is a nice way to write statements about the existence of a node in an IG *)
+Definition _key_In_IG {A B : Type} (node : Node) (ig : IG A B) : Prop := 
+    (exists other, In (node, other) (IG_labNodes ig)).
 
-
+(* The above is defined using "user-level" operations. For provability, it is nice to convert to NatMap.mem *)
 Lemma _key_In_IG_mem_iff : forall (A B : Type) (node : Node) (ig : IG A B),
     _key_In_IG node ig <-> NatMap.mem node ig = true.
 Proof.
@@ -92,7 +78,8 @@ Qed.
 
 (* Section on statements about _updateEntry and _updAdj *)
 
-(* Two general Lemmas about _updateEntry and _updAdj using any function f *)
+(* Two general Lemmas about _updateEntry and _updAdj using any function f.
+    They don't change the key set of the IG *)
 Lemma _updateEntry_does_not_change_key_set : forall (A B : Type) (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) (x : Node),
     _key_In_IG x (_updateEntry node f ig) <-> _key_In_IG x ig. 
 Proof.
@@ -122,7 +109,7 @@ Qed.
 
 
 (* Generalization of properties of _addSucc, _addPred, _clearSucc and _clearPred
-which all don't actually change the label. When used with _updateEntry and _updAdj *)
+    which all don't actually change the label as well. When used with _updateEntry and _updAdj *)
 Lemma _updateEntry_sameLabel_f_does_not_change_IG_labNodes : forall (A B : Type) (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) (x : LNode A),
     (forall (c : Context' A B),
         let '(_, label, _) := c in
@@ -167,6 +154,7 @@ Qed.
 Ltac _updateEntry_instance_prover c := intros; apply _updateEntry_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 Ltac _updAdj_instance_prover c := intros; apply _updAdj_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 
+
 (* _addSucc *)
 Lemma _updateEntry_addSucc_does_not_change_IG_labNodes : forall (A B : Type) (node whose : Node) (l : B) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (_updateEntry node (_addSucc whose l) ig)) <-> In x (IG_labNodes ig).    
@@ -174,12 +162,12 @@ Proof.
     _updateEntry_instance_prover c.
 Qed.
 
-
 Lemma _updAdj_addSucc_does_not_change_IG_labNodes : forall (A B : Type) (node : Node) (adj : Adj B) (ig : IG A B) (x : LNode A), 
     In x (IG_labNodes (_updAdj adj (_addSucc node) ig)) <-> In x (IG_labNodes ig).
 Proof.
     _updAdj_instance_prover c.
 Qed.
+
 
 (* _addPred *)
 Lemma _updateEntry_addPred_does_not_change_IG_labNodes : forall (A B : Type) (node whose : Node) (l : B) (ig : IG A B) (x : LNode A),
@@ -251,7 +239,6 @@ Proof.
 Qed.
 
 
-
 Lemma IG_match_exactly_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
     IG_match query ig = (Some c, i)
         -> In x (IG_labNodes ig)
@@ -313,5 +300,133 @@ Proof.
             apply MFacts.elements_in_iff in H0. clear labNodes.
             apply MFacts.not_find_in_iff in found.
             firstorder.
+Qed.
+
+
+
+Lemma IG_and_adds_node : forall (A B : Type) (c : Context A B) (ig : IG A B) (x : LNode A),
+    In x (IG_labNodes (c &I ig))
+        <-> let '(_, node, label, _) := c in (x = (node, label) /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).
+Proof.
+    intros. destruct_context c. unfold _key_In_IG.
+    unfold IG_and.
+    destruct (NatMap.mem node ig) eqn:cond.
+    - split; intros.
+        + firstorder.
+        + destruct H.
+            -- destruct H. unfold not in H0. exfalso. apply H0. clear H0. destruct x as [xn xl]. inversion H. subst.
+                apply MFacts.mem_in_iff in cond.
+                apply -> NatMap_In_exists_MapsTo_iff in cond. destruct cond. destruct_context' x.
+                exists label'.
+                apply _In_labNodes_is_some_MapsTo. simpl. firstorder.
+            -- assumption.
+    - rewrite _updAdj_addSucc_does_not_change_IG_labNodes.
+        rewrite _updAdj_addPred_does_not_change_IG_labNodes.
+        rewrite _In_labNodes_is_some_MapsTo. destruct x as [xn xl]. 
+        simpl.
+
+        setoid_rewrite MFacts.add_mapsto_iff.
+        rewrite _In_labNodes_is_some_MapsTo.
+        apply MFacts.not_mem_in_iff in cond.
+        simpl.
+        firstorder. 
+        + inversion H1. subst. left. firstorder. unfold not. 
+            setoid_rewrite _In_labNodes_is_some_MapsTo. firstorder.
+        + inversion H0. subst. exists froms, tos. firstorder.
+        + bdestruct (node =? xn).
+            -- subst. firstorder.
+            -- firstorder.
+Qed.
+
+
+Lemma IG_and_adds_key : forall (A B : Type) (c : Context A B) (ig : IG A B) (n : Node),
+    let '(from, node, label, tos) := c in
+    _key_In_IG n (c &I ig) <-> n = node \/ _key_In_IG n ig.
+Proof.
+    intros. destruct_context c. unfold _key_In_IG. setoid_rewrite IG_and_adds_node.
+    destruct (NatMap.mem n ig) eqn:cond.
+    - rewrite <- _key_In_IG_mem_iff in cond. unfold _key_In_IG in cond. firstorder.
+    - assert (~ (NatMap.mem n ig = true)). {
+            rewrite cond. firstorder.
+        }
+        clear cond. rewrite <- _key_In_IG_mem_iff in H.
+        unfold _key_In_IG in H. firstorder.
+        + inversion H0. subst. auto.
+        + exists label. subst. firstorder.
+Qed.
+
+
+
+(* Some Theorems about IG_isEmpty and in which cases IG_labNodes is empty: *)
+
+
+(* But first one helper lemma for showing that some and is not empty for various checks *)
+Lemma _exists_x_in_and : forall (A B : Type) (c : Context A B) (ig : IG A B),
+    exists x, In x (IG_labNodes (c &I ig)).
+Proof.
+    intros.
+    setoid_rewrite IG_and_adds_node.
+    destruct_context c.
+    destruct (NatMap.mem node ig) eqn:cond.
+    - rewrite <- _key_In_IG_mem_iff in cond.
+        firstorder.
+    - assert (not (NatMap.mem node ig = true)). { 
+            unfold not. intros. rewrite H in cond. inversion cond.
+        } clear cond. rewrite <- _key_In_IG_mem_iff in H.
+        exists (node, label).
+        firstorder.
+Qed.
+
+
+
+Theorem IG_empty_isEmpty : forall (A B : Type),
+    IG_isEmpty (@IG_empty A B) = true.
+Proof.
+    compute. reflexivity.
+Qed.
+
+
+Theorem IG_and_not_isEmpty : forall (A B : Type) (c : Context A B) (ig : IG A B),
+    IG_isEmpty (c &I ig) = false.
+Proof.
+    intros. unfold IG_isEmpty. 
+    apply NatMap_not_Empty_is_empty_false. unfold not. intros.
+    apply MProps.elements_Empty in H.
+    assert (forall x, ~In x (IG_labNodes (c &I ig))). {
+        intros. unfold not. intros.
+        assert (IG_labNodes (c &I ig) = []). {
+            clear H0.
+            unfold IG_labNodes. rewrite H.
+            reflexivity.
+        }
+        rewrite H1 in H0.
+        apply in_nil in H0.
+        inversion H0.
+    }
+    clear H.
+    pose proof (_exists_x_in_and _ _ c ig).
+    destruct H.
+    firstorder.
+Qed.
+
+
+
+Theorem IG_labNodes_empty_nil : forall (A B : Type),
+    IG_labNodes (@IG_empty A B) = [].  
+Proof.
+    compute. reflexivity.
+Qed.
+
+Theorem IG_labNodes_and_not_nil : forall (A B : Type) (c : Context A B) (ig : IG A B),
+    IG_labNodes (c &I ig) <> [].
+Proof.
+    intros. unfold not. intros.
+    assert (forall x, ~In x (IG_labNodes (c &I ig))). {
+        rewrite H. apply in_nil.
+    }
+    clear H.
+    pose proof (_exists_x_in_and _ _ c ig).
+    destruct H.
+    firstorder.
 Qed.
 

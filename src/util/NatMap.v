@@ -5,7 +5,8 @@ Require Import Lia.
 Require Import Arith.
 Require Import GraphVerification.src.util.util.
 
-(* Instantiate an FMap module, such that it is the same across the whole project *)
+(** Instantiate an FMap module, such that it is the same across the whole project 
+    Also proves some generally useful lemmas about FMaps *)
 
 Definition Node := Nat_as_OT.t.
 
@@ -22,12 +23,12 @@ Module OMProps := OrdProperties NatMap.
 
 
 
-(* This proof is adapted from the link below. This is something that should be in stdlib *)
-(* https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v *)
-(* This is correct, but extremely slow for coq to check.
-If a list is used as the FMap backend, checking is much faster *)
-Lemma NatMap_cardinal_Add_In:
-    forall (A : Type) (m m' : NatMap.t A) x e, NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
+(* This proof is adapted from the link below. This is something that should be in stdlib
+    https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v
+    This is correct, but extremely slow for coq to check.
+    If a list is used as the FMap backend, checking is much faster *)
+Lemma NatMap_cardinal_Add_In: forall (A : Type) (m m' : NatMap.t A) x e,
+    NatMap.In x m -> MProps.Add x e m m' -> NatMap.cardinal m' = NatMap.cardinal m.
 Proof.
     assert (forall {A : Type} (k : Node) (e : A ) m, NatMap.MapsTo k e m -> MProps.Add k e (NatMap.remove k m) m) as remove_In_Add. {
         intros. unfold MProps.Add.
@@ -60,6 +61,7 @@ Proof.
         apply NatMap.find_2. unfold MProps.Add in H0. rewrite H0.
         rewrite MFacts.add_eq_o; reflexivity.
 Qed.
+
 
 Lemma NatMap_add_value_does_not_matter_for_cardinality : forall {A : Type} (node : Node) (c c' : A) (m : NatMap.t A),
     NatMap.cardinal (NatMap.add node c m) = NatMap.cardinal (NatMap.add node c' m).
@@ -154,7 +156,7 @@ Proof.
     - rewrite H. compute. intros. inversion H0.
 Qed.
 
-Lemma _not_NatMap_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
+Lemma NatMap_not_Empty_is_empty_false : forall (A : Type) (m : NatMap.t A),
     not (NatMap.Empty m) <-> NatMap.is_empty m = false.
 Proof.
     intros. unfold not. rewrite MFacts.is_empty_iff. destruct (NatMap.is_empty m) eqn:cond.

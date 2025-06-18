@@ -5,8 +5,9 @@ Require Import PeanoNat.
 
 Require Import GraphVerification.src.util.NatSet.
 
-(* Defining an algebraic_graph (AG) and its operations. There are only single edges.
-It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
+(** Defining an algebraic_graph (AG) and its operations. There are only single edges.
+    It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
+
 Inductive AG (A : Type) : Type :=
     | AG_empty : AG A
     | AG_vertex : A -> AG A
@@ -30,8 +31,8 @@ Notation "ag1 +++ ag2" := (AG_overlay ag1 ag2) (at level 60, right associativity
 Notation "ag1 *** ag2" := (AG_connect ag1 ag2) (at level 59, right associativity).
 
 
-
-(* Initially functions from the paper *)
+(* Todo: update this at the end *)
+(* Initial functions from the paper. Note that these are not verified in any way. *)
 
 Definition AG_edge {A : Type} (a1 a2 : A) : AG A :=
     (AG_vertex a1) *** (AG_vertex a2).
@@ -62,7 +63,6 @@ Definition AG_circuit {A : Type} (l : list A) : AG A :=
     | x::_ => AG_path (l ++ [x])
     end.
 
-  
 Definition AG_star {A : Type} (x : A) (l : list A) : AG A :=
     AG_vertex x *** AG_vertices l.
 
@@ -135,7 +135,7 @@ Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
 
 
 
-(* Start defining own functions: *)
+(** Start defining own functions (which will be verified): *)
 
 (* The set of nodes of the AG *)
 Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t := 

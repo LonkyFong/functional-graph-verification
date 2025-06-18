@@ -22,7 +22,8 @@
 
 ./src/algebraic/AG.v
 ./src/algebraic/AG_to_RG.v
-./src/algebraic/AG_theory.v
+./src/algebraic/AG_algebra_theory.v
+./src/algebraic/AG_derived_algorithms_theory.v
 
 
 

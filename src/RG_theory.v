@@ -3,7 +3,7 @@ Require Import Setoid Morphisms.
 Require Import GraphVerification.src.RG.
 
 
-(* Stating and proving Lemmas and Theorems about RGs *)
+(** Stating and proving Lemmas and Theorems about RGs *)
 
 
 (* "RG_equiv" is an equivalence relation: *)
@@ -35,8 +35,7 @@ Ltac G_derived_equivalence_prover A B f :=
     ].
 
 
-(* Some theorems about RG_transpose: *)
-
+(* Some theorems about RG_transpose. Whenever a graphs transpose operation is proven to relate to RG_transpose, these automatically follow *)
 
 Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) ==R rg.
 Proof.
@@ -44,20 +43,20 @@ Proof.
 Qed.
 
 Theorem RG_transpose_same_nodes {A B : Type}: forall (rg : RG A B) n,
-  (RG_transpose rg).(RG_nodes) n <-> rg.(RG_nodes) n.
+    (RG_transpose rg).(RG_nodes) n <-> rg.(RG_nodes) n.
 Proof.
     firstorder.
 Qed.
 
 Theorem RG_transpose_flips_edges {A B : Type}: forall (rg : RG A B) n1 n2 l,
-  (RG_transpose rg).(RG_edges) n1 n2 l <-> rg.(RG_edges) n2 n1 l.
+    (RG_transpose rg).(RG_edges) n1 n2 l <-> rg.(RG_edges) n2 n1 l.
 Proof.
-  firstorder.
+    firstorder.
 Qed.
 
 Theorem RG_transpose_flips_paths {A B : Type}: forall (rg : RG A B) n1 n2,
-  RG_existsPath n1 n2 rg <-> RG_existsPath n2 n1 (RG_transpose rg).
+    RG_existsPath n1 n2 rg <-> RG_existsPath n2 n1 (RG_transpose rg).
 Proof.
-  intros.
-  apply Operators_Properties.clos_trans_transp_permute.
+    intros.
+    apply Operators_Properties.clos_trans_transp_permute.
 Qed.

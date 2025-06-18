@@ -12,15 +12,15 @@ Require Import GraphVerification.src.util.util.
 
 Open Scope nat_scope.
 
-(* Defining an inductive_graph (IG) and its operations.
-It is based off of "Inductive graphs and functional graph algorithms" by Martin Erwig.
-It tries to mirror the FGL (functional graph library) whenever possible,
-but most importantly only treats one of the multiple implementations of the inductive graph class.
+(** Defining an inductive_graph (IG) and its operations.
+    It is based off of "Inductive graphs and functional graph algorithms" by Martin Erwig.
+    It tries to mirror the FGL (functional graph library) whenever possible,
+    but most importantly only treats one of the multiple implementations of the inductive graph class.
 
-Minimal operations are:
-  empty, isEmpty, match, mkGraph, labNodes
-Further down, further derived operations are defined:
-  matchAny, noNodes, nodeRange, labEdges
+    "Minimal" operations are (technically, isEmpty and mkGraph can be "implemented" using and and labNodes):
+        empty, isEmpty, match, and, mkGraph, labNodes
+    Further down, further derived operations are defined:
+        matchAny, noNodes, nodeRange, labEdges
 *) 
 
 
@@ -41,7 +41,6 @@ Definition IG (A B : Type) := NatMap.t (Context' A B).
 
 Definition Decomp (A B : Type) : Type :=
     (MContext A B * IG A B). 
-
 
 Definition LNode (A : Type) : Type := (Node * A).
 Definition LEdge (B : Type) : Type := (Node * Node * B).
@@ -112,9 +111,8 @@ Definition _cleanSplit {A B : Type} (node : Node) (context' : Context' A B) (ig 
 Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
     match NatMap.find node ig with
     | None => (None, ig)
-    | Some context' => match _cleanSplit node context' (NatMap.remove node ig) with
-                        | (context, ig') => (Some context, ig')
-                        end
+    | Some context' => let '(context, rest) := _cleanSplit node context' (NatMap.remove node ig)
+                        in (Some context, rest)
     end.
 
 
@@ -126,31 +124,14 @@ Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
 (* This is the "&" constructor from the paper, defined here as a function, as it does more than mere pattern matching *)
 (* Does nothing, if the node already exists *)
 (* In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
-(* Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
+Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
     let '(froms, node, label, tos) := context in
 
     if NatMap.mem node ig then ig else
     let ig' := NatMap.add node (froms, label, tos) ig in
     let ig'' := _updAdj tos (_addPred node) ig' in
-    _updAdj froms (_addSucc node) ig''. *)
-
-Definition contextValidToAdd {A B : Type} (context : Context A B) (nodes : list Node) : bool :=
-    let '(froms, node, label, tos) := context in
-    let fromsValid := forallb (fun '(l, n) => existsb (Nat.eqb n) nodes) froms in
-    let tosValid := forallb (fun '(l, n) => existsb (Nat.eqb n) nodes) tos in
-    negb (existsb (Nat.eqb node) nodes) && fromsValid && tosValid.
-    
-
-
-(* SAFE VERSION *)
-(* If the added node is already in the graph the context is ignored. When there are non-existent neighbours, they are ignored as well *)
-Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
-    let '(froms, node, label, tos) := context in
-
-    if negb (contextValidToAdd context ig) then ig else
-    let ig' := NatMap.add node (froms, label, tos) ig in
-    let ig'' := _updAdj tos (_addPred node) ig' in
     _updAdj froms (_addSucc node) ig''.
+
     
 
 

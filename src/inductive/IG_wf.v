@@ -18,13 +18,14 @@ Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.inductive.IG.
 
-(* Stating and proving Lemmas and Theorems about measuring the size of an IG.
-These are the only proofs that the last remaining computational functions on IGs need to prove termination.
-*)
-
-(* Lemmas and Theorems try to have only the context as an argument, and break it up internally, and this allows proof to do this too *)
-
-
+(** Stating and proving Lemmas and Theorems about measuring the size of an IG.
+    These are the only proofs that the last remaining computational functions on IGs need to prove their termination.
+    Main results are:
+    - IG_match_returns_node
+    - IG_match_none_returns_graph
+    - _IG_match_decreases_IG_noNodes
+    - _IG_matchAny_decreases_IG_noNodes
+    *)
 
 
 Lemma IG_labNodes_len_cardinal : forall (A B : Type) (ig : IG A B),

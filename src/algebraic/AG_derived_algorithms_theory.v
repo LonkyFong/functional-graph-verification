@@ -6,166 +6,24 @@ Import ListNotations.
 Require Import Sorting.Permutation.
 
 Require Import GraphVerification.src.util.NatSet.
+Require Import GraphVerification.src.util.util.
 
 Require Import GraphVerification.src.RG.
 Require Import GraphVerification.src.RG_theory.
 
 Require Import GraphVerification.src.algebraic.AG.
 Require Import GraphVerification.src.algebraic.AG_to_RG.
+Require Import GraphVerification.src.algebraic.AG_algebra_theory.
 
-(* Stating and proving Lemmas and Theorems about AGs *)
-
-(* This is used to verify that the axioms on the algebra of AGs are consistent
-with the interpretation of the expressions in terms of RGs *)
-Ltac AG_axiom_proof_automation_via_RG :=
-    unfold AG_equiv; simpl; firstorder.
-
-(* These are the "8 axioms" originally proposed by functional graphs with class *)
-
-(* +++ is commutative and associative *)
-Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 ==A ag2 +++ ag1.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) ==A (ag1 +++ ag2) +++ ag3.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-(* (G, ***, e) is a monoid *)
-Theorem AG_empty_connect_L_Identity {A : Type} : forall (ag : AG A), AG_empty *** ag ==A ag.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-Theorem AG_empty_connect_R_Identity {A : Type} : forall (ag : AG A), ag *** AG_empty ==A ag.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-Theorem AG_connect_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 *** ag3) ==A (ag1 *** ag2) *** ag3.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-(* *** distributes over +++ *)
-Theorem AG_connect_overlay_L_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** (ag2 +++ ag3) ==A ag1 *** ag2 +++ ag1 *** ag3.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-Theorem AG_connect_overlay_R_Distributes {A : Type} : forall (ag1 ag2 ag3 : AG A), (ag1 +++ ag2) *** ag3 ==A ag1 *** ag3 +++ ag2 *** ag3.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-(* Decomposition *)
-Theorem AG_connect_Decomposition {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 *** ag2 *** ag3 ==A ag1 *** ag2 +++ ag1 *** ag3 +++ ag2 *** ag3.
-Proof.
-    AG_axiom_proof_automation_via_RG.
-Qed.
-
-
-
-
-(* Section to make rewrite work with ==A of overlays and connects *)
-(* This proof is based on ==R being an equivalence relation *)
-Instance AG_Equivalence {A : Type} : Equivalence (@AG_equiv A).
-Proof.
-    G_derived_equivalence_prover A unit (@AG_to_RG A).
-Qed.
-
-Ltac Proper_proof_automation := split; simpl in *; firstorder.
-
-Instance Proper_overlay {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) AG_overlay.
-Proof.
-    Proper_proof_automation.
-Qed.
-
-Instance Proper_connect {A : Type} : Proper ((@AG_equiv A) ==> AG_equiv ==> AG_equiv) AG_connect.
-Proof.
-    Proper_proof_automation.
-Qed.
-
-
-
-
-(* The following theorems are provable using the same automation as the 8 axioms,
-but this section aims to demonstrate their utility, by using only them.
-This has already been done in the Agda formalization by Andrey Mokhov *)
-
-(* This is a helper for multiple theorems *)
-Lemma _overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ AG_empty ==A ag.
-Proof.
-    intros.
-    pose proof (AG_connect_Decomposition ag AG_empty AG_empty).
-
-    rewrite AG_empty_connect_R_Identity in H.
-    rewrite AG_empty_connect_R_Identity in H.
-    rewrite <- H.
-
-    reflexivity.
-Qed.
-
-
-(* Identity of + *)
-Theorem AG_empty_overlay_R_Identity {A : Type}: forall (g : AG A), g +++ AG_empty ==A g.
-Proof.
-    intros.
-    rewrite <- _overlay_preidempotence.
-
-    rewrite <- AG_overlay_Associative.
-    rewrite (AG_overlay_Associative AG_empty (g +++ AG_empty)). 
-    rewrite (AG_overlay_Commutative AG_empty (g +++ AG_empty)).
-    rewrite <- AG_overlay_Associative.
-    rewrite <- AG_overlay_Associative.
-
-    rewrite _overlay_preidempotence.
-    rewrite _overlay_preidempotence.
-    reflexivity.
-Qed.
-
-
-(* Idempotence of + *)
-Theorem AG_overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag ==A ag.
-Proof.
-    intros.
-    pose proof _overlay_preidempotence ag.
-    rewrite AG_empty_overlay_R_Identity in H.
-    assumption.
-Qed.
-
-
-(* Absorption *)
-Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
-Proof.
-    intros. pose proof AG_connect_Decomposition ag1 ag2 AG_empty.
-    rewrite (AG_connect_Associative) in H.
-    rewrite AG_empty_connect_R_Identity in H.
-    rewrite AG_empty_connect_R_Identity in H.
-    rewrite AG_empty_connect_R_Identity in H.
-    symmetry in H.
-    assumption.
-Qed.
-
-
-(* Saturation *)
-Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag ==A ag *** ag.
-Proof.
-    intros.
-    rewrite AG_connect_Decomposition.
-
-    rewrite AG_overlay_Idempotence.
-    rewrite AG_overlay_Idempotence.
-    reflexivity.
-Qed.
-
+(** Stating and proving Lemmas and Theorems about functions which are
+    defined using the primitive operations of an AG.
+    Notably: Relating AG_transpose to RG_transpose and characterizing the result of AG_BFS
+*)
 
 
 
 (* AG_transpose relates to RG_transpose *)
-Theorem AG_transpose_is_RG : forall (ag : AG nat),
+Theorem AG_transpose_relates : forall (ag : AG nat),
     AG_to_RG (AG_transpose ag) ==R RG_transpose (AG_to_RG ag). 
 Proof.
     intros. induction ag; simpl; firstorder.
@@ -175,60 +33,12 @@ Qed.
 
 
 
-(* Start Proving properties on AG_BFS *)
+
+(** Start Proving properties on AG_BFS *)
 
 
-(* Some more basics about NoDup and disjointness: *)
-Definition disjoint {A : Type} (l1 l2 : list A) :=
-  forall a, In a l1 /\ In a l2 -> False.  
+(* Lemma building towards AG_BFS_no_duplicates *)
 
-
-Lemma nodup_app: forall (A: Type) (l1 l2: list A),
-  NoDup (l1 ++ l2) <->
-  NoDup l1 /\ NoDup l2 /\ disjoint l1 l2.
-Proof.
-    intros. unfold disjoint. induction l1; simpl.
-    - firstorder. apply NoDup_nil.
-    - split; intros.
-        + inversion H. apply IHl1 in H3. destruct H3 as [H30 [H31 H32]].
-            split.
-            -- apply NoDup_cons.
-                ++ unfold not. intros. unfold not in H2. apply H2. apply in_or_app. firstorder.
-                ++ assumption.
-            -- split.
-                ++ assumption.
-                ++ subst. intros. unfold not in H2. apply H2.
-                    simpl in *. destruct H0. apply in_or_app. destruct H0.
-                    --- subst. auto.
-                    --- firstorder.
-        + destruct H. destruct H0. inversion H. apply NoDup_cons.
-            -- subst. unfold not. intros.
-                apply in_app_or in H2. apply (H1 a). firstorder.
-            -- apply IHl1. firstorder.
-Qed.
-
-
-
-(* Some Helper Lemmas on NatSets and their elements *)
-Lemma NatSet_In_is_In_elements : forall (x : Node) (s : NatSet.t),
-    NatSet.In x s <-> In x (NatSet.elements s).
-Proof.
-    intros. rewrite <- NatSet.elements_spec1. rewrite SetoidList.InA_alt. firstorder. subst. auto.
-Qed.
-
-Lemma NoDup_NatSet_elements : forall (s : NatSet.t),
-    NoDup (NatSet.elements s).
-Proof.
-    intros. pose proof (NatSet.elements_spec2w s). induction (NatSet.elements s).
-    - apply NoDup_nil.
-    - inversion H. apply NoDup_cons.
-        + unfold not in *. intros. apply H2. apply SetoidList.InA_alt. exists a. auto.
-        + apply IHl. assumption.
-Qed.
-
-
-
-(* Helper Lemmas on NatList_filterOutOf: *)
 Lemma NatList_filterOutOf_makes_subset : forall (s : NatSet.t) (l : list nat),
     incl (NatList_filterOutOf s l) l.
 Proof.
@@ -249,6 +59,7 @@ Proof.
             -- left.  assumption.
             -- right. simpl. destruct (negb (NatSet.mem a s)); firstorder.
 Qed.
+
 
 Lemma NatList_filterOutOf_disjoint : forall (s : NatSet.t) (l : list nat),
     disjoint (NatSet.elements s) (NatList_filterOutOf s l).
@@ -271,7 +82,7 @@ Proof.
     intros. induction l.
     - simpl. apply NoDup_nil.
     - simpl. apply nodup_app. split.
-        + apply NoDup_NatSet_elements.
+        + apply NatSet_NoDup_elements.
         + split.
             -- apply NoDup_filter. assumption.
             -- apply NatList_filterOutOf_disjoint.
@@ -288,6 +99,7 @@ Qed.
 
 
 
+(* Lemmas building towards AG_BFS_returns_only_nodes *)
 
 Lemma _consolidation_fold_right_preserves_nodes : forall (l : list (NatSet.t)) y,
     (exists x, In x l /\ NatSet.In y x) <-> (In y (fold_right (fun next acc => NatSet.elements next ++ NatList_filterOutOf next acc) nil l)) .
@@ -337,7 +149,6 @@ Proof.
 Qed.
 
 
-
 Lemma _upToNStepsCap_rec_returns_only_nodes : forall (from s: NatSet.t) (ag : AG nat) (n : nat),
     forall x y, NatSet.Subset from (AG_nodeSet ag) ->
     In x (_upToNStepsCap_rec from s ag n) -> NatSet.In y x -> (AG_to_RG ag).(RG_nodes) y.
@@ -356,7 +167,6 @@ Proof.
 Qed.
 
 
-
 Lemma _upToNStepsCap_returns_only_nodes : forall (from : NatSet.t) (ag : AG nat) (n : nat),
     forall x y, In x (_upToNStepsCap from ag n) -> NatSet.In y x -> (AG_to_RG ag).(RG_nodes) y.
 Proof.
@@ -370,8 +180,6 @@ Proof.
 Qed.
 
 
-
-
 Theorem AG_BFS_returns_only_nodes : forall (nodes : list nat) (ag : AG nat),
     forall x, In x (AG_BFS nodes ag) -> (AG_to_RG ag).(RG_nodes) x. 
 Proof.
@@ -383,9 +191,11 @@ Qed.
 
 
 
+
+
+
+
 (* Here are attempts at specifying which elements are in BFS and in which order *)
-
-
 
 
 Lemma AG_nodeAmount_empty :
@@ -480,16 +290,7 @@ Admitted.
 
 
 
-
-(* About the order of BFS *)
-Inductive sameDistance_rec {A B : Type} (rg : RG A B) : Ensemble A -> A -> Ensemble A -> A -> Prop :=
-    | bothInStart (start1 start2 : Ensemble A) : forall (a1 a2 : A), start1 a1 -> start2 a2 -> sameDistance_rec rg start1 a1 start2 a2
-    | bothOneStep (start1 start2 : Ensemble A) : forall (a1 a2 : A),
-        sameDistance_rec rg (fun x => RG_reachableInOneStep start1 x rg) a1 (fun x => RG_reachableInOneStep start2 x rg) a2
-        -> sameDistance_rec rg start1 a1 start2 a2. 
-
-Definition sameDistance {A B : Type} (start : Ensemble A) (a1 a2 : A) (rg : RG A B) : Prop :=
-    sameDistance_rec rg start a1 start a2.
+(* Testing BFS oder functions on a specific examples *)
 
 (* Testing that two specific nodes indeed have the same distance to some starting set *)
 Lemma sameDistance_caller_test1 : sameDistance (fun x => x = 1) 2 3 (AG_to_RG (1 *** 2 +++ 1 *** 3)).
@@ -502,10 +303,6 @@ Proof.
 Qed.
 
 
-(* Returns true, if the distance from a1 to start is one plus the distance from a2 to start *)
-Definition distanceSecondOneLower {A B : Type} (start : Ensemble A) (a1 a2 : A) (rg : RG A B) : Prop :=
-    sameDistance_rec rg (fun x => RG_reachableInOneStep start x rg) a1 start a2.
-
     
 Lemma distanceSecondOneLower_test1 : distanceSecondOneLower (fun x => x = 1) 4 2 (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
 Proof.
@@ -516,30 +313,6 @@ Proof.
     - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder.
 Qed.
 
-
-
-
-
-Inductive revBFS_Order {B : Type} (start : NatSet.t) (rg : RG nat B) : list nat -> Prop :=
-    | revBFS_Order_start (l : list nat) : Permutation (NatSet.elements start) l -> revBFS_Order start rg l
-
-    | revBFS_Order_same (noww next : nat) (l : list nat) :
-        sameDistance (fun x => NatSet.In x start) noww next rg -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l)   
-
-    | revBFS_Order_next (noww next : nat) (l : list nat) :
-        distanceSecondOneLower  (fun x => NatSet.In x start) noww next rg 
-        -> revBFS_Order start rg (next :: l) -> revBFS_Order start rg (noww :: next :: l).
-
-Definition BFS_Order {B : Type} (startL result : list nat) (rg : RG nat B) :=
-    revBFS_Order (NatSet_fromList startL) rg (rev result).
-
-
-(* Actual specification about the order of nodes from BFS *)
-Theorem AG_BFS_order : forall (nodes : list nat) (ag : AG nat),
-    BFS_Order nodes (AG_BFS nodes ag) (AG_to_RG ag).
-Proof.
-    intros.
-Admitted.
 
 
 (* Testing that BFS_Order holds for a specific example *)
@@ -569,6 +342,12 @@ Qed.
 
 
 
+(* Actual specification about the order of nodes from BFS *)
+Theorem AG_BFS_order : forall (nodes : list nat) (ag : AG nat),
+    BFS_Order nodes (AG_BFS nodes ag) (AG_to_RG ag).
+Proof.
+    intros.
+Admitted.
 
 
 
@@ -599,17 +378,7 @@ Qed.
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+(* Todo: clean this up *)
 
 
 (* Showing some experimental properties about AGs *)

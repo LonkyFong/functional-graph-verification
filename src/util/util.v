@@ -1,15 +1,16 @@
 Require Import Bool.
+Require Import Ensembles.
+
 Require Import Arith.
 Require Import List.
 Import ListNotations.
 
-Require Import Ensembles.
 
-(* Defines miscellaneous utilities useful across the project  *)
+(** Defines miscellaneous utilities useful across the project  *)
 
 
 (* Custom additional functions for Ensembles. Standard library equivalents may exist,
-but they are less transparent and more difficult to work with *)
+    but they are less transparent and more difficult to work with *)
 Definition Ensemble_add {A : Type} (a : A) (en : Ensemble A) : Ensemble A :=
     fun (x : A) => x = a \/ en x.
 
@@ -19,7 +20,7 @@ Definition Ensemble_union {A : Type} (en1 en2 : Ensemble A) : Ensemble A :=
 
 
 (* Leads to define "bdestruct", a useful tactic from
-Software Foundations, Volume 3: Verified Functional Algorithms, Chapter Perm *)
+    Software Foundations, Volume 3: Verified Functional Algorithms, Chapter Perm *)
 Lemma eqb_reflect : forall x y, reflect (x = y) (x =? y).
 Proof.
     intros x y. apply iff_reflect. symmetry.
@@ -50,8 +51,38 @@ Ltac bdestruct X :=
         ].
 
 
+(* Defining the notion of disjointedness and what it means with respect to NoDup *)
+Definition disjoint {A : Type} (l1 l2 : list A) :=
+    forall a, In a l1 /\ In a l2 -> False.  
 
-(* A small and amortized O(1) queue implementation to be potentially used in BFS *)
+
+Lemma nodup_app: forall (A: Type) (l1 l2: list A),
+    NoDup (l1 ++ l2) <->
+    NoDup l1 /\ NoDup l2 /\ disjoint l1 l2.
+Proof.
+    intros. unfold disjoint. induction l1; simpl.
+    - firstorder. apply NoDup_nil.
+    - split; intros.
+        + inversion H. apply IHl1 in H3. destruct H3 as [H30 [H31 H32]].
+            split.
+            -- apply NoDup_cons.
+                ++ unfold not. intros. unfold not in H2. apply H2. apply in_or_app. firstorder.
+                ++ assumption.
+            -- split.
+                ++ assumption.
+                ++ subst. intros. unfold not in H2. apply H2.
+                    simpl in *. destruct H0. apply in_or_app. destruct H0.
+                    --- subst. auto.
+                    --- firstorder.
+        + destruct H. destruct H0. inversion H. apply NoDup_cons.
+            -- subst. unfold not. intros.
+                apply in_app_or in H2. apply (H1 a). firstorder.
+            -- apply IHl1. firstorder.
+Qed.
+
+
+
+(* A basic amortized O(1) queue implementation to be potentially used in BFS *)
 Definition Queue (A : Type) : Type :=
     (list A) * (list A).
 
@@ -73,4 +104,4 @@ Definition dequeue {A : Type} (q : Queue A) : (option A) * Queue A :=
     | ([], []) => (None, q)
     | (a1::q1, []) => (Some (last (a1::q1) a1), ([], removeFirst (rev (a1::q1))))
     | (q1, a2::q2) => (Some a2, (q1, q2))
-end.
+    end.
