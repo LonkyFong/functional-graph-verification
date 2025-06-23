@@ -18,7 +18,7 @@ Require Import GraphVerification.src.RG_theory.
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
-Require Import GraphVerification.src.inductive.IG_wf_algorithms.
+Require Import GraphVerification.src.inductive.IG_wf_operations.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
 (** Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. 
@@ -101,7 +101,6 @@ Proof.
         clear. firstorder. inversion H.
 Qed.
 
-
 Lemma IG_and_relates_for_nodes : forall (A B : Type) (ig : IG A B) (c : Context A B) n,
     (c &R (IG_to_RG ig)).(RG_nodes) n
         <-> (IG_to_RG (c &I ig)).(RG_nodes) n.
@@ -129,7 +128,7 @@ Proof.
 Admitted.
 
 (* Warning: This depends on unproven IG_and_relates_for_edges *)
-Lemma IG_to_RG_distributes_over_add : forall {A B : Type} (c : Context A B) (ig : IG A B),
+Lemma IG_and_relates : forall {A B : Type} (c : Context A B) (ig : IG A B),
     IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
 Proof.
     intros. unfold RG_equiv. split.
@@ -172,7 +171,7 @@ Proof.
         specialize (IH mat).    
     
         rewrite RG_transpose_distributes_over_extendByContext.
-        rewrite IG_to_RG_distributes_over_add.
+        rewrite IG_and_relates.
         rewrite -> IH.
         reflexivity.
 

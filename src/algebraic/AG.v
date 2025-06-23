@@ -137,7 +137,7 @@ Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
 
 (** Start defining own functions (which will be verified): *)
 
-(* The set of nodes of the AG *)
+(* The set of nodes of the AG. An AG could keep track of this internally to help performance *)
 Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t := 
     let leftAndRight := fun (ag1 ag2 : AG nat) => NatSet.union (AG_nodeSet ag1) (AG_nodeSet ag2) in
     match ag with
@@ -147,6 +147,7 @@ Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t :=
     | ag1 *** ag2 => leftAndRight ag1 ag2
     end.
 
+(* The amount of _distinct_ nodes in the AG. An AG could keep track of this internally to help performance *)
 Definition AG_nodeAmount (ag : AG nat) : nat :=
     NatSet.cardinal (AG_nodeSet ag).
 
@@ -169,7 +170,7 @@ Fixpoint _singleStep (from : NatSet.t) (ag : AG nat) : NatSet.t :=
     end.
 
 (* Computes a list of the set of reachable nodes until it does not grow (kept track by visited).
-Assumes that all of from are in the AG *)
+    Assumes that all of from are in the AG *)
 Fixpoint _upToNStepsCap_rec  (from visited : NatSet.t) (ag : AG nat) (n : nat) : list NatSet.t :=
     match n with
     | 0 => []

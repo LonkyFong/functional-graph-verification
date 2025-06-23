@@ -5,7 +5,7 @@ Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.RG.
 
 Require Import GraphVerification.src.inductive.IG.
-Require Import GraphVerification.src.inductive.IG_wf_algorithms.
+Require Import GraphVerification.src.inductive.IG_wf_operations.
 
 
 (** Defining how an IG converts to an RG *)

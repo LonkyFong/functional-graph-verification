@@ -18,7 +18,7 @@ Require Import GraphVerification.src.inductive.IG.
 (** Stating and proving basic Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
     Start with very useful "_In_labNodes_is_some_MapsTo" and then moves on to showing how "match" and "and" work on nodes.
     Then some statements about IG_isEmpty and when IG_labNodes is empty.
-    For theorems on functions using well_founded induction, go to "inductive_graph_measured_algorithms_theory" *)
+    For theorems on functions using well_founded induction, go to "inductive_graph_measured_operations_theory" *)
 
 
 

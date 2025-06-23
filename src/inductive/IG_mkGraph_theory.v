@@ -139,6 +139,22 @@ Qed.
 
 
 (* Some additional statements about mkGraph and _insEdge *)
+Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
+    _insEdge edge (@IG_empty A B) = IG_empty. 
+Proof.
+    intros. destruct_edge edge. compute. reflexivity.
+Qed.
+
+
+Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
+    _insEdges edges (@IG_empty A B) = IG_empty.
+Proof.
+    intros. induction edges; simpl.
+    - reflexivity.
+    - rewrite IHedges. rewrite _insEdge_on_empty_is_empty. reflexivity.
+Qed.
+
+
 Theorem IG_non_empty_isEmpty_false : forall (A B : Type) (nodes : list (LNode A)) (edges : list (LEdge B)),
     NoDupA (fun x y => fst x = fst y) nodes
         -> length nodes <> 0 <-> IG_isEmpty (IG_mkGraph nodes edges) = false.
@@ -166,21 +182,4 @@ Proof.
             }
             rewrite  H in H2. inversion H2.
         + congruence.
-Qed.
-
-
-
-Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
-    _insEdge edge (@IG_empty A B) = IG_empty. 
-Proof.
-    intros. destruct_edge edge. compute. reflexivity.
-Qed.
-
-
-Lemma _insEdges_on_empty_is_empty : forall (A B : Type) (edges : list (LEdge B)),
-    _insEdges edges (@IG_empty A B) = IG_empty.
-Proof.
-    intros. induction edges; simpl.
-    - reflexivity.
-    - rewrite IHedges. rewrite _insEdge_on_empty_is_empty. reflexivity.
 Qed.

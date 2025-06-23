@@ -57,6 +57,6 @@ Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG_unlE A :=
 
 (* Two AGs are equivalent, if their RGs are equivalent *)
 Definition AG_equiv {A : Type} (ag1 ag2 : AG A) : Prop :=
-    RG_equiv (AG_to_RG ag1) (AG_to_RG ag2).
+    (AG_to_RG ag1) ==R (AG_to_RG ag2).
 
 Notation "g1 ==A g2" := (AG_equiv g1 g2) (at level 80).

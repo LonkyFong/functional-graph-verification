@@ -11,19 +11,19 @@
 
 ./src/inductive/IG.v
 ./src/inductive/IG_wf.v
-./src/inductive/IG_wf_algorithms.v
+./src/inductive/IG_wf_operations.v
 ./src/inductive/IG_to_RG.v
 
 ./src/inductive/IG_theory.v
 
 ./src/inductive/IG_mkGraph_theory.v
-./src/inductive/IG_wf_algorithms_theory.v
+./src/inductive/IG_wf_operations_theory.v
 
 
 ./src/algebraic/AG.v
 ./src/algebraic/AG_to_RG.v
 ./src/algebraic/AG_algebra_theory.v
-./src/algebraic/AG_derived_algorithms_theory.v
+./src/algebraic/AG_derived_operations_theory.v
 
 
 

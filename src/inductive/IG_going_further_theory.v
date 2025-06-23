@@ -17,11 +17,11 @@ Require Import GraphVerification.src.RG_theory.
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
-Require Import GraphVerification.src.inductive.IG_wf_algorithms.
+Require Import GraphVerification.src.inductive.IG_wf_operations.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
 Require Import GraphVerification.src.inductive.IG_theory.
-Require Import GraphVerification.src.inductive.IG_wf_algorithms_theory.
+Require Import GraphVerification.src.inductive.IG_wf_operations_theory.
 
 Require Import GraphVerification.src.inductive.IG_mkGraph_theory.
 

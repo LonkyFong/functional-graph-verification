@@ -37,7 +37,8 @@ Ltac G_derived_equivalence_prover A B f :=
 
 (* Some theorems about RG_transpose. Whenever a graphs transpose operation is proven to relate to RG_transpose, these automatically follow *)
 
-Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B), RG_transpose (RG_transpose rg) ==R rg.
+Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B),
+    RG_transpose (RG_transpose rg) ==R rg.
 Proof.
     firstorder.   
 Qed.
