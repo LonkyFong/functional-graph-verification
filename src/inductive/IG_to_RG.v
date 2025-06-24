@@ -2,7 +2,7 @@ Require Import List.
 
 Require Import GraphVerification.src.util.util.
 
-Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.relational.RG.
 
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf_operations.
@@ -39,7 +39,7 @@ Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
 (* Two IGs are equivalent, if their RGs are equivalent.
     For now, labels are not taken into account *)
 Definition IG_equiv {A B : Type} (ig1 ig2 : IG A B) : Prop :=
-    RG_equiv (IG_to_RG ig1) (IG_to_RG ig2).
+    (IG_to_RG ig1) ==R (IG_to_RG ig2).
 
 Notation "g1 ==I g2" := (IG_equiv g1 g2) (at level 80).
 

@@ -5,8 +5,8 @@
 ./src/util/NatMap.v
 
 
-./src/RG.v
-./src/RG_theory.v
+./src/relational/RG.v
+./src/relational/RG_theory.v
 
 
 ./src/inductive/IG.v

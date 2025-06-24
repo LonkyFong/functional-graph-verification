@@ -1,4 +1,4 @@
-Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.relational.RG.
 Require Import GraphVerification.src.algebraic.AG.
 
 

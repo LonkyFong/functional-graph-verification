@@ -1,6 +1,6 @@
 Require Import Setoid Morphisms.
 
-Require Import GraphVerification.src.RG.
+Require Import GraphVerification.src.relational.RG.
 
 
 (** Stating and proving Lemmas and Theorems about RGs *)

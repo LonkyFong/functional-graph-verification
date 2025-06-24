@@ -11,8 +11,8 @@ Require Import GraphVerification.src.util.NatMap.
 Require Import Relation_Operators.
 
 
-Require Import GraphVerification.src.RG.
-Require Import GraphVerification.src.RG_theory.
+Require Import GraphVerification.src.relational.RG.
+Require Import GraphVerification.src.relational.RG_theory.
 
 Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.

@@ -8,8 +8,8 @@ Require Import Sorting.Permutation.
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.util.
 
-Require Import GraphVerification.src.RG.
-Require Import GraphVerification.src.RG_theory.
+Require Import GraphVerification.src.relational.RG.
+Require Import GraphVerification.src.relational.RG_theory.
 
 Require Import GraphVerification.src.algebraic.AG.
 Require Import GraphVerification.src.algebraic.AG_to_RG.
