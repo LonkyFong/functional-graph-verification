@@ -24,7 +24,7 @@ Proof.
                                             );
          RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined.
 
 Notation "c &R ig" := (RG_and c ig) (at level 59, right associativity).

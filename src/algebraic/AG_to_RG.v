@@ -29,7 +29,7 @@ Proof.
         RG_edges := fun A B l => (rg1.(RG_edges) A B l) \/ (rg2.(RG_edges) A B l);
         RG_valid := _
     |}.
-    RG_valid_prover_withs rg1 rg2.
+    RG_valid_prover rg1 rg2.
 Defined.
 
 
@@ -42,7 +42,7 @@ Proof.
         RG_edges := fun n1 n2 l => overlay.(RG_edges) n1 n2 l \/ (rg1.(RG_nodes) n1 /\ rg2.(RG_nodes) n2);
         RG_valid := _
     |}.
-    RG_valid_prover_withs rg1 rg2.
+    RG_valid_prover rg1 rg2.
 Defined.
 
 (* Putting it all together *)

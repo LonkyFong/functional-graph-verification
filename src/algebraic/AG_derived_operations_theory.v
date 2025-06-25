@@ -446,7 +446,7 @@ Proof.
         RG_edges := fun a1 a2 l => exists n1 n2, rg.(RG_edges) n1 n2 l /\ f n1 = a1 /\ f n2 = a2;
         RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
     - unfold _valid_cond in H. apply H in H0. firstorder.
     - unfold _valid_cond in H. apply H in H0. firstorder.
 Defined.

@@ -112,8 +112,6 @@ IG_match_exactly_removes_node --> "_updAdj_clearSucc_[...]"
 ' IG_match_exactly_removes_node --> _In_labNodes_is_some_MapsTo
 ' IG_match_exactly_removes_node --> NatMap_MapsTo_same_key_same_value
 
-' TODO: continue here
-
 "_updAdj_addPred_[...]" --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
 "_updAdj_addSucc_[...]" --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
 

@@ -34,14 +34,21 @@ Arguments RG_nodes {A B}.
 Arguments RG_edges {A B}.
 Arguments RG_valid {A B}.
 
-(* TODO: use tactic notation to make these tree Ltac a single one *)
-(*  *)
-
-
 (* Trivialize proving of _valid_cond in most cases *)
-Ltac RG_valid_prover := unfold _valid_cond; firstorder.
-Ltac RG_valid_prover_with rg := pose proof rg.(RG_valid); RG_valid_prover.
-Ltac RG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); RG_valid_prover_with rg2.
+Ltac _RG_valid_prover := unfold _valid_cond; firstorder.
+Ltac _RG_valid_prover_with rg := pose proof rg.(RG_valid); _RG_valid_prover.
+Ltac _RG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); _RG_valid_prover_with rg2.
+
+
+Tactic Notation "RG_valid_prover" := _RG_valid_prover.
+
+Tactic Notation "RG_valid_prover" open_constr(rg) :=
+  _RG_valid_prover_with rg.
+
+Tactic Notation "RG_valid_prover" open_constr(rg1) open_constr(rg2) :=
+  _RG_valid_prover_withs rg1 rg2.
+
+
 
 
 
@@ -79,7 +86,7 @@ Proof.
         RG_edges := rg.(RG_edges);
         RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined. 
 
 
@@ -91,7 +98,7 @@ Proof.
                                         \/ rg.(RG_edges) a1 a2 l;
         RG_valid := _
     |}.    
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined.
 
 
@@ -103,7 +110,7 @@ Proof.
         RG_edges := fun a1 a2 l => a1 <> node /\ a2 <> node /\ rg.(RG_edges) a1 a2 l;
         RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined.
 
 
@@ -116,7 +123,7 @@ Proof.
                                     /\ rg.(RG_edges) a1 a2 l;
         RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined.
  
 
@@ -140,7 +147,7 @@ Proof.
         RG_edges := fun a1 a2 l => rg.(RG_edges) a2 a1 l;
         RG_valid := _
     |}.
-    RG_valid_prover_with rg.
+    RG_valid_prover rg.
 Defined.
 
 (* Start characterizing paths and search (so far unused) *)
