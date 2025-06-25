@@ -1,0 +1,127 @@
+@startuml UI
+
+title <size:30><b>Verbose Dependencies of mkGraph theorems</b></size>
+
+' !theme materia
+
+
+
+skinparam linetype ortho
+
+
+package "IG_mkGraph_theory" {
+    rectangle IG_non_empty_isEmpty_false
+
+    rectangle IG_mkGraph_any_ins_all_nodes
+
+    rectangle _insEdges_does_not_add_nodes
+    rectangle _insEdge_does_not_add_node
+
+    rectangle _insNodes_any_ins_all_nodes
+
+    rectangle _key_In_IG_same_on_different_insNodes
+    rectangle _MapsTo_same_on_different_insNodes
+
+    rectangle _insNode_any_ins_node
+
+    rectangle _insEdges_on_empty_is_empty
+    rectangle _insEdge_on_empty_is_empty
+
+}
+
+package "IG_theory" {
+
+
+    rectangle IG_and_adds_node
+
+
+    rectangle IG_match_removes_node
+    rectangle IG_match_exactly_removes_node
+    rectangle IG_match_returns_node
+
+    rectangle _updAdj_addSucc_does_not_change_IG_labNodes
+    rectangle _updAdj_addPred_does_not_change_IG_labNodes
+    rectangle _updAdj_clearSucc_does_not_change_IG_labNodes
+    rectangle _updAdj_clearPred_does_not_change_IG_labNodes
+
+    rectangle _updAdj_sameLabel_f_does_not_change_IG_labNodes
+    rectangle _updateEntry_sameLabel_f_does_not_change_IG_labNodes
+
+    rectangle _In_labNodes_is_some_MapsTo
+    rectangle _In_map_some_InA
+}
+
+package "NatMap" {
+    rectangle NatMap_MapsTo_same_key_same_value
+    rectangle NatMap_In_exists_MapsTo_iff
+
+    rectangle NatMap_not_Empty_is_empty_false
+
+}
+
+
+
+
+
+
+IG_non_empty_isEmpty_false --> IG_mkGraph_any_ins_all_nodes
+IG_non_empty_isEmpty_false --> _In_labNodes_is_some_MapsTo
+IG_non_empty_isEmpty_false --> _insEdges_on_empty_is_empty
+IG_non_empty_isEmpty_false --> NatMap_not_Empty_is_empty_false
+
+_insEdges_on_empty_is_empty --> _insEdge_on_empty_is_empty
+
+IG_mkGraph_any_ins_all_nodes --> _insEdges_does_not_add_nodes
+IG_mkGraph_any_ins_all_nodes --> _insNodes_any_ins_all_nodes
+
+_insEdges_does_not_add_nodes --> _insEdge_does_not_add_node
+_insEdge_does_not_add_node --> IG_and_adds_node
+_insEdge_does_not_add_node --> IG_match_removes_node
+_insEdge_does_not_add_node --> IG_match_exactly_removes_node
+_insEdge_does_not_add_node --> IG_match_returns_node
+_insEdge_does_not_add_node --> _In_labNodes_is_some_MapsTo
+_insEdge_does_not_add_node --> NatMap_In_exists_MapsTo_iff
+
+_insNodes_any_ins_all_nodes --> _insNode_any_ins_node
+_insNode_any_ins_node --> _key_In_IG_same_on_different_insNodes
+
+_key_In_IG_same_on_different_insNodes --> _In_labNodes_is_some_MapsTo
+_key_In_IG_same_on_different_insNodes --> _MapsTo_same_on_different_insNodes
+
+_insNode_any_ins_node --> IG_and_adds_node
+
+
+
+
+IG_and_adds_node --> NatMap_In_exists_MapsTo_iff
+IG_and_adds_node --> _In_labNodes_is_some_MapsTo
+IG_and_adds_node --> _updAdj_addSucc_does_not_change_IG_labNodes
+IG_and_adds_node --> _updAdj_addPred_does_not_change_IG_labNodes
+
+IG_match_removes_node --> _updAdj_clearPred_does_not_change_IG_labNodes
+IG_match_removes_node --> _updAdj_clearSucc_does_not_change_IG_labNodes
+IG_match_removes_node --> _In_labNodes_is_some_MapsTo
+
+IG_match_exactly_removes_node --> _updAdj_clearPred_does_not_change_IG_labNodes
+IG_match_exactly_removes_node --> _updAdj_clearSucc_does_not_change_IG_labNodes
+IG_match_exactly_removes_node --> _In_labNodes_is_some_MapsTo
+IG_match_exactly_removes_node --> NatMap_MapsTo_same_key_same_value
+
+' TODO: continue here
+
+_updAdj_addPred_does_not_change_IG_labNodes --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
+_updAdj_addSucc_does_not_change_IG_labNodes --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
+
+_updAdj_clearSucc_does_not_change_IG_labNodes --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
+_updAdj_clearPred_does_not_change_IG_labNodes --> _updAdj_sameLabel_f_does_not_change_IG_labNodes
+
+
+_updAdj_sameLabel_f_does_not_change_IG_labNodes --> _updateEntry_sameLabel_f_does_not_change_IG_labNodes
+
+_updateEntry_sameLabel_f_does_not_change_IG_labNodes --> _In_labNodes_is_some_MapsTo
+_updateEntry_sameLabel_f_does_not_change_IG_labNodes --> NatMap_MapsTo_same_key_same_value
+
+_In_labNodes_is_some_MapsTo --> _In_map_some_InA
+
+
+@enduml

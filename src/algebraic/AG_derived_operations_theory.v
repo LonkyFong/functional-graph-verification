@@ -13,7 +13,8 @@ Require Import GraphVerification.src.relational.RG_theory.
 
 Require Import GraphVerification.src.algebraic.AG.
 Require Import GraphVerification.src.algebraic.AG_to_RG.
-Require Import GraphVerification.src.algebraic.AG_algebra_theory.
+
+
 
 (** Stating and proving Lemmas and Theorems about functions which are
     defined using the primitive operations of an AG.

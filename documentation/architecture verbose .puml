@@ -1,0 +1,135 @@
+@startuml UI
+
+title <size:30><b>Verbose Functional Graph Verification Architectural Diagramm</b></size>
+
+' !theme materia
+
+' skinparam {
+'   backgroundColor #f8f8f8
+'   defaultFontName "Segoe UI"
+'   defaultFontSize 14
+'   shadowing true
+'   roundCorner 20
+'   ArrowColor #555
+'   ArrowThickness 2
+' }
+
+
+
+
+skinparam linetype ortho
+
+package "/src" {
+
+    package "/util" {
+        rectangle util
+
+        rectangle NatSet
+
+        rectangle NatMap
+    }
+
+
+    package "/relational" {
+        rectangle RG
+
+        rectangle RG_theory
+    }
+
+
+    package "/inductive" {
+        rectangle IG
+
+        rectangle IG_wf
+
+        rectangle IG_wf_operations
+
+        rectangle IG_to_RG
+
+        rectangle IG_theory
+
+        rectangle IG_mkGraph_theory
+
+        rectangle IG_wf_operations_theory
+
+    }
+
+    package "/algebraic" {
+
+        rectangle AG
+
+        rectangle AG_to_RG
+
+        rectangle AG_algebra_theory
+
+        rectangle AG_derived_operations_theory
+    }
+
+}
+
+
+NatMap --> util
+RG --> util
+RG_theory --> RG
+
+IG --> NatMap
+IG --> NatSet
+' IG --> util
+
+' IG_wf --> util
+' IG_wf --> NatMap
+IG_wf --> IG
+
+' IG_wf_operations --> NatMap
+' IG_wf_operations --> IG
+IG_wf_operations --> IG_wf
+
+' IG_to_RG --> util
+IG_to_RG --> RG
+' IG_to_RG --> IG
+IG_to_RG --> IG_wf_operations
+
+
+' IG_theory --> util
+' IG_theory --> NatSet
+' IG_theory --> NatMap
+' IG_theory --> RG
+IG_theory --> RG_theory
+IG_theory --> IG
+
+
+' IG_mkGraph_theory --> util
+' IG_mkGraph_theory --> NatMap
+IG_mkGraph_theory --> RG
+' IG_mkGraph_theory --> RG_theory
+' IG_mkGraph_theory --> IG
+IG_mkGraph_theory --> IG_wf
+IG_mkGraph_theory --> IG_theory
+
+
+' IG_wf_operations_theory --> NatSet
+' IG_wf_operations_theory --> NatMap
+' IG_wf_operations_theory --> RG
+' IG_wf_operations_theory --> RG_theory
+' IG_wf_operations_theory --> IG
+' IG_wf_operations_theory --> IG_wf
+IG_wf_operations_theory --> IG_theory
+' IG_wf_operations_theory --> IG_wf_operations
+IG_wf_operations_theory --> IG_to_RG
+
+AG --> NatSet
+
+AG_to_RG --> RG
+AG_to_RG --> AG
+
+' AG_algebra_theory --> NatSet
+' AG_algebra_theory --> RG
+AG_algebra_theory --> RG_theory
+' AG_algebra_theory --> AG
+AG_algebra_theory --> AG_to_RG
+
+AG_derived_operations_theory --> AG_algebra_theory
+AG_derived_operations_theory --> util
+
+
+@enduml

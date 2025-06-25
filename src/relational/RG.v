@@ -34,10 +34,15 @@ Arguments RG_nodes {A B}.
 Arguments RG_edges {A B}.
 Arguments RG_valid {A B}.
 
+(* TODO: use tactic notation to make these tree Ltac a single one *)
+(*  *)
+
+
 (* Trivialize proving of _valid_cond in most cases *)
 Ltac RG_valid_prover := unfold _valid_cond; firstorder.
 Ltac RG_valid_prover_with rg := pose proof rg.(RG_valid); RG_valid_prover.
 Ltac RG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); RG_valid_prover_with rg2.
+
 
 
 (* Two relational graphs are "the same", when their Ensemble and relation are the same. *)
@@ -148,6 +153,8 @@ Definition RG_reachableInOneStep {A B : Type} (froms : Ensemble A) (node : A) (r
     exists from l, froms from /\ rg.(RG_edges) from node l.
 
 
+
+    
 (* Start characterizing the order of a BFS (so far unused) *)
 
 (* Recursive helper for  sameDistance. *) 

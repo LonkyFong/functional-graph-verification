@@ -127,6 +127,7 @@ Lemma IG_and_relates_for_edges : forall (A B : Type) (ig : IG A B) (c : Context 
 Proof.
 Admitted.
 
+
 (* Warning: This depends on unproven IG_and_relates_for_edges *)
 Lemma IG_and_relates : forall {A B : Type} (c : Context A B) (ig : IG A B),
     IG_to_RG (c &I ig) ==R c &R (IG_to_RG ig). 
