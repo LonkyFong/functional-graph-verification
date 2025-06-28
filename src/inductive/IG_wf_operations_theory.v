@@ -161,26 +161,34 @@ Proof.
 Qed.
 
 
+
+
 (* Warning: This depends on unproven IG_and_relates_for_edges *)
 Theorem IG_transpose_relates : forall (A B : Type) (ig : IG A B),
     IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
 Proof.
-    intros A B.
-    apply (well_founded_induction (well_founded_ltof _ IG_noNodes)).
-    intros ig IH.
-    unfold IG_transpose. unfold IG_gmap. unfold IG_to_RG at 2. rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
-    destruct m.
-    - specialize (IH i).
-        apply _IG_matchAny_decreases_IG_noNodes in mat.
-        specialize (IH mat).    
-    
+    intros.
+    unfold IG_transpose.
+    unfold IG_gmap.
+    unfold IG_to_RG at 2.
+    apply IG_ufold_rec_ind.
+    - intros.
+        unfold IG_ufold.
+        rewrite !IG_ufold_rec_equation.
+        rewrite e in *.
+
         rewrite RG_transpose_distributes_over_extendByContext.
         rewrite IG_and_relates.
-        rewrite -> IH.
+        rewrite <- H.
+        rewrite !IG_ufold_rec_equation.
+
         reflexivity.
 
-    - clear mat IH. unfold IG_to_RG. rewrite IG_ufold_rec_equation. simpl. firstorder. 
+    - intros. rewrite !IG_ufold_rec_equation. rewrite e. clear. firstorder. 
 Qed.
+
+
+
 
 
 

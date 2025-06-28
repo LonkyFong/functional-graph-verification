@@ -105,7 +105,7 @@ Qed.
     This has already been done in the Agda formalization by Andrey Mokhov *)
 
 (* This is a helper for multiple theorems *)
-Lemma _overlay_preidempotence {A : Type}: forall (ag : AG A), ag +++ ag +++ AG_empty ==A ag.
+Lemma _overlay_preidempotence {A : Type} : forall (ag : AG A), ag +++ ag +++ AG_empty ==A ag.
 Proof.
     intros.
     pose proof (AG_connect_Decomposition ag AG_empty AG_empty).
@@ -119,7 +119,7 @@ Qed.
 
 
 (* Identity of + *)
-Theorem AG_empty_overlay_R_Identity {A : Type}: forall (g : AG A), g +++ AG_empty ==A g.
+Theorem AG_empty_overlay_R_Identity {A : Type} : forall (g : AG A), g +++ AG_empty ==A g.
 Proof.
     intros.
     rewrite <- _overlay_preidempotence.
@@ -137,7 +137,8 @@ Qed.
 
 
 (* Idempotence of + *)
-Theorem AG_overlay_Idempotence {A : Type}: forall (ag : AG A), ag +++ ag ==A ag.
+Theorem AG_overlay_Idempotence {A : Type} :
+    forall (ag : AG A), ag +++ ag ==A ag.
 Proof.
     intros.
     pose proof _overlay_preidempotence ag.
@@ -147,7 +148,8 @@ Qed.
 
 
 (* Absorption *)
-Theorem AG_Absorption {A : Type}: forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
+Theorem AG_Absorption {A : Type} :
+    forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
 Proof.
     intros. pose proof AG_connect_Decomposition ag1 ag2 AG_empty.
     rewrite (AG_connect_Associative) in H.
@@ -160,7 +162,7 @@ Qed.
 
 
 (* Saturation *)
-Theorem AG_Saturation {A : Type}: forall (ag : AG A), ag *** ag *** ag ==A ag *** ag.
+Theorem AG_Saturation {A : Type} : forall (ag : AG A), ag *** ag *** ag ==A ag *** ag.
 Proof.
     intros.
     rewrite AG_connect_Decomposition.

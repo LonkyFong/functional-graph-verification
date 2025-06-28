@@ -25,7 +25,7 @@ Function IG_ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig :
     | (None, rest) => acc
     end.
 Proof.
-    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+    intros. apply IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
 
 Definition IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) : C :=
@@ -38,7 +38,7 @@ Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG 
     | (None, rest) => IG_empty
     end.
 Proof.
-    intros. apply _IG_matchAny_decreases_IG_noNodes in teq. assumption.
+    intros. apply IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
 
 
@@ -115,7 +115,7 @@ Proof.
     intros.
     break_up_lexord.
     apply left_lex.
-    apply _IG_match_decreases_IG_noNodes in H.
+    apply IG_match_decreases_IG_noNodes in H.
     assumption.
 Qed.
 

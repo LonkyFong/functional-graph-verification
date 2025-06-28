@@ -5,8 +5,8 @@ This repository contains Rocq formalizations of
 [algebraic graphs by Mohkov (2017)](https://doi.org/10.1145/3156695.3122956) and
 [inductive graphs by Erwig (2001)](https://doi.org/10.1017/S0956796801004075).
 The executable code was adopted mostly from the respective graph libraries
-[alga](https://github.com/snowleopard/alga) and
-[fgl](https://github.com/haskell/fgl).
+[Alga](https://github.com/snowleopard/alga) and
+[FGL](https://github.com/haskell/fgl).
 
 For more information, please read the associated thesis report, which in the future should be available on the University of Groningen website for people associated with the institution.
 

@@ -23,8 +23,8 @@ Require Import GraphVerification.src.inductive.IG.
     Main results are:
     - IG_match_returns_node
     - IG_match_none_returns_graph
-    - _IG_match_decreases_IG_noNodes
-    - _IG_matchAny_decreases_IG_noNodes
+    - IG_match_decreases_IG_noNodes
+    - IG_matchAny_decreases_IG_noNodes
     *)
 
 
@@ -114,7 +114,7 @@ Qed.
 
 
 
-Theorem _IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
+Theorem IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),
     IG_match n ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.
     intros.
@@ -122,10 +122,10 @@ Proof.
 Qed.
 
 
-Theorem _IG_matchAny_decreases_IG_noNodes : forall (A B : Type) (c : Context A B) (ig rest : IG A B),
+Theorem IG_matchAny_decreases_IG_noNodes : forall (A B : Type) (c : Context A B) (ig rest : IG A B),
     IG_matchAny ig = (Some c, rest) -> IG_noNodes rest < IG_noNodes ig.
 Proof.
     intros. unfold IG_matchAny in H. destruct (IG_labNodes ig) eqn:labNodes.
     - inversion H.
-    - apply _IG_match_decreases_IG_noNodes in H. assumption.
+    - apply IG_match_decreases_IG_noNodes in H. assumption.
 Qed.

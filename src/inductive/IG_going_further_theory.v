@@ -76,7 +76,7 @@ Proof.
         destruct (IG_matchAny ig) eqn:mat.
         destruct m.
         - specialize (IH i).
-            apply _IG_matchAny_decreases_IG_noNodes in mat as mat'.
+            apply IG_matchAny_decreases_IG_noNodes in mat as mat'.
             specialize (IH mat'). clear mat'. destruct_edge e. destruct_context c. simpl.
             unfold IG_labEdges.
             (* Now, I need to distinguish between the case where the edge was added by the new context, or already existed *)
@@ -492,7 +492,7 @@ Proof.
     destruct (IG_matchAny ig) eqn:mat.
     destruct m eqn:mm.
     (* The "smaller" graph I use for IH is i *) 
-    - specialize (IH i). apply _IG_matchAny_decreases_IG_noNodes in mat as mat'. unfold ltof in IH.
+    - specialize (IH i). apply IG_matchAny_decreases_IG_noNodes in mat as mat'. unfold ltof in IH.
         specialize (IH mat'). clear mat'.
 
         rewrite IH.
@@ -559,7 +559,7 @@ Proof.
         apply IH. 
         apply H.
 
-        apply _IG_matchAny_decreases_IG_noNodes in mat.
+        apply IG_matchAny_decreases_IG_noNodes in mat.
         unfold ltof. assumption.
     (* No hit: *)
     - apply IG_matchAny_None_is_empty in mat. apply IG_isEmpty_equiv_empty in mat.
@@ -671,7 +671,7 @@ Proof.
     rewrite !IG_ufold_rec_equation. destruct (IG_matchAny ig) eqn:mat.
     destruct m.
     - specialize (IH i).
-        apply _IG_matchAny_decreases_IG_noNodes in mat as mat'.
+        apply IG_matchAny_decreases_IG_noNodes in mat as mat'.
         specialize (IH mat').
         (* This one is not fully proven *)
         rewrite IG_to_RG_distributes_over_add'.
