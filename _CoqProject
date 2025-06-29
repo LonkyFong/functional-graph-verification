@@ -23,7 +23,8 @@
 ./src/algebraic/AG.v
 ./src/algebraic/AG_to_RG.v
 ./src/algebraic/AG_algebra_theory.v
-./src/algebraic/AG_derived_operations_theory.v
+./src/algebraic/AG_basic_derived_operations_theory.v
+./src/algebraic/AG_search_theory.v
 
 
 

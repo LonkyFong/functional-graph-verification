@@ -1,6 +1,6 @@
 Require Import Bool.
 Require Import Ensembles.
-
+Require Import Lia.
 Require Import Arith.
 Require Import List.
 Import ListNotations.
@@ -49,6 +49,29 @@ Ltac bdestruct X :=
         | destruct H as [H|H];
             [ | try first [apply not_lt in H | apply not_le in H]]
         ].
+
+
+
+
+        
+(* "bdestruct_guard_in_hyp" and "bdall_in_hyp" are adapted versions of "bdestruct_guard" and "bdall" from
+    Software Foundations, Volume 3: Verified Functional Algorithms, Chapter SearchTree *)
+Ltac bdestruct_guard_in_hyp :=
+    match goal with
+    | H: context [ if Nat.eqb ?X ?Y then _ else _ ] |- _ => bdestruct (Nat.eqb X Y)
+    | H: context [ if Nat.ltb ?X ?Y then _ else _ ] |- _ => bdestruct (Nat.ltb X Y)
+    | H: context [ if Nat.leb ?X ?Y then _ else _ ] |- _ => bdestruct (Nat.leb X Y)
+
+    | H: context [ if negb (Nat.eqb ?X ?Y) then _ else _ ] |- _ => bdestruct (Nat.eqb X Y)
+    | H: context [ if negb (Nat.ltb ?X ?Y) then _ else _ ] |- _ => bdestruct (Nat.ltb X Y)
+    | H: context [ if negb (Nat.leb ?X ?Y) then _ else _ ] |- _ => bdestruct (Nat.leb X Y)
+end.
+
+Ltac bdall_in_hyp :=
+    repeat (bdestruct_guard_in_hyp; simpl in *; try lia; auto).
+
+
+
 
 
 (* Defining the notion of disjointedness and what it means with respect to NoDup *)

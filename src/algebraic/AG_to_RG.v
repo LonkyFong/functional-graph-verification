@@ -5,11 +5,8 @@ Require Import GraphVerification.src.algebraic.AG.
 (** Defining how an AG converts to an RG *)
 
 (* Conversion for each constructor *)
-Definition RG_empty {A : Type} : RG_unlE A.
-Proof.
-    exact RG_empty.
-Defined.
-
+Definition RG_empty {A : Type} : RG_unlE A :=
+    RG_empty.
 
 Definition RG_vertex {A : Type} (a : A) : RG_unlE A.
 Proof.
@@ -21,17 +18,8 @@ Proof.
     RG_valid_prover.
 Defined.
 
-
-Definition RG_overlay {A : Type} (rg1 rg2 : RG_unlE A) : RG_unlE A.
-Proof.
-    refine {|
-        RG_nodes := fun A => (rg1.(RG_nodes) A) \/ (rg2.(RG_nodes) A);
-        RG_edges := fun A B l => (rg1.(RG_edges) A B l) \/ (rg2.(RG_edges) A B l);
-        RG_valid := _
-    |}.
-    RG_valid_prover rg1 rg2.
-Defined.
-
+Definition RG_overlay {A : Type} (rg1 rg2 : RG_unlE A) : RG_unlE A :=
+    RG_union rg1 rg2.
 
 
 Definition RG_connect {A : Type} (rg1 rg2 : RG_unlE A) : RG_unlE A.

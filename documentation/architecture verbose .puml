@@ -62,7 +62,9 @@ package "/src" {
 
         rectangle AG_algebra_theory
 
-        rectangle AG_derived_operations_theory
+        rectangle AG_search_theory
+
+        rectangle AG_basic_derived_operations_theory
     }
 
 }
@@ -128,8 +130,21 @@ AG_algebra_theory --> RG_theory
 ' AG_algebra_theory --> AG
 AG_algebra_theory --> AG_to_RG
 
-AG_derived_operations_theory --> AG_algebra_theory
-AG_derived_operations_theory --> util
 
+' AG_search_theory --> NatSet
+' AG_search_theory --> util
+' AG_search_theory --> RG
+AG_search_theory --> RG_theory
+' AG_search_theory --> AG
+AG_search_theory --> AG_to_RG
+
+
+
+' AG_basic_derived_operations_theory --> util
+' AG_basic_derived_operations_theory --> RG
+' AG_basic_derived_operations_theory --> RG_theory
+' AG_basic_derived_operations_theory --> AG
+' AG_basic_derived_operations_theory --> AG_to_RG
+AG_basic_derived_operations_theory --> AG_algebra_theory
 
 @enduml

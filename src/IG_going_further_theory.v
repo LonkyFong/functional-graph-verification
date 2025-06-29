@@ -36,6 +36,16 @@ Require Import GraphVerification.src.util.util.
 
 
 
+(* Only reachable and all reachable nodes are included *)
+Theorem IG_DFS_path : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
+    let '(nodes, ig) := igNodes in
+    In x (IG_DFS nodes ig)
+        <-> exists y, In y nodes /\ RG_existsPath y x (IG_to_RG ig).
+Proof.
+    intros. destruct igNodes as [ig nodes].
+Admitted.
+
+
 
 
 
@@ -137,7 +147,7 @@ Proof.
     intros.
 
     unfold RG_equiv. split.
-    - intros. rewrite and_relates_for_nodes. reflexivity.
+    - intros. rewrite IG_and_relates_for_nodes. reflexivity.
     - intros. rewrite (and_relates_for_edges _ _ _ _ (a1, a2, b)). reflexivity.
 Qed.
 
@@ -338,7 +348,7 @@ Proof.
     unfold IG_equiv.
     unfold RG_equiv.
     esplit. esplit. esplit. esplit. split.
-    - setoid_rewrite <- _IG_RG_nodes_relate. intros.
+    - setoid_rewrite <- _key_In_IG_relates. intros.
         unfold _key_In_IG.
         (* This is possible, but somewhat tedious to prove. I will do this, if it is decided that it is worth it *)
 

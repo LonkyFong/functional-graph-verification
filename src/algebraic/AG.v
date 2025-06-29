@@ -31,40 +31,20 @@ Notation "ag1 +++ ag2" := (AG_overlay ag1 ag2) (at level 60, right associativity
 Notation "ag1 *** ag2" := (AG_connect ag1 ag2) (at level 59, right associativity).
 
 
-(* Todo: update this at the end *)
-(* Initial functions from the paper. Note that these are not verified in any way. *)
+(* Selection of construction primitives and polymorphic graph manipulators from the paper *)
 
-Definition AG_edge {A : Type} (a1 a2 : A) : AG A :=
-    (AG_vertex a1) *** (AG_vertex a2).
 
 Definition AG_vertices {A : Type} (l : list A) : AG A :=
     fold_right AG_overlay AG_empty (map AG_vertex l).
 
+Definition AG_edge {A : Type} (a1 a2 : A) : AG A :=
+    (AG_vertex a1) *** (AG_vertex a2).
+
 Definition AG_edges {A : Type} (l : list (A * A)) : AG A :=
     fold_right AG_overlay AG_empty (map (fun x => AG_edge (fst x) (snd x)) l).
 
-Definition AG_clique {A : Type} (l : list A) : AG A :=
-    fold_right AG_connect AG_empty (map AG_vertex l).
-
 Definition AG_makeGraph {A : Type} (vs : list A) (es : list (A * A)) : AG A :=
     (AG_vertices vs) +++ (AG_edges es).
-
-
-Definition AG_path {A : Type} (l : list A) : AG A :=
-    match l with
-    | [] => AG_empty
-    | [x] => AG_vertex x
-    | _::xs => AG_edges (combine l xs)
-    end.
-
-Definition AG_circuit {A : Type} (l : list A) : AG A :=
-    match l with
-    | [] => AG_empty
-    | x::_ => AG_path (l ++ [x])
-    end.
-
-Definition AG_star {A : Type} (x : A) (l : list A) : AG A :=
-    AG_vertex x *** AG_vertices l.
 
 
 Fixpoint AG_gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' := 
@@ -79,6 +59,7 @@ Fixpoint AG_gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' :=
 Definition AG_mergeVertices {A : Type} (f : A -> bool) (v : A) (ag : AG A) : AG A :=
     AG_gmap (fun x => if f x then v else x) ag.
 
+
 Fixpoint AG_toList {A : Type} (ag : AG A) : list A :=
     match ag with
     | AG_empty => []
@@ -87,41 +68,33 @@ Fixpoint AG_toList {A : Type} (ag : AG A) : list A :=
     | ag1 *** ag2 => AG_toList ag1 ++ AG_toList ag2
     end.
 
-Fixpoint AG_gmapVertex {A A' : Type} (f : AG A -> AG A') (ag : AG A) : AG A' :=
+
+Fixpoint AG_bind {A A' : Type} (f : A -> AG A') (ag : AG A) : AG A' :=
     match ag with
     | AG_empty => AG_empty
-    | AG_vertex x => f (AG_vertex x)
-    | ag1 +++ ag2 => AG_gmapVertex f ag1 +++ AG_gmapVertex f ag2
-    | ag1 *** ag2 => AG_gmapVertex f ag1 *** AG_gmapVertex f ag2
+    | AG_vertex x => f x
+    | ag1 +++ ag2 => AG_bind f ag1 +++ AG_bind f ag2
+    | ag1 *** ag2 => AG_bind f ag1 *** AG_bind f ag2
     end.
 
+
 Definition AG_induce {A : Type} (f : A -> bool) (ag : AG A) : AG A :=
-    AG_gmapVertex (fun g' => match g' with
-                          | AG_vertex x => if f x then AG_vertex x else AG_empty
-                          | _ => g'
-                          end) ag.
+    AG_bind (fun a => if f a then AG_vertex a else AG_empty) ag.
 
 
 Definition AG_removeVertex (x : nat) (ag : AG nat) : AG nat :=
     AG_induce (fun y => negb (Nat.eqb x y)) ag.
 
 
-Definition AG_splitVertex {A : Type} (x : nat) (l : list nat) (ag : AG nat) : AG nat :=
-    AG_gmapVertex (fun g' => match g' with
-                          | AG_vertex y => if Nat.eqb x y then AG_vertices l else AG_vertex y
-                          | _ => g'
-                          end) ag.
-
 Fixpoint AG_removeEdge (x y : nat) (ag : AG nat) : AG nat :=
     match ag with
     | AG_empty => AG_empty
     | AG_vertex z => AG_vertex z
-    | ag1 +++ ag2 =>AG_removeEdge x y ag1 +++ AG_removeEdge x y ag2
-    | ag1 *** ag2 => ((AG_removeVertex x ag1) *** ag2) +++ (ag1 *** (AG_removeVertex y ag2))
+    | ag1 +++ ag2 => AG_removeEdge x y ag1 +++ AG_removeEdge x y ag2
+    | ag1 *** ag2 => ((AG_removeVertex x ag1) *** (AG_removeEdge x y ag2)) +++ ((AG_removeEdge x y ag1) *** (AG_removeVertex y ag2))
     end.
-    
-    
-  
+
+
 Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
     match ag with
     | AG_empty => AG_empty
@@ -129,6 +102,7 @@ Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
     | ag1 +++ ag2 => AG_transpose ag1 +++ AG_transpose ag2
     | ag1 *** ag2 => AG_transpose ag2 *** AG_transpose ag1
     end.
+
 
 
 

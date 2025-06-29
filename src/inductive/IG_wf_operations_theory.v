@@ -22,10 +22,6 @@ Require Import GraphVerification.src.inductive.IG_wf_operations.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
 
-(* TODO: apply this *)
-(* Lemma mergesort_sorts: forall l, sorted (mergesort l).
-Proof.
-  apply mergesort_ind; intros. *)
 
 (** Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. 
     In particular, transpose and DFS *)
@@ -43,7 +39,7 @@ Qed.
 
 
 Lemma _key_In_IG_relates : forall (A B : Type) (node : Node) (ig : IG A B),
-    _key_In_IG node ig <-> (IG_to_RG ig).(RG_nodes) node.
+    _key_In_IG node ig <-> RG_toList (IG_to_RG ig) node.
 Proof.
     intros A B n. setoid_rewrite _key_In_IG_mem_iff.
     unfold IG_to_RG. unfold IG_ufold.
@@ -105,8 +101,8 @@ Qed.
 
 
 Lemma IG_and_relates_for_nodes : forall (A B : Type) (ig : IG A B) (c : Context A B) n,
-    (c &R (IG_to_RG ig)).(RG_nodes) n
-        <-> (IG_to_RG (c &I ig)).(RG_nodes) n.
+    (IG_to_RG (c &I ig)).(RG_nodes) n
+        <-> (c &R (IG_to_RG ig)).(RG_nodes) n.
 Proof.
     intros.
     rewrite <- _key_In_IG_relates.
@@ -125,8 +121,8 @@ Qed.
     &I may insert "phantom" edges, but &R cannot since RG has _valid_cond *)
 Lemma IG_and_relates_for_edges : forall (A B : Type) (ig : IG A B) (c : Context A B) e,
     let '(from, to, l) := e in
-    (c &R (IG_to_RG ig)).(RG_edges) from to l
-        <-> (IG_to_RG (c &I ig)).(RG_edges) from to l.
+    (IG_to_RG (c &I ig)).(RG_edges) from to l
+        <-> (c &R (IG_to_RG ig)).(RG_edges) from to l.
 Proof.
 Admitted.
 
@@ -278,16 +274,3 @@ Qed.
 
 
 
-
-
-
-
-
-(* Only reachable and all reachable nodes are included *)
-Theorem IG_DFS_path : forall (A B : Type) (igNodes : list NatSet.Node * IG A B) x,
-    let '(nodes, ig) := igNodes in
-    In x (IG_DFS nodes ig)
-        <-> exists y, In y nodes /\ RG_existsPath y x (IG_to_RG ig).
-Proof.
-    intros. destruct igNodes as [ig nodes].
-Admitted.

@@ -3,6 +3,8 @@ Require Import Relations.Relation_Operators.
 Require Import Ensembles.
 Require Import List.
 Require Import Permutation.
+Require Import Bool.
+
 
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.util.
@@ -64,7 +66,7 @@ Notation "g1 ==R g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 Definition RG_unlE (A : Type) := RG A unit.
 
 
-(* Start defining operations: *)
+(* Start defining operations, which are mostly used to verify AG: *)
 Definition RG_empty {A B : Type} : RG A B.
 Proof.
     refine {|
@@ -75,46 +77,125 @@ Proof.
     RG_valid_prover.
 Defined.
 
-Definition RG_isEmpty {A B: Type} (rg : RG A B) : Prop :=
-    forall (a : A), rg.(RG_nodes) a <-> False.
 
-
-Definition RG_addNode {A B : Type} (node : A) (rg : RG A B) : RG A B.
+Definition RG_union {A B : Type} (rg1 rg2 : RG A B) : RG A B.
 Proof.
     refine {|
-        RG_nodes := fun a => node = a \/ rg.(RG_nodes) a;
-        RG_edges := rg.(RG_edges);
+        RG_nodes := fun a => rg1.(RG_nodes) a \/ rg2.(RG_nodes) a;
+        RG_edges := fun a1 a2 l => rg1.(RG_edges) a1 a2 l \/ rg2.(RG_edges) a1 a2 l;
+        RG_valid := _
+    |}.
+    RG_valid_prover rg1 rg2.
+Defined.
+
+
+
+Definition RG_vertices {A B : Type} (l : list A) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := fun a => In a l;
+        RG_edges := fun a1 a2 l => False;
+        RG_valid := _
+    |}.
+    RG_valid_prover.
+Defined.
+
+Definition RG_edge {A B : Type} (x y : A) (label : B) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := fun a => a = x \/ a = y;
+        RG_edges := fun a1 a2 l => a1 = x /\ a2 = y /\ l = label;
+        RG_valid := _ 
+    |}.
+    RG_valid_prover.
+Defined.
+
+
+
+
+Definition RG_edgez {A B : Type} (l : list (A * A * B)) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := fun a => exists n lab, In (a, n, lab) l \/ In (n, a, lab) l;
+        RG_edges := fun a1 a2 lab => In (a1, a2, lab) l;
+        RG_valid := _
+    |}.
+    RG_valid_prover.
+Defined.
+
+
+Definition RG_makeGraph {A B : Type} (vs : list A) (es : list (A * A * B)) : RG A B :=
+    RG_union (RG_vertices vs) (RG_edgez es).
+
+
+Definition RG_toList {A B : Type} (rg : RG A B) : Ensemble A :=
+    rg.(RG_nodes).
+
+
+Definition RG_gmap {A B A' : Type} (f : A -> A') (rg : RG A B) : RG A' B. 
+Proof.
+    refine {|
+        RG_nodes := fun a => exists n, rg.(RG_nodes) n /\ f n = a;
+        RG_edges := fun a1 a2 l => exists n1 n2, rg.(RG_edges) n1 n2 l /\ f n1 = a1 /\ f n2 = a2;
         RG_valid := _
     |}.
     RG_valid_prover rg.
-Defined. 
+    - subst. exists x. firstorder.
+    - subst. exists x0. firstorder.
+Defined.
 
 
-Definition RG_addEdge {A B : Type} (from to : A) (label : B) (rg : RG A B) : RG A B.
+Definition RG_mergeVertices {A B : Type} (f : A -> bool) (v : A) (rg : RG A B) : RG A B :=
+    RG_gmap (fun x => if f x then v else x) rg.
+
+
+Definition RG_bind {A B A' : Type} (f : A -> RG A' B) (rg : RG A B) : RG A' B.
 Proof.
     refine {|
-        RG_nodes := fun a => (RG_addNode to (RG_addNode from rg)).(RG_nodes) a;
-        RG_edges := fun a1 a2 l => (a1 = from /\ a2 = to /\ l = label)
-                                        \/ rg.(RG_edges) a1 a2 l;
+        RG_nodes := fun (a : A') => exists n, rg.(RG_nodes) n /\ (f n).(RG_nodes) a;
+        RG_edges := fun a1 a2 l => 
+                                    (* Existing edge *)
+                                    (exists n1 n2, rg.(RG_edges) n1 n2 l
+                                        /\ (f n1).(RG_nodes) a1
+                                        /\ (f n2).(RG_nodes) a2)
+                                    (* New edge from f *)
+                                    \/ (exists n, rg.(RG_nodes) n
+                                        /\ (f n).(RG_edges) a1 a2 l) 
+                                    ;
         RG_valid := _
-    |}.    
+    |}.
     RG_valid_prover rg.
+    - exists x. firstorder.
+    - exists x. firstorder. RG_valid_prover (f x).
+    - exists x0. firstorder.
+    - exists x. firstorder. RG_valid_prover (f x).
 Defined.
+
+
+
+Definition RG_induce {A B : Type} (f : A -> bool) (rg : RG A B) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := fun a => if f a then rg.(RG_nodes) a else False;
+        RG_edges := fun a1 a2 l => if f a1 && f a2 then rg.(RG_edges) a1 a2 l else False;
+        RG_valid := _
+    |}.
+    RG_valid_prover rg; destruct (f a1); destruct (f a2); firstorder.
+Defined.
+
 
 
 (* Also removes all associated edges *)
-Definition RG_removeNode {A B : Type} (node : A) (rg : RG A B) : RG A B.
+Definition RG_removeVertex {A B : Type} (x : A) (rg : RG A B) : RG A B.
 Proof.
     refine {|
-        RG_nodes := fun a => node <> a /\ rg.(RG_nodes) a;
-        RG_edges := fun a1 a2 l => a1 <> node /\ a2 <> node /\ rg.(RG_edges) a1 a2 l;
+        RG_nodes := fun a => x <> a /\ rg.(RG_nodes) a;
+        RG_edges := fun a1 a2 l => a1 <> x /\ a2 <> x /\ rg.(RG_edges) a1 a2 l;
         RG_valid := _
     |}.
     RG_valid_prover rg.
 Defined.
 
-
-(* Does not remove associated nodes *)
 Definition RG_removeEdge {A B : Type} (from to : A) (label : B) (rg : RG A B) : RG A B.
 Proof.
     refine {|
@@ -125,18 +206,11 @@ Proof.
     |}.
     RG_valid_prover rg.
 Defined.
- 
 
 
-Definition RG_getOutgoingEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRelation A B :=
-    fun (a1 a2 : A) l => rg.(RG_edges) a1 a2 l /\ a1 = node.
 
-Definition RG_getIncomingEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRelation A B :=
-    fun (a1 a2 : A) l => rg.(RG_edges) a1 a2 l /\ a2 = node.
 
-Definition RG_getIncidentEdges {A B : Type} (node : A) (rg : RG A B) : _edgeRelation A B :=
-    fun (a1 a2 : A) l => (RG_getOutgoingEdges node rg) a1 a2 l
-                            \/ (RG_getIncomingEdges node rg) a1 a2 l.
+
 
 
 
