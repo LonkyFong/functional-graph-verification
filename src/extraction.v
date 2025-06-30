@@ -12,7 +12,10 @@ Extraction Language Haskell.
 
 (** For both inductive graphs and algebraic graphs, the exported code need to be tweaked lightly, to be user-friendly
     All functions have been tested on basic testcases.
-    Some testcases which can be manually run in ghci can be found in testcases.hs  *)
+    Some testcases which can be manually run in ghci can be found in "testcases.hs".
+
+    Notice that the extracted code is mostly translation
+    of the verified (balanced-search-tree-based) map and set implementations  *)
 
 
 Extract Inductive nat => "Prelude.Integer" ["0" "Prelude.succ"]
