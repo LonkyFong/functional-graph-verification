@@ -47,6 +47,22 @@ Definition AG_makeGraph {A : Type} (vs : list A) (es : list (A * A)) : AG A :=
     (AG_vertices vs) +++ (AG_edges es).
 
 
+Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
+    match ag with
+    | AG_empty => AG_empty
+    | AG_vertex x => AG_vertex x
+    | ag1 +++ ag2 => AG_transpose ag1 +++ AG_transpose ag2
+    | ag1 *** ag2 => AG_transpose ag2 *** AG_transpose ag1
+    end.
+
+Fixpoint AG_toList {A : Type} (ag : AG A) : list A :=
+    match ag with
+    | AG_empty => []
+    | AG_vertex x => [x]
+    | ag1 +++ ag2 => AG_toList ag1 ++ AG_toList ag2
+    | ag1 *** ag2 => AG_toList ag1 ++ AG_toList ag2
+    end.
+
 Fixpoint AG_gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' := 
     match ag with
     | AG_empty => AG_empty
@@ -59,14 +75,6 @@ Fixpoint AG_gmap {A A' : Type} (f : A -> A') (ag : AG A) : AG A' :=
 Definition AG_mergeVertices {A : Type} (f : A -> bool) (v : A) (ag : AG A) : AG A :=
     AG_gmap (fun x => if f x then v else x) ag.
 
-
-Fixpoint AG_toList {A : Type} (ag : AG A) : list A :=
-    match ag with
-    | AG_empty => []
-    | AG_vertex x => [x]
-    | ag1 +++ ag2 => AG_toList ag1 ++ AG_toList ag2
-    | ag1 *** ag2 => AG_toList ag1 ++ AG_toList ag2
-    end.
 
 
 Fixpoint AG_bind {A A' : Type} (f : A -> AG A') (ag : AG A) : AG A' :=
@@ -95,13 +103,7 @@ Fixpoint AG_removeEdge (x y : nat) (ag : AG nat) : AG nat :=
     end.
 
 
-Fixpoint AG_transpose {A : Type} (ag : AG A) : AG A :=
-    match ag with
-    | AG_empty => AG_empty
-    | AG_vertex x => AG_vertex x
-    | ag1 +++ ag2 => AG_transpose ag1 +++ AG_transpose ag2
-    | ag1 *** ag2 => AG_transpose ag2 *** AG_transpose ag1
-    end.
+
 
 
 

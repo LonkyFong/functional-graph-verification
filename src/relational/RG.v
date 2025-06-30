@@ -128,6 +128,17 @@ Definition RG_makeGraph {A B : Type} (vs : list A) (es : list (A * A * B)) : RG 
     RG_union (RG_vertices vs) (RG_edgez es).
 
 
+
+Definition RG_transpose {A B : Type} (rg : RG A B) : RG A B.
+Proof.
+    refine {|
+        RG_nodes := rg.(RG_nodes);
+        RG_edges := fun a1 a2 l => rg.(RG_edges) a2 a1 l;
+        RG_valid := _
+    |}.
+    RG_valid_prover rg.
+Defined.
+
 Definition RG_toList {A B : Type} (rg : RG A B) : Ensemble A :=
     rg.(RG_nodes).
 
@@ -147,6 +158,7 @@ Defined.
 
 Definition RG_mergeVertices {A B : Type} (f : A -> bool) (v : A) (rg : RG A B) : RG A B :=
     RG_gmap (fun x => if f x then v else x) rg.
+
 
 
 Definition RG_bind {A B A' : Type} (f : A -> RG A' B) (rg : RG A B) : RG A' B.
@@ -214,15 +226,7 @@ Defined.
 
 
 
-Definition RG_transpose {A B : Type} (rg : RG A B) : RG A B.
-Proof.
-    refine {|
-        RG_nodes := rg.(RG_nodes);
-        RG_edges := fun a1 a2 l => rg.(RG_edges) a2 a1 l;
-        RG_valid := _
-    |}.
-    RG_valid_prover rg.
-Defined.
+
 
 (* Start characterizing paths and search (so far unused) *)
 

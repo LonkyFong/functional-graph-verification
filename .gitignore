@@ -43,3 +43,6 @@ time-of-build-after.log
 time-of-build-before.log
 time-of-build-both.log
 time-of-build-pretty.log
+.lsp/.cache/db.transit.json
+.clj-kondo/.cache/v1/lock
+.lsp/.cache/db.transit.json
