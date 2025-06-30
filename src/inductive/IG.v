@@ -192,7 +192,7 @@ Definition _minimum (n : nat) (l : list nat) : nat :=
 Definition _maximum (n : nat) (l : list nat) : nat :=
     fold_right max n l.
 
-(* This is a little different from FGL *)
+(* This one is a little different from FGL. So far, it has no verification  *)
 Definition IG_nodeRange {A B : Type} (ig : IG A B) : Node * Node :=
     match map fst (IG_labNodes ig) with
     | [] => (0, 0)
@@ -200,6 +200,6 @@ Definition IG_nodeRange {A B : Type} (ig : IG A B) : Node * Node :=
     end.
 
 
-
+(* So far, it has no verification *)
 Definition IG_labEdges {A B : Type} (ig : IG A B) : list (LEdge B) :=
     fold_right (fun '(node, (_, _, tos)) acc => map (fun '(l, to) => (node, to, l)) tos ++ acc) [] (NatMap.elements ig). 

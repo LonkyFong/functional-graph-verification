@@ -43,7 +43,7 @@ Lemma _key_In_IG_relates : forall (A B : Type) (node : Node) (ig : IG A B),
 Proof.
     intros A B n. setoid_rewrite _key_In_IG_mem_iff.
     unfold IG_to_RG. unfold IG_ufold.
-    apply (IG_ufold_rec_ind _ _ _ _ _ (fun ig acc => NatMap.mem n ig = true <-> RG_nodes acc n)).
+    apply (_ufold_rec_ind _ _ _ _ _ (fun ig acc => NatMap.mem n ig = true <-> RG_nodes acc n)).
     - intros. rename e into mat. destruct_context c. simpl. unfold Ensemble_add. 
         unfold IG_matchAny in mat. destruct (IG_labNodes ig).
         + inversion mat.
@@ -167,20 +167,20 @@ Proof.
     unfold IG_transpose.
     unfold IG_gmap.
     unfold IG_to_RG at 2.
-    apply IG_ufold_rec_ind.
+    apply _ufold_rec_ind.
     - intros.
         unfold IG_ufold.
-        rewrite !IG_ufold_rec_equation.
+        rewrite !_ufold_rec_equation.
         rewrite e in *.
 
         rewrite RG_transpose_distributes_over_extendByContext.
         rewrite IG_and_relates.
         rewrite <- H.
-        rewrite !IG_ufold_rec_equation.
+        rewrite !_ufold_rec_equation.
 
         reflexivity.
 
-    - intros. rewrite !IG_ufold_rec_equation. rewrite e. clear. firstorder. 
+    - intros. rewrite !_ufold_rec_equation. rewrite e. clear. firstorder. 
 Qed.
 
 
@@ -200,9 +200,9 @@ Proof.
     intros A B.
     unfold IG_DFS.
 
-    assert (forall (igNodes : IG A B * list Node) (x : Node), let '(ig, _) := igNodes in In x (IG_DFS_rec A B igNodes) -> _key_In_IG x ig). {
+    assert (forall (igNodes : IG A B * list Node) (x : Node), let '(ig, _) := igNodes in In x (_DFS_rec A B igNodes) -> _key_In_IG x ig). {
 
-    apply (IG_DFS_rec_ind _ _ (fun igNodes acc => forall (x : Node),
+    apply (_DFS_rec_ind _ _ (fun igNodes acc => forall (x : Node),
         let '(ig, nodes) := igNodes in
         In x acc -> _key_In_IG x ig)); intros; subst.
         (* list is empty *)
@@ -248,7 +248,7 @@ Proof.
     intros.
     unfold IG_DFS.
 
-    apply (IG_DFS_rec_ind _ _ (fun igNodes acc => NoDup acc)); intros; subst.
+    apply (_DFS_rec_ind _ _ (fun igNodes acc => NoDup acc)); intros; subst.
 
     (* list is empty *)
     - apply NoDup_nil.

@@ -28,8 +28,6 @@ Open Scope bool.
 
 
 
-
-
 Lemma AG_vertices_relates : forall (A : Type) (l : list A),
     AG_to_RG (AG_vertices l) ==R RG_vertices l.
 Proof.
@@ -74,8 +72,6 @@ Qed.
 
 
 
-
-
 Lemma AG_makeGraph_relates : forall (A : Type) (vs : list A) (es : list (A * A)),
     AG_to_RG (AG_makeGraph vs es) ==R RG_makeGraph vs (map (fun '(x, y) => (x, y, tt)) es).
 Proof.
@@ -87,7 +83,7 @@ Proof.
 Qed.
     
 
-(* AG_transpose relates to RG_transpose *)
+(* Since RG_transpose is also use for inductive graphs, this is quite a bigger deal *)
 Theorem AG_transpose_relates : forall (ag : AG nat),
     AG_to_RG (AG_transpose ag) ==R RG_transpose (AG_to_RG ag). 
 Proof.

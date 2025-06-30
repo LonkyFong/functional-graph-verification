@@ -19,9 +19,9 @@ Require Import GraphVerification.src.inductive.IG_wf.
 
 (* ufold and gmap (leading to transpose) *)
 
-Function IG_ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
+Function _ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
     match IG_matchAny ig with
-    | (Some c, rest) => f c (IG_ufold_rec f acc rest)
+    | (Some c, rest) => f c (_ufold_rec f acc rest)
     | (None, rest) => acc
     end.
 Proof.
@@ -29,7 +29,7 @@ Proof.
 Defined.
 
 Definition IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) : C :=
-    IG_ufold_rec _ _ _ f acc ig.
+    _ufold_rec _ _ _ f acc ig.
 
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
 Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
@@ -132,14 +132,14 @@ Proof.
 Qed.
 
 
-Function IG_DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
+Function _DFS_rec {A B : Type} (igNodes : IG A B * list Node) {wf (lexord_arg_pair_s A B) igNodes} : list Node := 
     let '(ig, nodes) := igNodes in
         match nodes with
         | [] => []
         | n :: ns => if IG_isEmpty ig then [] else
                     match IG_match n ig with
-                    | (Some cntxt, rest) => n :: IG_DFS_rec (rest, (suc cntxt ++ ns))
-                    | (None, same) => IG_DFS_rec (same, ns)
+                    | (Some cntxt, rest) => n :: _DFS_rec (rest, (suc cntxt ++ ns))
+                    | (None, same) => _DFS_rec (same, ns)
                     end
   end.
 Proof.
@@ -154,6 +154,6 @@ Defined.
 
 (* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=
-    IG_DFS_rec _ _ (ig, nodes).
+    _DFS_rec _ _ (ig, nodes).
 
 
