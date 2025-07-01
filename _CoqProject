@@ -26,7 +26,7 @@
 ./src/algebraic/AG_basic_derived_operations_theory.v
 ./src/algebraic/AG_search_theory.v
 
-./src/extraction.v
+./src/extraction/extraction.v
 
 
 # coq_makefile -f _CoqProject -o Makefile

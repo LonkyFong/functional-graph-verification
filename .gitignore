@@ -48,3 +48,5 @@ time-of-build-pretty.log
 .lsp/.cache/db.transit.json
 .clj-kondo/.cache/v1/lock
 .lsp/.cache/db.transit.json
+AG_extracted.hs
+AG_extracted.hs

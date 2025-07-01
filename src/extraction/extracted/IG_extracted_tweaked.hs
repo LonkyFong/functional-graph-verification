@@ -1,4 +1,4 @@
-module IG_extracted' where
+module IG_extraction where
 
 import qualified Prelude
 
@@ -74,6 +74,7 @@ nat_rec =
 data Option a =
    Some a
  | None
+     deriving (Prelude.Show)
 
 data Sum a b =
    Inl a
@@ -607,11 +608,15 @@ data Positive =
    XI Positive
  | XO Positive
  | XH
+    deriving (Prelude.Show)
+
 
 data Z =
    Z0
  | Zpos Positive
  | Zneg Positive
+     deriving (Prelude.Show)
+
 
 succ1 :: Positive -> Positive
 succ1 x =
@@ -873,6 +878,8 @@ type Key = Prelude.Integer
 data Tree elt =
    Leaf
  | Node0 (Tree elt) Key elt (Tree elt) T0
+    deriving (Prelude.Show)
+
 
 tree_rect :: a2 -> ((Tree a1) -> a2 -> Key -> a1 -> (Tree a1) -> a2 -> T0 ->
              a2) -> (Tree a1) -> a2
@@ -2892,6 +2899,7 @@ _insEdges edges ig =
 iG_mkGraph :: ([] (LNode a1)) -> ([] (LEdge a2)) -> IG a1 a2
 iG_mkGraph nodes edges =
   _insEdges edges (_insNodes nodes iG_empty)
+
 
 iG_labNodes :: (IG a1 a2) -> [] (LNode a1)
 iG_labNodes ig =

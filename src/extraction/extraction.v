@@ -28,7 +28,7 @@ Extract Inductive list => "[]" ["[]" "(:)"].
 Extract Inductive prod => "(,)" ["(,)"].
 
 
-Extraction "IG_extracted'.hs"
+Extraction "IG_extracted.hs"
     IG_empty
     IG_isEmpty
     IG_match
@@ -46,7 +46,7 @@ Extraction "IG_extracted'.hs"
 .
   
  
-Extraction "AG_extracted'.hs"
+Extraction "AG_extracted.hs"
     AG_empty
     AG_vertex
     AG_overlay
@@ -69,11 +69,5 @@ Extraction "AG_extracted'.hs"
 .
 
 
-
-
-
-
-(* Extraction Language OCaml.
-Extraction "extractionTest.ml" turn_both_to_0_L_Caller. *)
 
 
