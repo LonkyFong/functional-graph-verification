@@ -94,11 +94,8 @@ Definition lexord_arg_pair_s (A B : Type) (igNodes1 igNodes2 : IG A B * list Nod
 Lemma wf_lexord_arg_pair_s (A B : Type) : well_founded (lexord_arg_pair_s A B).
 Proof.
     unfold lexord_arg_pair_s.
-    pose proof (wf_lexord_dep_arg_pair_s A B).
-    pose proof (wf_inverse_image (IG A B * list Node) _ (lexord_dep_arg_pair_s A B)).
-
-    apply (H0 (@prodTo_dep_arg_pair_s A B)) in H.
-    assumption.
+    apply wf_inverse_image.
+    apply wf_lexord_dep_arg_pair_s.
 Qed.
 
 Ltac break_up_lexord := unfold lexord_arg_pair_s;

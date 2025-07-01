@@ -5,6 +5,7 @@ Require Import PeanoNat.
 
 Require Import GraphVerification.src.util.NatSet.
 
+
 (** Defining an algebraic_graph (AG) and its operations. There are only single edges.
     It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
 

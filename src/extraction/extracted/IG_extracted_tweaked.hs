@@ -1,4 +1,4 @@
-module IG_extraction where
+module IG_extracted where
 
 import qualified Prelude
 

@@ -1,4 +1,4 @@
-module AG_extraction where
+module AG_extracted where
 
 import qualified Prelude
 import Prelude ((+), (*), fromInteger, signum, abs, negate)
