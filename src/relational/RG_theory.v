@@ -2,9 +2,7 @@ Require Import Setoid Morphisms.
 
 Require Import GraphVerification.src.relational.RG.
 
-
 (** Stating and proving Lemmas and Theorems about RGs *)
-
 
 (* "RG_equiv" is an equivalence relation: *)
 Instance RG_Equivalence {A B : Type} : Equivalence (@RG_equiv A B).
@@ -20,8 +18,6 @@ Proof.
         + apply H2. apply H1. assumption.
 Qed.
 
-
-
 (* Proves a relation derived from RG_equiv (off by just a coercion) is also an equivalence relation *)
 Ltac G_derived_equivalence_prover A B f :=
     pose proof (@RG_Equivalence A B) as H;
@@ -35,7 +31,9 @@ Ltac G_derived_equivalence_prover A B f :=
     ].
 
 
-(* Some theorems about RG_transpose. Whenever a graphs transpose operation is proven to relate to RG_transpose, these automatically follow *)
+(** Some theorems about RG_transpose.
+    Whenever a graphs transpose operation is proven to relate to RG_transpose,
+    these automatically follow, showcasing the power of the model *)
 
 Theorem RG_transpose_transpose {A B : Type}: forall (rg : RG A B),
     RG_transpose (RG_transpose rg) ==R rg.

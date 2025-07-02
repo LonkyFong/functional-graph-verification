@@ -33,6 +33,7 @@ Proof.
     RG_valid_prover rg1 rg2.
 Defined.
 
+
 (* Putting it all together *)
 Fixpoint AG_to_RG {A : Type} (ag : AG A) : RG_unlE A :=
     match ag with

@@ -8,12 +8,6 @@ skinparam linetype ortho
 
 package "/src" {
 
-
-
-
-
-
-
     package "/relational" {
         rectangle RG
 
@@ -60,9 +54,6 @@ package "/src" {
             rectangle AG_basic_derived_operations_theory
         }
     }
-
-
-
 }
 
 "/inductive" --> "/util"
@@ -72,29 +63,18 @@ package "/src" {
 "/relational" -d-> "/util"
 
 NatMap --> util
-' RG --> util
+
 RG_theory --> RG
-
-' IG --> NatMap
-' IG --> NatSet
-
 
 IG_wf --> IG
 
 
 IG_wf_operations --> IG_wf
 
-' IG_to_RG --> RG
 IG_to_RG --> IG_wf_operations
 
-
-
-' IG_theory --> RG_theory
 IG_theory --> IG
 
-
-
-' IG_mkGraph_theory --> RG
 
 IG_mkGraph_theory --> IG_wf
 IG_mkGraph_theory --> IG_theory
@@ -104,17 +84,11 @@ IG_mkGraph_theory --> IG_theory
 IG_wf_operations_theory --> IG_theory
 IG_wf_operations_theory --> IG_to_RG
 
-' AG --> NatSet
-
-' AG_to_RG --> RG
 AG_to_RG --> AG
 
-
-' AG_algebra_theory --> RG_theory
 AG_algebra_theory --> AG_to_RG
 
 
-' AG_search_theory --> RG_theory
 AG_search_theory --> AG_to_RG
 
 AG_basic_derived_operations_theory --> AG_algebra_theory

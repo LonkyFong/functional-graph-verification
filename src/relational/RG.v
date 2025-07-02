@@ -5,12 +5,11 @@ Require Import List.
 Require Import Permutation.
 Require Import Bool.
 
-
 Require Import GraphVerification.src.util.NatSet.
 Require Import GraphVerification.src.util.util.
 
 
-(** Defining a relational_graph (RG) and its operations.
+(** Defining a relational graph (RG) and its operations.
     It it most similar to the typical graph from discrete mathematics.
     It is useful as a model for verification. *)
 
@@ -41,7 +40,6 @@ Ltac _RG_valid_prover := unfold _valid_cond; firstorder.
 Ltac _RG_valid_prover_with rg := pose proof rg.(RG_valid); _RG_valid_prover.
 Ltac _RG_valid_prover_withs rg1 rg2 := pose proof rg1.(RG_valid); _RG_valid_prover_with rg2.
 
-
 Tactic Notation "RG_valid_prover" := _RG_valid_prover.
 
 Tactic Notation "RG_valid_prover" open_constr(rg) :=
@@ -54,7 +52,7 @@ Tactic Notation "RG_valid_prover" open_constr(rg1) open_constr(rg2) :=
 
 
 
-(* Two relational graphs are "the same", when their Ensemble and relation are the same. *)
+(* Two relational graphs are equivalent, when their Ensemble and edge relation are the same. *)
 Definition RG_equiv {A B : Type} (rg1 rg2 : RG A B) : Prop :=
     (* The first condition is definitely needed, as we can have "singleton" graphs *)
     (forall (a : A), rg1.(RG_nodes) a <-> rg2.(RG_nodes) a)
@@ -62,11 +60,15 @@ Definition RG_equiv {A B : Type} (rg1 rg2 : RG A B) : Prop :=
 
 Notation "g1 ==R g2" := (RG_equiv g1 g2) (at level 100, right associativity).
 
-(* A variant of and RG with only single, un-id-able edges *)
+(* A variant of and RG with only single edges without *)
 Definition RG_unlE (A : Type) := RG A unit.
 
 
-(* Start defining operations, which are mostly used to verify AG: *)
+
+(** The next section are mostly construction primitives and polymorphic graph manipulators
+    which can also be implemented on AGs. The implementations on RGs are much more streamlined.
+    Note that we also consider transpose on IGs. *)
+
 Definition RG_empty {A B : Type} : RG A B.
 Proof.
     refine {|
@@ -88,8 +90,6 @@ Proof.
     RG_valid_prover rg1 rg2.
 Defined.
 
-
-
 Definition RG_vertices {A B : Type} (l : list A) : RG A B.
 Proof.
     refine {|
@@ -110,9 +110,7 @@ Proof.
     RG_valid_prover.
 Defined.
 
-
-
-
+(* Has a strange name, since RG_edges is already the projection *)
 Definition RG_edgez {A B : Type} (l : list (A * A * B)) : RG A B.
 Proof.
     refine {|
@@ -128,7 +126,6 @@ Definition RG_makeGraph {A B : Type} (vs : list A) (es : list (A * A * B)) : RG 
     RG_union (RG_vertices vs) (RG_edgez es).
 
 
-
 Definition RG_transpose {A B : Type} (rg : RG A B) : RG A B.
 Proof.
     refine {|
@@ -138,6 +135,7 @@ Proof.
     |}.
     RG_valid_prover rg.
 Defined.
+
 
 Definition RG_toList {A B : Type} (rg : RG A B) : Ensemble A :=
     rg.(RG_nodes).
@@ -184,7 +182,6 @@ Proof.
 Defined.
 
 
-
 Definition RG_induce {A B : Type} (f : A -> bool) (rg : RG A B) : RG A B.
 Proof.
     refine {|
@@ -196,8 +193,7 @@ Proof.
 Defined.
 
 
-
-(* Also removes all associated edges *)
+(* Also removes all associated edges aswell *)
 Definition RG_removeVertex {A B : Type} (x : A) (rg : RG A B) : RG A B.
 Proof.
     refine {|
@@ -226,21 +222,20 @@ Defined.
 
 
 
+(** The model can also be used to characterize search and it's order
+    This is not used in any significant proofs so far,
+    but is still valuable for future expansion *)
 
-
-(* Start characterizing paths and search (so far unused) *)
 
 Definition RG_existsPath {A B : Type} (node1 node2 : A) (rg : RG A B) : Prop :=
     clos_trans A (_unlabelEdgeRelation rg.(RG_edges)) node1 node2.
+
+
 
 (* Is node reachable from froms in exactly a single step? *)
 Definition RG_reachableInOneStep {A B : Type} (froms : Ensemble A) (node : A) (rg : RG A B) : Prop :=
     exists from l, froms from /\ rg.(RG_edges) from node l.
 
-
-
-    
-(* Start characterizing the order of a BFS (so far unused) *)
 
 (* Recursive helper for  sameDistance. *) 
 Inductive sameDistance_rec {A B : Type} (rg : RG A B) : Ensemble A -> A -> Ensemble A -> A -> Prop :=

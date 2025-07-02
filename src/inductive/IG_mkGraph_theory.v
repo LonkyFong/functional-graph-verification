@@ -15,8 +15,8 @@ Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 Require Import GraphVerification.src.inductive.IG_theory.
 
-(** Stating and proving Lemmas and Theorems leading to IG_mkGraph_any_ins_all_nodes.
-    At the end, there are some additional Lemmas too about ins edges *) 
+(** Stating and proving Lemmas and Theorems leading to "IG_mkGraph_any_ins_all_nodes".
+    At the end of the file, there are some additional Lemmas too *) 
 
 Lemma _insNode_any_ins_node : forall (A B : Type) (node : LNode A) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (_insNode node ig)) <-> (x = node /\ ~_key_In_IG (fst x) ig ) \/ In x (IG_labNodes ig).
@@ -138,7 +138,7 @@ Qed.
 
 
 
-(* Some additional statements about mkGraph and _insEdge *)
+(* Some additional statements about IG_mkGraph and _insEdge *)
 Lemma _insEdge_on_empty_is_empty : forall (A B : Type) (edge : LEdge B),
     _insEdge edge (@IG_empty A B) = IG_empty. 
 Proof.

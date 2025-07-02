@@ -18,8 +18,7 @@ Require Import GraphVerification.src.algebraic.AG_to_RG.
 (** Stating and proving Lemmas and Theorems about breadth-first search on AGs *)
 
 
-
-(* Lemma building towards AG_BFS_no_duplicates *)
+(* Lemmas building towards AG_BFS_no_duplicates *)
 
 Lemma NatList_filterOutOf_makes_subset : forall (s : NatSet.t) (l : list nat),
     incl (NatList_filterOutOf s l) l.
@@ -71,7 +70,7 @@ Proof.
 Qed.
 
 Theorem AG_BFS_no_duplicates : forall (nodes : list nat) (ag : AG nat),
-  NoDup (AG_BFS nodes ag).
+    NoDup (AG_BFS nodes ag).
 Proof.
     intros.
     unfold AG_BFS.
@@ -173,35 +172,15 @@ Qed.
 
 
 
+(** This section becomes a little experimental:
+    While we did develop and attempt for a Rocq specification of BFS, we could not show
+    it applies in all cases. Nevertheless, we could show it holds for a specific "testcase".
+    One would additionally need to show that the search is complete, ie.,
+    all reachable elements from the graph are included. *)
 
 
-(* Testing BFS oder functions on a specific examples *)
-
-(* Testing that two specific nodes indeed have the same distance to some starting set *)
-Lemma sameDistance_caller_test1 : sameDistance (fun x => x = 1) 2 3 (AG_to_RG (1 *** 2 +++ 1 *** 3)).
-Proof.
-    unfold sameDistance.
-    apply bothOneStep.
-    apply bothInStart.
-    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder.
-    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder.
-Qed.
-
-
-    
-Lemma distanceSecondOneLower_test1 : distanceSecondOneLower (fun x => x = 1) 4 2 (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
-Proof.
-    unfold distanceSecondOneLower.
-    apply bothOneStep.
-    apply bothInStart.
-    - simpl. unfold RG_reachableInOneStep. exists 3, tt. firstorder. exists 1, tt. firstorder.
-    - simpl. unfold RG_reachableInOneStep. exists 1, tt. firstorder.
-Qed.
-
-
-
-(* Testing that BFS_Order holds for a specific example *)
-Lemma revBFS_Order_test1 : BFS_Order [1] (AG_BFS [1] (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)) (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
+Lemma BFS_Order_test :
+    BFS_Order [1] (AG_BFS [1] (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)) (AG_to_RG (1 *** 2 +++ 1 *** 3 +++ 3 *** 4)).
 Proof.
     unfold BFS_Order. simpl.
     apply revBFS_Order_next.

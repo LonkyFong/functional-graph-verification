@@ -1,3 +1,4 @@
+-- make each of these datatypes derive Show, such that results can be displayed
 data Option a =
     Some a
     | None

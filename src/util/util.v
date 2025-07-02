@@ -105,7 +105,8 @@ Qed.
 
 
 
-(* A basic amortized O(1) queue implementation to be potentially used in BFS *)
+(* A basic amortized O(1) queue implementation to be potentially used in BFS.
+    It is not used yet. *)
 Definition Queue (A : Type) : Type :=
     (list A) * (list A).
 

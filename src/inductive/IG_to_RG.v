@@ -10,6 +10,7 @@ Require Import GraphVerification.src.inductive.IG_wf_operations.
 
 (** Defining how an IG converts to an RG *)
 
+
 Definition RG_and {A B : Type} (c : Context A B) (rg : RG_unlE nat) : RG_unlE nat.
 Proof.
     destruct_context c.
@@ -31,7 +32,7 @@ Notation "c &R ig" := (RG_and c ig) (at level 59, right associativity).
 
 (* At the moment, this conversion is a little imperfect with respect to edges:
     In case of adding invalid contexts to the graph, for IGs, invalid neighbors may make it in,
-    wheras for RGs, they are not allowed to be in *)
+    whereas for RGs, they are not allowed to be in *)
 Definition IG_to_RG {A B : Type} (ig : IG A B) : RG_unlE nat :=
     IG_ufold RG_and RG_empty ig.
 
@@ -42,4 +43,3 @@ Definition IG_equiv {A B : Type} (ig1 ig2 : IG A B) : Prop :=
     (IG_to_RG ig1) ==R (IG_to_RG ig2).
 
 Notation "g1 ==I g2" := (IG_equiv g1 g2) (at level 80).
-

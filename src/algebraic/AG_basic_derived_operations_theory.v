@@ -23,8 +23,7 @@ Open Scope bool.
 
 (** Stating and proving Lemmas and Theorems about functions which are
     defined using the primitive operations of an AG using a model-based approach
-    Notably: Relating AG_transpose
-*)
+    Notably: Relating AG_transpose *)
 
 
 
@@ -48,7 +47,7 @@ Qed.
 
 
 
-(* Showing that one can rewrite in expressions with RG_overlay and RG_connect when there is ==R *)
+(* Showing that one can rewrite in expressions with RG_overlay and RG_connect given ==R *)
 Instance Proper_overlay {A : Type} : Proper ((@RG_equiv A unit) ==> RG_equiv ==> RG_equiv) RG_overlay.
 Proof.
     Proper_proof_automation.

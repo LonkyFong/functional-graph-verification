@@ -23,7 +23,7 @@ Module OMProps := OrdProperties NatMap.
 
 
 
-(* This proof is adapted from the link below. This is something that should be in stdlib
+(* This proof was found in the GitHub of the Rocq standard library but not in the library itself.
     https://github.com/rocq-prover/stdlib/blob/master/theories/FSets/FMapFacts.v
     This is correct, but extremely slow for coq to check.
     If a list is used as the FMap backend, checking is much faster *)
@@ -94,13 +94,17 @@ Proof.
     - rewrite <- H1. reflexivity.
     - unfold MProps.Add. 
 
-    
     unfold MProps.Add. intros. bdestruct (y =? key).
     + rewrite H2. rewrite e. assert (key = key). {
         reflexivity.
     }  pose proof MFacts.add_eq_o. apply (H4 A (NatMap.remove (elt:=A) key map) _ _ x) in H3. rewrite H3. reflexivity.
-    + pose proof MFacts.add_neq_o. assert (key <> y). {lia. } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
-        pose proof MFacts.remove_neq_o. assert (key <> y). {lia. }  apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
+    + pose proof MFacts.add_neq_o.
+        assert (key <> y). {
+            lia.
+        } apply (H3 A (NatMap.remove (elt:=A) key map) _ _ x) in H4. rewrite H4.
+        pose proof MFacts.remove_neq_o. assert (key <> y). {
+            lia.
+        } apply (H5 A map _ _) in H6. rewrite H6. reflexivity.
 Defined.
 
 

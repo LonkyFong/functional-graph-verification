@@ -13,7 +13,6 @@ Import ListNotations.
 Require Import Inverse_Image.
 Require Import Relation_Operators.
 
-
 Require Import GraphVerification.src.util.util.
 Require Import GraphVerification.src.util.NatMap.
 Require Import GraphVerification.src.inductive.IG.
@@ -111,7 +110,6 @@ Proof.
     rewrite !IG_labNodes_len_cardinal.
     assumption.
 Qed.
-
 
 
 Theorem IG_match_decreases_IG_noNodes : forall (A B : Type) (n : Node) (c : Context A B) (ig rest : IG A B),

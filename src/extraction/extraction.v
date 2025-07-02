@@ -10,12 +10,15 @@ Require Import GraphVerification.src.relational.RG.
 
 Extraction Language Haskell.
 
-(** For both inductive graphs and algebraic graphs, the exported code need to be tweaked lightly, to be user-friendly
-    All functions have been tested on basic testcases.
-    Some testcases which can be manually run in ghci can be found in "testcases.hs".
+(** This file initiates extraction of the executable code of algebraic and inductive graphs respectively.
+    The code gets extracted to Haskell and nat, bool, list, and prod are turned into their Haskell counterparts.
+    MSet and FMap are not translated, which is why most of the extracted code is code to implement the
+    balanced-search-tree from the standard library
 
-    Notice that the extracted code is mostly translation
-    of the verified (balanced-search-tree-based) map and set implementations  *)
+    The exported code need to be tweaked lightly, to be user-friendly. The tweaks can be found in
+    "IG_extraction_tweaks.hs"
+
+    Basic code snippets to tun the examples with can be found in "example_operations.hs" *)
 
 
 Extract Inductive nat => "Prelude.Integer" ["0" "Prelude.succ"]
@@ -67,7 +70,3 @@ Extraction "AG_extracted.hs"
     AG_nodeAmount
     AG_BFS
 .
-
-
-
-

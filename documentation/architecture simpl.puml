@@ -9,11 +9,6 @@ skinparam linetype ortho
 package "/src" {
 
 
-
-
-
-
-
     package "/relational" {
         rectangle RG
 
@@ -65,11 +60,6 @@ package "/src" {
 
 }
 
-' "/inductive" --> "/util"
-' "/inductive" -d-> "/relational"
-' "/algebraic" --> "/util"
-' "/algebraic" -d-> "/relational"
-' "/relational" -d-> "/util"
 
 NatMap --> util
 RG --> util

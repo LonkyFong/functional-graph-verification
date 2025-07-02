@@ -12,10 +12,10 @@ Require Import GraphVerification.src.util.util.
 
 Open Scope nat_scope.
 
-(** Defining an inductive_graph (IG) and its operations.
-    It is based off of "Inductive graphs and functional graph algorithms" by Martin Erwig.
+(** Defining an inductive graph (IG) and its operations.
+    It is based off of "Inductive graphs and functional graph algorithms" by Martin Erwig (2001).
     It tries to mirror the FGL (functional graph library) whenever possible,
-    but most importantly only treats one of the multiple implementations of the inductive graph class.
+    but most importantly only treats one of the 3 implementations of the inductive graph class.
 
     "Minimal" operations are (technically, isEmpty and mkGraph can be "implemented" using and and labNodes):
         empty, isEmpty, match, and, mkGraph, labNodes
@@ -33,7 +33,7 @@ Definition MContext (A B : Type) : Type :=
     option (Context A B).
 
 
-(* No node needed, since the node is the key *)
+(* No node needed in Context', since the node is the key in the map *)
 Definition Context' (A B : Type) : Type :=
     (Adj B * A * Adj B).  
 
@@ -47,7 +47,8 @@ Definition LEdge (B : Type) : Type := (Node * Node * B).
 
 
 
-(* Start defining functionality: *)
+(** Start defining functionality: *)
+
 Definition IG_empty {A B : Type} : IG A B :=
     NatMap.empty (Context' A B).
 
@@ -55,10 +56,10 @@ Definition IG_empty {A B : Type} : IG A B :=
 Definition IG_isEmpty {A B : Type} (ig : IG A B) : bool :=
     NatMap.is_empty ig.
 
-(* These are here for now, as all theory files use them *)
+(** These are here for now, as many other theory files use them.
+    The repeated letters are a bypass for programmers to avoid name clashes. *)
 Ltac destruct_context c := destruct c as [[[froms node] label] tos].
 Ltac destruct_contextt c := destruct c as [[[fromss nodee] labell] toss].
-Ltac destruct_contexttt c := destruct c as [[[fromsss nodeee] labelll] tosss].
 Ltac destruct_context' c' := destruct c' as [[froms' label'] tos'].
 Ltac destruct_contextt' c' := destruct c' as [[fromss' labell'] toss'].
 
@@ -108,6 +109,7 @@ Definition _cleanSplit {A B : Type} (node : Node) (context' : Context' A B) (ig 
     (context, ig'').
 
 
+(* This is one of the core operations of an IG. It splits it into the desired context and the rest *)
 Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
     match NatMap.find node ig with
     | None => (None, ig)
@@ -117,13 +119,10 @@ Definition IG_match {A B : Type} (node : Node) (ig : IG A B) : Decomp A B :=
 
 
 
-
-(* Here start the helper functions for IG_mkGraph *)
-
-
-(* This is the "&" constructor from the paper, defined here as a function, as it does more than mere pattern matching *)
-(* Does nothing, if the node already exists *)
-(* In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
+(** This is the "&" constructor from the paper, defined here as a function,
+    as it does more than mere pattern matching
+    Does nothing, if the node already exists.
+    In case neighbours do not exist, the entries are ignored (updateEntry does not find them) *)
 Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
     let '(froms, node, label, tos) := context in
 
@@ -132,12 +131,11 @@ Definition IG_and {A B : Type} (context : Context A B) (ig : IG A B) : IG A B :=
     let ig'' := _updAdj tos (_addPred node) ig' in
     _updAdj froms (_addSucc node) ig''.
 
-    
-
 
 Notation "c &I ig" := (IG_and c ig) (at level 59, right associativity). 
 
 
+(* Here start the helper functions for IG_mkGraph *)
 
 Definition _insNode {A B : Type} (node : LNode A) (ig : IG A B) : IG A B :=
     let '(n, l) := node in
@@ -180,7 +178,6 @@ Definition IG_matchAny {A B : Type} (ig : IG A B) : Decomp A B :=
     end.
   
 
-
 Definition IG_noNodes {A B : Type} (ig : IG A B) : nat :=
     length (IG_labNodes ig).
 
@@ -200,6 +197,6 @@ Definition IG_nodeRange {A B : Type} (ig : IG A B) : Node * Node :=
     end.
 
 
-(* So far, it has no verification *)
+(* So far, it has no verification. It may come in handy for reasoning about edges. *)
 Definition IG_labEdges {A B : Type} (ig : IG A B) : list (LEdge B) :=
     fold_right (fun '(node, (_, _, tos)) acc => map (fun '(l, to) => (node, to, l)) tos ++ acc) [] (NatMap.elements ig). 

@@ -22,7 +22,6 @@ Require Import GraphVerification.src.inductive.IG_wf_operations.
 Require Import GraphVerification.src.inductive.IG_to_RG.
 
 
-
 (** Stating and proving Lemmas and Theorems about IG functions that *do* use well_founded induction. 
     In particular, transpose and DFS *)
 
@@ -35,7 +34,9 @@ Qed.
 
 
 
-(* Showing properties about transpose: *)
+(** Attempting to build towards a proof that transpose on inductive graphs relates
+    to relational graphs. The conversion does not succeed for edges, since there are
+    not enough lemmas yet to simplify work with edges. *)
 
 
 Lemma _key_In_IG_relates : forall (A B : Type) (node : Node) (ig : IG A B),
@@ -51,7 +52,6 @@ Proof.
             rewrite <- MFacts.mem_in_iff.
 
             bdestruct (n =? node).
-            (* same *)
             -- subst. assert (NatMap.In node ig). {
                     apply NatMap_In_exists_MapsTo_iff.
                     apply (IG_match_exactly_removes_node _ _ _ _ _ _ (node, label)) in mat as mat'.
@@ -159,8 +159,8 @@ Qed.
 
 
 
-(* Warning: This depends on unproven IG_and_relates_for_edges *)
-Theorem IG_transpose_relates : forall (A B : Type) (ig : IG A B),
+(* Warning: This depends on unproven IG_and_relaes_for_edges *)
+Theorem IG_transpose_relates : forall (A B : Typte) (ig : IG A B),
     IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
 Proof.
     intros.
@@ -270,7 +270,4 @@ Proof.
     (* the node in the queue is not in the graph (the queue gets smaller) *)
     - assumption.
 Qed.
-
-
-
 

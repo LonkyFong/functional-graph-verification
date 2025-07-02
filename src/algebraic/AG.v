@@ -6,8 +6,8 @@ Require Import PeanoNat.
 Require Import GraphVerification.src.util.NatSet.
 
 
-(** Defining an algebraic_graph (AG) and its operations. There are only single edges.
-    It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov. *)
+(** Defining an algebraic graph (AG) and its operations. There are only single unlabelled edges.
+    It is based off of "Algebraic Graphs with Class (Functional Pearl)" by Andrey Mokhov (2017). *)
 
 Inductive AG (A : Type) : Type :=
     | AG_empty : AG A
@@ -32,7 +32,8 @@ Notation "ag1 +++ ag2" := (AG_overlay ag1 ag2) (at level 60, right associativity
 Notation "ag1 *** ag2" := (AG_connect ag1 ag2) (at level 59, right associativity).
 
 
-(* Selection of construction primitives and polymorphic graph manipulators from the paper *)
+(** We consider twelve of the construction primitives and polymorphic graph manipulators
+    from the original paper.  *)
 
 
 Definition AG_vertices {A : Type} (l : list A) : AG A :=
@@ -44,6 +45,7 @@ Definition AG_edge {A : Type} (a1 a2 : A) : AG A :=
 Definition AG_edges {A : Type} (l : list (A * A)) : AG A :=
     fold_right AG_overlay AG_empty (map (fun x => AG_edge (fst x) (snd x)) l).
 
+(* Originally, only called "graph" *)
 Definition AG_makeGraph {A : Type} (vs : list A) (es : list (A * A)) : AG A :=
     (AG_vertices vs) +++ (AG_edges es).
 
@@ -77,7 +79,6 @@ Definition AG_mergeVertices {A : Type} (f : A -> bool) (v : A) (ag : AG A) : AG 
     AG_gmap (fun x => if f x then v else x) ag.
 
 
-
 Fixpoint AG_bind {A A' : Type} (f : A -> AG A') (ag : AG A) : AG A' :=
     match ag with
     | AG_empty => AG_empty
@@ -94,13 +95,14 @@ Definition AG_induce {A : Type} (f : A -> bool) (ag : AG A) : AG A :=
 Definition AG_removeVertex (x : nat) (ag : AG nat) : AG nat :=
     AG_induce (fun y => negb (Nat.eqb x y)) ag.
 
-
+(* This is rather complicated, but we proved it correct *)
 Fixpoint AG_removeEdge (x y : nat) (ag : AG nat) : AG nat :=
     match ag with
     | AG_empty => AG_empty
     | AG_vertex z => AG_vertex z
     | ag1 +++ ag2 => AG_removeEdge x y ag1 +++ AG_removeEdge x y ag2
-    | ag1 *** ag2 => ((AG_removeVertex x ag1) *** (AG_removeEdge x y ag2)) +++ ((AG_removeEdge x y ag1) *** (AG_removeVertex y ag2))
+    | ag1 *** ag2 => ((AG_removeVertex x ag1) *** (AG_removeEdge x y ag2))
+                        +++ ((AG_removeEdge x y ag1) *** (AG_removeVertex y ag2))
     end.
 
 
@@ -108,13 +110,9 @@ Fixpoint AG_removeEdge (x y : nat) (ag : AG nat) : AG nat :=
 
 
 
+(** Start defining own functions building up to BFS *)
 
-
-
-
-(** Start defining own functions (which will be verified): *)
-
-(* The set of nodes of the AG. An AG could keep track of this internally to help performance *)
+(* The set of nodes of the AG. An AG could possibly keep track of this internally to help performance *)
 Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t := 
     let leftAndRight := fun (ag1 ag2 : AG nat) => NatSet.union (AG_nodeSet ag1) (AG_nodeSet ag2) in
     match ag with
@@ -124,7 +122,7 @@ Fixpoint AG_nodeSet (ag : AG nat) : NatSet.t :=
     | ag1 *** ag2 => leftAndRight ag1 ag2
     end.
 
-(* The amount of _distinct_ nodes in the AG. An AG could keep track of this internally to help performance *)
+(* The amount of _distinct_ nodes in the AG. An AG could possibly keep track of this internally to help performance *)
 Definition AG_nodeAmount (ag : AG nat) : nat :=
     NatSet.cardinal (AG_nodeSet ag).
 
@@ -163,7 +161,7 @@ Definition _upToNStepsCap (from : NatSet.t) (ag : AG nat) (n : nat) : list NatSe
     let trimmedFrom := NatSet.inter from (AG_nodeSet ag) in
     _upToNStepsCap_rec trimmedFrom trimmedFrom ag (S n).
 
-(* Combines result of "_upToNStepsCap" to make a real BFS *)
+(* Combines result of "_upToNStepsCap" to form a proper BFS *)
 Definition AG_BFS (from : list nat) (ag : AG nat) :=
     fold_right (fun next acc => NatSet.elements next ++ (NatList_filterOutOf next acc)) [] (_upToNStepsCap (NatSet_fromList from) ag (AG_nodeAmount ag)).
 

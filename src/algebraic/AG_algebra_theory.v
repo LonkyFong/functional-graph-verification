@@ -13,25 +13,27 @@ Require Import GraphVerification.src.relational.RG_theory.
 Require Import GraphVerification.src.algebraic.AG.
 Require Import GraphVerification.src.algebraic.AG_to_RG.
 
-(** Stating and proving Lemmas and THeorems about the algebraic properties of AGs 
-    A noteworthy result is that we show that
-    the definition-based interpretation of an AG is equivalent to the algebraic interpretation *)
+(** Stating and proving Lemmas and Theorems about the algebraic properties of AGs 
+    A noteworthy result is that we show that the algebraic interpretation follows
+    from the set-theoretical interpretation. *)
 
 
-(** This is used to verify that the axioms on the algebra of AGs are consistent
-    with the interpretation of the expressions in terms of RGs *)
+(** This is used to prove that the axioms on the algebra of AGs follow from
+    the interpretation of the expressions in terms of RGs (seth-theoretical) *)
 Ltac AG_axiom_proof_automation_via_RG :=
     unfold AG_equiv; simpl; firstorder.
 
-(* These are the "8 axioms" as presented in "Algebraic graphs with class (functional pearl)" by Mokhov *)
+(* These are the "8 axioms" as presented in "Algebraic graphs with class (functional pearl)" by Mokhov (2017) *)
 
 (* +++ is commutative and associative *)
-Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A), ag1 +++ ag2 ==A ag2 +++ ag1.
+Theorem AG_overlay_Commutative {A : Type} : forall (ag1 ag2 : AG A),
+    ag1 +++ ag2 ==A ag2 +++ ag1.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
 
-Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A), ag1 +++ (ag2 +++ ag3) ==A (ag1 +++ ag2) +++ ag3.
+Theorem AG_overlay_Associative {A : Type} : forall (ag1 ag2 ag3 : AG A),
+    ag1 +++ (ag2 +++ ag3) ==A (ag1 +++ ag2) +++ ag3.
 Proof.
     AG_axiom_proof_automation_via_RG.
 Qed.
@@ -100,12 +102,14 @@ Qed.
 
 
 
-(** The following theorems are provable using the same automation as the 8 axioms,
+(** The following lemmas are provable using the same automation as the 8 axioms,
     but this section aims to demonstrate their utility, by using only them.
-    This has already been done in the Agda formalization by Andrey Mokhov *)
+    This has already been done in the Agda formalization by Mokhov,
+    but we could reproduce their results in Rocq. *)
 
 (* This is a helper for multiple theorems *)
-Lemma _overlay_preidempotence {A : Type} : forall (ag : AG A), ag +++ ag +++ AG_empty ==A ag.
+Lemma _overlay_preidempotence {A : Type} : forall (ag : AG A),
+    ag +++ ag +++ AG_empty ==A ag.
 Proof.
     intros.
     pose proof (AG_connect_Decomposition ag AG_empty AG_empty).
@@ -119,7 +123,8 @@ Qed.
 
 
 (* Identity of + *)
-Theorem AG_empty_overlay_R_Identity {A : Type} : forall (g : AG A), g +++ AG_empty ==A g.
+Theorem AG_empty_overlay_R_Identity {A : Type} :
+    forall (g : AG A), g +++ AG_empty ==A g.
 Proof.
     intros.
     rewrite <- _overlay_preidempotence.
@@ -137,8 +142,8 @@ Qed.
 
 
 (* Idempotence of + *)
-Theorem AG_overlay_Idempotence {A : Type} :
-    forall (ag : AG A), ag +++ ag ==A ag.
+Theorem AG_overlay_Idempotence {A : Type} : forall (ag : AG A),
+    ag +++ ag ==A ag.
 Proof.
     intros.
     pose proof _overlay_preidempotence ag.
@@ -148,8 +153,8 @@ Qed.
 
 
 (* Absorption *)
-Theorem AG_Absorption {A : Type} :
-    forall (ag1 ag2 : AG A), ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
+Theorem AG_Absorption {A : Type} : forall (ag1 ag2 : AG A),
+    ag1 *** ag2 +++ ag1 +++ ag2 ==A ag1 *** ag2.
 Proof.
     intros. pose proof AG_connect_Decomposition ag1 ag2 AG_empty.
     rewrite (AG_connect_Associative) in H.
@@ -162,7 +167,8 @@ Qed.
 
 
 (* Saturation *)
-Theorem AG_Saturation {A : Type} : forall (ag : AG A), ag *** ag *** ag ==A ag *** ag.
+Theorem AG_Saturation {A : Type} : forall (ag : AG A),
+    ag *** ag *** ag ==A ag *** ag.
 Proof.
     intros.
     rewrite AG_connect_Decomposition.

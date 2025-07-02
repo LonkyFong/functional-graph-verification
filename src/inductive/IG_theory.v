@@ -15,10 +15,11 @@ Require Import GraphVerification.src.relational.RG_theory.
 Require Import GraphVerification.src.inductive.IG.
 
 
-(** Stating and proving basic Lemmas and Theorems (an an equational manner) about IG functions that do not use well_founded induction.
+(** Stating and proving basic Lemmas and Theorems (an an equational manner)
+    about IG functions that do not use well_founded induction.
     Start with very useful "_In_labNodes_is_some_MapsTo" and then moves on to showing how "match" and "and" work on nodes.
     Then some statements about IG_isEmpty and when IG_labNodes is empty.
-    For theorems on functions using well_founded induction, go to "inductive_graph_measured_operations_theory" *)
+    For theorems on functions using well_founded induction, go to "IG_wf_operations_theory.v" *)
 
 
 
@@ -40,8 +41,8 @@ Proof.
 Qed.
         
 
-(* This is the most useful one for proving other statements.
-    Use it to convert from "use friendly" In- statements to "provable" NatMap.In- statements  *)
+(* This is very useful for proving other statements about IG_labNodes.
+    Use it to convert from "user friendly" In- statements to "provable" NatMap.MapsTo- statements  *)
 Lemma _In_labNodes_is_some_MapsTo : forall (A B : Type) (x : LNode A) (ig : IG A B),
     In x (IG_labNodes ig) <-> exists froms tos, NatMap.MapsTo (fst x) (froms, snd x, tos) ig.     
 Proof.
@@ -74,9 +75,9 @@ Qed.
 
 
 
-(* Here start "meaningful statements" *)
+(** Here start "meaningful statements" *)
 
-(* Section on statements about _updateEntry and _updAdj *)
+(* Section on statements about _updateEntry and _updAdj in most cases not changing the nodes *)
 
 (* Two general Lemmas about _updateEntry and _updAdj using any function f.
     They don't change the key set of the IG *)
@@ -148,9 +149,9 @@ Proof.
 Qed.
 
 
-
-
 (* Now apply the general proof to instances _addSucc, _addPred, _clearSucc and _clearPred *)
+
+(* Poof automatons for : *)
 Ltac _updateEntry_instance_prover c := intros; apply _updateEntry_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 Ltac _updAdj_instance_prover c := intros; apply _updAdj_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 
@@ -233,7 +234,6 @@ Proof.
         apply _In_labNodes_is_some_MapsTo in H0. destruct_eMapsTo H0. simpl in H0.
         apply MFacts.remove_mapsto_iff in H0. firstorder.
         
-    
     - inversion H. subst. apply MFacts.not_find_in_iff in HH. apply _In_labNodes_is_some_MapsTo in H0.
         firstorder.
 Qed.
@@ -250,7 +250,6 @@ Proof.
         unfold _cleanSplit in H. destruct_context c. destruct_context' c0. destruct x as [xn xl]. inversion H. subst. clear H.
 
         unfold _key_In_IG in *.
-        (* This used to be much more spread out, until it got compacted *)
         setoid_rewrite _updAdj_clearPred_does_not_change_IG_labNodes.
         setoid_rewrite _updAdj_clearSucc_does_not_change_IG_labNodes.
         setoid_rewrite _In_labNodes_is_some_MapsTo.
@@ -270,7 +269,6 @@ Proof.
             -- firstorder.    
     - inversion H.
 Qed.
-
 
 
 Lemma IG_match_empty_is_nothing : forall (A B : Type) (node : Node),

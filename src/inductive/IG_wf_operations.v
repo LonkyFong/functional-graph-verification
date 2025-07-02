@@ -12,7 +12,7 @@ Require Import GraphVerification.src.inductive.IG.
 Require Import GraphVerification.src.inductive.IG_wf.
 
 
-(** Defining operations on an IG that depend on well-founded recursion for their termination.
+(** Defining operations on an IG that depend on well-founded induction for their termination.
     They require the Theorems about IG_noNodes etc. from IG_wf.
     At the moment, has transpose (with ufold and gmap) and DFS *) 
 
@@ -30,6 +30,7 @@ Defined.
 
 Definition IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) : C :=
     _ufold_rec _ _ _ f acc ig.
+
 
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
 Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) {measure IG_noNodes ig} : IG C D :=
@@ -59,22 +60,23 @@ Definition IG_transpose {A B : Type} (ig : IG A B) : IG A B :=
 
 
 
-(* DFS *)
+(** Building towards DFS *)
 
 Definition suc {A B : Type} (c : Context A B) : list Node :=
     let '(_, _, _, tos) := c in map snd tos.
 
-
-(* Defining the argument pair to be used in the DFS. It starts as a dependent pair, since lexprod expects this *)
+(** To prove termination of DFS, its arguments need to be packed in a single argument.
+    It starts as a dependent pair, since lexprod expects this *)
 Definition dep_arg_pair_s (A B : Type) := {_ : IG A B & list Node}. 
 
+(* The lexicographic order on dependent pairs *)
 Definition lexord_dep_arg_pair_s (A B : Type) :=
     lexprod (IG A B)
             (fun a => list Node)
             (fun ig1 ig2 => Peano.lt (IG_noNodes ig1) (IG_noNodes ig2))
             (fun a => fun l1 l2 => Peano.lt (length l1) (length l2)).
 
-(* Prove lexicographic order is well-founded *)
+(* Prove lexicographic order on dependent pairs is well-founded *)
 Lemma wf_lexord_dep_arg_pair_s (A B : Type) : well_founded (lexord_dep_arg_pair_s A B).
 Proof.
     apply wf_lexprod.
@@ -86,11 +88,12 @@ Qed.
 Definition prodTo_dep_arg_pair_s {A B : Type} (p : IG A B * list Node) : dep_arg_pair_s A B := 
     existT _ (fst p) (snd p).
 
+(* The lexicographic order on ordered pairs *)
 Definition lexord_arg_pair_s (A B : Type) (igNodes1 igNodes2 : IG A B * list Node) : Prop :=  
     lexord_dep_arg_pair_s _ _ (prodTo_dep_arg_pair_s igNodes1) (prodTo_dep_arg_pair_s igNodes2).
 
 
-(* Prove lexicographic order is well-founded *)
+(* Prove lexicographic order on product paris is well-founded *)
 Lemma wf_lexord_arg_pair_s (A B : Type) : well_founded (lexord_arg_pair_s A B).
 Proof.
     unfold lexord_arg_pair_s.
@@ -98,13 +101,15 @@ Proof.
     apply wf_lexord_dep_arg_pair_s.
 Qed.
 
+(* Break up the lexord_arg_pair_s definition for easier use in proofs *)
 Ltac break_up_lexord := unfold lexord_arg_pair_s;
                             unfold lexord_dep_arg_pair_s;
                             unfold prodTo_dep_arg_pair_s;
                             simpl.
 
-                          
-(* The next two are used equally for proving termination as doing wf-induction to prover properties *)
+                  
+                            
+(* The next two lemmas streaming the final termination proof. *)
 Lemma IG_match_some_decreases_lexord : forall (A B : Type) (n : Node) (c : Context A B) (ig i : IG A B) (any1 any2 : list Node),
     IG_match n ig = (Some c, i)
     -> lexord_arg_pair_s A B (i, any1) (ig, any2).
