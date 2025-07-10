@@ -17,7 +17,21 @@ As a quick overview, codebase is comprised of five modules: utility, relational 
 [plantuml](https://plantuml.com/) diagrams are used to illustrate the architecture and dependencies for certain proofs, which are located in the `/documentation` folder, such that they can be kept up to date.
 
 
+## Compilation
+The project can be compiled by running:
 
+```console
+make
+```
+
+After updating the `_CoqProject` file run the command below to update the makefile.
+
+```console
+coq_makefile -f _CoqProject -o Makefile
+```
+
+The project uses Rocq version 8.18.0
+and Haskell version 9.6.6 (for extracted code).
 
 
 ## References

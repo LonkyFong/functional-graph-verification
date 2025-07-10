@@ -1,4 +1,4 @@
-module AG_extracted where
+module AG_extracted_tweaked where
 
 import qualified Prelude
 import Prelude ((+), (*), fromInteger, signum, abs, negate)
@@ -2515,7 +2515,7 @@ data AG a =
  | AG_vertex a
  | AG_overlay (AG a) (AG a)
  | AG_connect (AG a) (AG a)
-     deriving (Prelude.Show)
+      deriving (Prelude.Show)
     
 
 instance (Prelude.Ord a, Prelude.Num a) => Prelude.Num (AG a) where

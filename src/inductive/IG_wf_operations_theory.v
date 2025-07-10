@@ -43,8 +43,8 @@ Lemma _key_In_IG_relates : forall (A B : Type) (node : Node) (ig : IG A B),
     _key_In_IG node ig <-> RG_toList (IG_to_RG ig) node.
 Proof.
     intros A B n. setoid_rewrite _key_In_IG_mem_iff.
-    unfold IG_to_RG. unfold IG_ufold.
-    apply (_ufold_rec_ind _ _ _ _ _ (fun ig acc => NatMap.mem n ig = true <-> RG_nodes acc n)).
+    unfold IG_to_RG.
+    apply (IG_ufold_ind _ _ _ _ _ (fun ig acc => NatMap.mem n ig = true <-> RG_nodes acc n)).
     - intros. rename e into mat. destruct_context c. simpl. unfold Ensemble_add. 
         unfold IG_matchAny in mat. destruct (IG_labNodes ig).
         + inversion mat.
@@ -160,27 +160,26 @@ Qed.
 
 
 (* Warning: This depends on unproven IG_and_relaes_for_edges *)
-Theorem IG_transpose_relates : forall (A B : Typte) (ig : IG A B),
+Theorem IG_transpose_relates : forall (A B : Type) (ig : IG A B),
     IG_to_RG (IG_transpose ig) ==R RG_transpose (IG_to_RG ig).
 Proof.
     intros.
     unfold IG_transpose.
     unfold IG_gmap.
     unfold IG_to_RG at 2.
-    apply _ufold_rec_ind.
+    apply IG_ufold_ind.
     - intros.
-        unfold IG_ufold.
-        rewrite !_ufold_rec_equation.
+        rewrite !IG_ufold_equation.
         rewrite e in *.
 
         rewrite RG_transpose_distributes_over_extendByContext.
         rewrite IG_and_relates.
         rewrite <- H.
-        rewrite !_ufold_rec_equation.
+        rewrite !IG_ufold_equation.
 
         reflexivity.
 
-    - intros. rewrite !_ufold_rec_equation. rewrite e. clear. firstorder. 
+    - intros. rewrite !IG_ufold_equation. rewrite e. clear. firstorder. 
 Qed.
 
 

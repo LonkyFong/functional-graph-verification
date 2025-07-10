@@ -108,9 +108,10 @@ Qed.
 
 
 
-
-(* Generalization of properties of _addSucc, _addPred, _clearSucc and _clearPred
-    which all don't actually change the label as well. When used with _updateEntry and _updAdj *)
+(* Property from above, but with the restriction that the function f does not change the label of the nodes.
+    Then, we can show that the keys AND the labels of the nodes do not change.
+    The functions _addSucc, _addPred, _clearSucc and _clearPred are such functions.
+    So we can use this more general skeleton to derive the properties for all of _addSucc, _addPred, _clearSucc and _clearPred *)
 Lemma _updateEntry_sameLabel_f_does_not_change_IG_labNodes : forall (A B : Type) (node : Node) (f : Context' A B -> Context' A B) (ig : IG A B) (x : LNode A),
     (forall (c : Context' A B),
         let '(_, label, _) := c in
@@ -149,9 +150,9 @@ Proof.
 Qed.
 
 
-(* Now apply the general proof to instances _addSucc, _addPred, _clearSucc and _clearPred *)
+(* Now apply the general proof to cases _addSucc, _addPred, _clearSucc and _clearPred *)
 
-(* Poof automatons for : *)
+(* Proof automatons : *)
 Ltac _updateEntry_instance_prover c := intros; apply _updateEntry_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 Ltac _updAdj_instance_prover c := intros; apply _updAdj_sameLabel_f_does_not_change_IG_labNodes; intros; destruct_context' c; firstorder.
 
@@ -239,6 +240,13 @@ Proof.
 Qed.
 
 
+
+(* Similar to IG_and_adds_node, but in reverse direction.
+    States that if a graph ig can be decomposed into a context c
+    and some remainder graph rest,
+    then the following two are equivalent for all nodes x:
+    - x is in ig
+    - x is either in rest, or it is in c and not in rest *)
 Lemma IG_match_exactly_removes_node : forall (A B : Type) (query : Node) (c : Context A B) (ig i : IG A B) (x : LNode A),
     IG_match query ig = (Some c, i)
         -> In x (IG_labNodes ig)
@@ -302,6 +310,11 @@ Qed.
 
 
 
+(* Similar to IG_match_exactly_removes_node, but in other direction.
+    It very closely characterizes the behavior of &I in terms of nodes,
+    by stating that the following two are equivalent for all nodes x:
+    - x is in c &I ig
+    - x is in the ig, or it is part of c and not in ig *)
 Lemma IG_and_adds_node : forall (A B : Type) (c : Context A B) (ig : IG A B) (x : LNode A),
     In x (IG_labNodes (c &I ig))
         <-> let '(_, node, label, _) := c in (x = (node, label) /\ ~_key_In_IG (fst x) ig) \/ In x (IG_labNodes ig).

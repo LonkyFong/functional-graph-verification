@@ -1,3 +1,7 @@
+-- In preamble
+module IG_extracted_tweaked where
+
+
 -- make each of these datatypes derive Show, such that results can be displayed
 data Option a =
     Some a

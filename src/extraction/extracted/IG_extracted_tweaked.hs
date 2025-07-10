@@ -1,4 +1,4 @@
-module IG_extracted where
+module IG_extracted_tweaked where
 
 import qualified Prelude
 
@@ -74,7 +74,7 @@ nat_rec =
 data Option a =
    Some a
  | None
-     deriving (Prelude.Show)
+      deriving (Prelude.Show)
 
 data Sum a b =
    Inl a
@@ -615,7 +615,7 @@ data Z =
    Z0
  | Zpos Positive
  | Zneg Positive
-     deriving (Prelude.Show)
+      deriving (Prelude.Show)
 
 
 succ1 :: Positive -> Positive
@@ -878,7 +878,7 @@ type Key = Prelude.Integer
 data Tree elt =
    Leaf
  | Node0 (Tree elt) Key elt (Tree elt) T0
-    deriving (Prelude.Show)
+     deriving (Prelude.Show)
 
 
 tree_rect :: a2 -> ((Tree a1) -> a2 -> Key -> a1 -> (Tree a1) -> a2 -> T0 ->
@@ -2900,7 +2900,6 @@ iG_mkGraph :: ([] (LNode a1)) -> ([] (LEdge a2)) -> IG a1 a2
 iG_mkGraph nodes edges =
   _insEdges edges (_insNodes nodes iG_empty)
 
-
 iG_labNodes :: (IG a1 a2) -> [] (LNode a1)
 iG_labNodes ig =
   map (\pat ->
@@ -2945,17 +2944,13 @@ iG_labEdges ig =
                           (,) l to -> (,) ((,) node to) l}) tos) acc}}) []
     (elements1 ig)
 
-_ufold_rec :: ((Context a1 a2) -> a3 -> a3) -> a3 -> (IG a1 a2) -> a3
-_ufold_rec f acc ig =
+iG_ufold :: ((Context a1 a2) -> a3 -> a3) -> a3 -> (IG a1 a2) -> a3
+iG_ufold f acc ig =
   case iG_matchAny ig of {
    (,) m i ->
     case m of {
-     Some c -> sig_rect (\rec_res _ -> f c rec_res) (_ufold_rec f acc i);
+     Some c -> sig_rect (\rec_res _ -> f c rec_res) (iG_ufold f acc i);
      None -> acc}}
-
-iG_ufold :: ((Context a1 a2) -> a3 -> a3) -> a3 -> (IG a1 a2) -> a3
-iG_ufold =
-  _ufold_rec
 
 iG_gmap :: ((Context a1 a2) -> Context a3 a4) -> (IG a1 a2) -> IG a3 a4
 iG_gmap f ig =
@@ -3005,4 +3000,3 @@ _DFS_rec x1 =
 iG_DFS :: ([] Node) -> (IG a1 a2) -> [] Node
 iG_DFS nodes ig =
   _DFS_rec ((,) ig nodes)
-

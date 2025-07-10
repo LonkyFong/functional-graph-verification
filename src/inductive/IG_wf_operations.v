@@ -19,17 +19,19 @@ Require Import GraphVerification.src.inductive.IG_wf.
 
 (* ufold and gmap (leading to transpose) *)
 
-Function _ufold_rec {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
+Function IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) {measure IG_noNodes ig} : C :=
     match IG_matchAny ig with
-    | (Some c, rest) => f c (_ufold_rec f acc rest)
+    | (Some c, rest) => f c (IG_ufold f acc rest)
     | (None, rest) => acc
     end.
 Proof.
     intros. apply IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
 
-Definition IG_ufold {A B C : Type} (f : Context A B -> C -> C) (acc : C) (ig : IG A B) : C :=
-    _ufold_rec _ _ _ f acc ig.
+(* For some reason, {A B C : Type} do not get hidden outside the scope of the function definition,
+    so we have hide the first three arguments manually. *)
+Arguments IG_ufold {x x0 x1}.
+
 
 
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
@@ -41,6 +43,9 @@ Function IG_gmap_diy {A B C D : Type} (f : Context A B -> Context C D) (ig : IG 
 Proof.
     intros. apply IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
+
+Arguments IG_gmap_diy {x x0 x1 x2}.
+
 
 
 Definition IG_gmap {A B C D : Type} (f : Context A B -> Context C D) (ig : IG A B) : IG C D :=
@@ -152,7 +157,6 @@ Proof.
     (* lexord_arg_pair_s is indeed well-founded *) 
     - exact wf_lexord_arg_pair_s.
 Defined.
-
 
 (* Caller for user-friendliness *)
 Definition IG_DFS {A B : Type} (nodes : list Node) (ig : IG A B) : list Node :=

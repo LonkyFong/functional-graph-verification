@@ -9,6 +9,13 @@
 ./src/relational/RG_theory.v
 
 
+./src/algebraic/AG.v
+./src/algebraic/AG_to_RG.v
+./src/algebraic/AG_algebra_theory.v
+./src/algebraic/AG_basic_derived_operations_theory.v
+./src/algebraic/AG_search_theory.v
+
+
 ./src/inductive/IG.v
 ./src/inductive/IG_wf.v
 ./src/inductive/IG_wf_operations.v
@@ -20,14 +27,4 @@
 ./src/inductive/IG_wf_operations_theory.v
 
 
-./src/algebraic/AG.v
-./src/algebraic/AG_to_RG.v
-./src/algebraic/AG_algebra_theory.v
-./src/algebraic/AG_basic_derived_operations_theory.v
-./src/algebraic/AG_search_theory.v
-
 ./src/extraction/extraction.v
-
-
-# coq_makefile -f _CoqProject -o Makefile
-# make
