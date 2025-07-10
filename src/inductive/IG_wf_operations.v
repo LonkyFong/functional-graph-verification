@@ -63,7 +63,6 @@ Definition IG_transpose {A B : Type} (ig : IG A B) : IG A B :=
 
 
 
-
 (** Building towards DFS *)
 
 Definition suc {A B : Type} (c : Context A B) : list Node :=
