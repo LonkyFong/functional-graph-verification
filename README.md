@@ -18,13 +18,13 @@ As a quick overview, codebase is comprised of five modules: utility, relational 
 
 
 ## Compilation
-The project can be compiled by running:
+The project can be compiled by running the command below in the root directory.
 
 ```console
 make
 ```
 
-After updating the `_CoqProject` file run the command below to update the makefile.
+After updating the `_CoqProject` file the makefile can be updated by running the command below.
 
 ```console
 coq_makefile -f _CoqProject -o Makefile

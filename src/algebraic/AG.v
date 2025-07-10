@@ -162,6 +162,5 @@ Definition _upToNStepsCap (from : NatSet.t) (ag : AG nat) (n : nat) : list NatSe
     _upToNStepsCap_rec trimmedFrom trimmedFrom ag (S n).
 
 (* Combines result of "_upToNStepsCap" to form a proper BFS *)
-Definition AG_BFS (from : list nat) (ag : AG nat) :=
+Definition AG_BFS (from : list nat) (ag : AG nat) : list nat :=
     fold_right (fun next acc => NatSet.elements next ++ (NatList_filterOutOf next acc)) [] (_upToNStepsCap (NatSet_fromList from) ag (AG_nodeAmount ag)).
-
