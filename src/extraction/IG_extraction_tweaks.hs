@@ -1,3 +1,6 @@
+-- Tweaks to make the extracted inductive graphs code more usable
+-- These are just code snippets, not complete executable Haskell code.
+
 -- In preamble
 module IG_extracted_tweaked where
 

@@ -1,4 +1,5 @@
 -- Example operations for extracted haskell code for inductive graphs
+-- These are just code snippets, not complete executable Haskell code.
 
 iG_empty
 

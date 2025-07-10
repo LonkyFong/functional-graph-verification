@@ -1,4 +1,5 @@
 -- Example operations for extracted haskell code for algebraic graphs
+-- These are just code snippets, not complete executable Haskell code.
 
 aG_vertices [1, 2, 3, 4]
 

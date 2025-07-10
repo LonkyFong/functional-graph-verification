@@ -1,3 +1,6 @@
+-- Tweaks to make the extracted algebraic graphs code more usable.
+-- These are just code snippets, not complete executable Haskell code.
+
 -- In Preamble
 module AG_extracted_tweaked where
 
