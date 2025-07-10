@@ -30,8 +30,7 @@ Defined.
 
 (* For some reason, {A B C : Type} do not get hidden outside the scope of the function definition,
     so we have hide the first three arguments manually. *)
-Arguments IG_ufold {x x0 x1}.
-
+Arguments IG_ufold {_ _ _}.
 
 
 (* This is the direct way of writing gmap, but it can also be done in terms of ufold *)
@@ -44,7 +43,7 @@ Proof.
     intros. apply IG_matchAny_decreases_IG_noNodes in teq. assumption.
 Defined.
 
-Arguments IG_gmap_diy {x x0 x1 x2}.
+Arguments IG_gmap_diy {_ _ _ _}.
 
 
 
