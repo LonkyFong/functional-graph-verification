@@ -1,6 +1,6 @@
 @startuml UI
 
-title <size:30><b>Functional Graph Verification Architectural Diagramm</b></size>
+title <size:30><b>Functional Graph Verification Architectural Diagram</b></size>
 
 top to bottom direction
 
